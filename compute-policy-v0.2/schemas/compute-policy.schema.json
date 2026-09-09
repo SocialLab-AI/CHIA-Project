@@ -1,0 +1,287 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/chia/schemas/compute-policy.schema.json",
+  "title": "CHIA Progressive Compute Validation Policy",
+  "description": "Governance policy for real execution infrastructure, Gemini API budget, and promotion gates. This must remain separate from simulated hardware knobs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "policy_version",
+    "currency",
+    "gemini",
+    "tiers",
+    "promotion_gates"
+  ],
+  "properties": {
+    "policy_version": {
+      "const": "CP-01"
+    },
+    "currency": {
+      "const": "USD"
+    },
+    "gemini": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_budget_usd",
+        "reserve_usd",
+        "metering_required"
+      ],
+      "properties": {
+        "total_budget_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "reserve_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "metering_required": {
+          "const": true
+        },
+        "cache_reuse_recommended": {
+          "type": "boolean"
+        }
+      }
+    },
+    "tiers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dev",
+        "integration",
+        "pilot",
+        "final"
+      ],
+      "properties": {
+        "dev": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "allowed_backends",
+            "max_parallel_jobs",
+            "gemini_allowed",
+            "gemini_budget_usd",
+            "organizer_burst_allowed",
+            "candidate_run_guidance"
+          ],
+          "properties": {
+            "allowed_backends": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "local",
+                  "contabo",
+                  "development_cloud",
+                  "organizer_burst"
+                ]
+              }
+            },
+            "max_parallel_jobs": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "gemini_allowed": {
+              "type": "boolean"
+            },
+            "gemini_budget_usd": {
+              "type": "number",
+              "minimum": 0
+            },
+            "organizer_burst_allowed": {
+              "type": "boolean"
+            },
+            "candidate_run_guidance": {
+              "type": "string",
+              "minLength": 1
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "integration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "allowed_backends",
+            "max_parallel_jobs",
+            "gemini_allowed",
+            "gemini_budget_usd",
+            "organizer_burst_allowed",
+            "candidate_run_guidance"
+          ],
+          "properties": {
+            "allowed_backends": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "local",
+                  "contabo",
+                  "development_cloud",
+                  "organizer_burst"
+                ]
+              }
+            },
+            "max_parallel_jobs": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "gemini_allowed": {
+              "type": "boolean"
+            },
+            "gemini_budget_usd": {
+              "type": "number",
+              "minimum": 0
+            },
+            "organizer_burst_allowed": {
+              "type": "boolean"
+            },
+            "candidate_run_guidance": {
+              "type": "string",
+              "minLength": 1
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "pilot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "allowed_backends",
+            "max_parallel_jobs",
+            "gemini_allowed",
+            "gemini_budget_usd",
+            "organizer_burst_allowed",
+            "candidate_run_guidance"
+          ],
+          "properties": {
+            "allowed_backends": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "local",
+                  "contabo",
+                  "development_cloud",
+                  "organizer_burst"
+                ]
+              }
+            },
+            "max_parallel_jobs": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "gemini_allowed": {
+              "type": "boolean"
+            },
+            "gemini_budget_usd": {
+              "type": "number",
+              "minimum": 0
+            },
+            "organizer_burst_allowed": {
+              "type": "boolean"
+            },
+            "candidate_run_guidance": {
+              "type": "string",
+              "minLength": 1
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "final": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "allowed_backends",
+            "max_parallel_jobs",
+            "gemini_allowed",
+            "gemini_budget_usd",
+            "organizer_burst_allowed",
+            "candidate_run_guidance"
+          ],
+          "properties": {
+            "allowed_backends": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "local",
+                  "contabo",
+                  "development_cloud",
+                  "organizer_burst"
+                ]
+              }
+            },
+            "max_parallel_jobs": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "gemini_allowed": {
+              "type": "boolean"
+            },
+            "gemini_budget_usd": {
+              "type": "number",
+              "minimum": 0
+            },
+            "organizer_burst_allowed": {
+              "type": "boolean"
+            },
+            "candidate_run_guidance": {
+              "type": "string",
+              "minLength": 1
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "promotion_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dev_to_integration",
+        "integration_to_pilot",
+        "pilot_to_final"
+      ],
+      "properties": {
+        "dev_to_integration": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "integration_to_pilot": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "pilot_to_final": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+schema_version: '0.2'
+experiment_id: attn-pilot-017
+campaign_id: pilot-v1
+config_digest: sha256:0b46e86db05c4d4cd686efc9d738ea2af825e08f01b6f9c421221dcfcecea534
+execution:
+  tier: pilot
+  backend: development_cloud
+  worker_id: gem5-worker-02
+  started_at: '2026-09-09T08:00:00Z'
+  finished_at: '2026-09-09T08:18:04Z'
+  attempt: 1
+  wall_time_s: 1084.0
+metrics:
+  correctness:
+    passed: true
+    max_abs_error: 1.2e-06
+    max_rel_error: 4.1e-06
+  architecture:
+    cycles: 18390211
+    instructions: 25133128
+    ipc: 1.3667
+    l1_miss_rate: 0.071
+    l2_miss_rate: 0.018
+usage:
+  gemini:
+    model: REPLACE_WITH_ACTUAL_MODEL
+    calls: 1
+    input_tokens: 2400
+    output_tokens: 310
+    estimated_cost_usd: 0.0
+provenance:
+  git_commit: abcdef1
+  chia_version: REPLACE_WITH_ACTUAL_CHIA_VERSION
+  gem5_version: v25.1
+  kernel_version: attn-kernel-v0.1
+  policy_version: CP-01
+  seed: 42
+  gemini_prompt_version: prompt-v1
+status:
+  state: completed
+  failure_reason: null

@@ -1,0 +1,30 @@
+schema_version: '0.2'
+experiment:
+  id: attn-dev-001
+  campaign_id: dev-smoke
+  description: Tiny attention-kernel smoke test on baseline hardware
+  tags:
+  - dev
+  - smoke
+workload:
+  type: attention_kernel
+  implementation: reference-cpu
+  sequence_length: 32
+  head_dimension: 32
+  num_heads: 2
+  batch_size: 1
+  dtype: fp32
+  causal: false
+  seed: 42
+software:
+  kernel_variant: baseline
+  tile_q: null
+  tile_k: null
+  tile_v: null
+  num_threads: 1
+  compiler_flags: []
+hardware:
+  l1_cache_kb: 32
+  l2_cache_kb: 256
+  cores: 1
+  issue_width: 1
