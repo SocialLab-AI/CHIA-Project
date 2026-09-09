@@ -1,0 +1,39 @@
+# Illustrative planning record: references are placeholders, not supplied assets.
+# Schema-valid does not mean runnable or simulator-supported.
+schema_version: "0.1.0"
+
+metadata:
+  experiment_id: tutor-v01-baseline-001
+  description: "Candidate offline tutor baseline; measure quality and resource trade-offs."
+  artifact_manifest: null
+
+workload:
+  dataset_id: "placeholder:tutor-science-questions-v1"
+  corpus_id: "placeholder:science-textbook-index-v1"
+  evaluation_protocol: "placeholder:tutor-evaluation-v1"
+  num_questions: 20
+  seed: 42
+
+software:
+  model: "placeholder:chosen-small-instruct-model"
+  quantization: int4
+  retrieval_top_k: 3
+  max_new_tokens: 128
+  batch_size: 1  # Secondary; keep fixed in initial sweeps.
+
+hardware:
+  l1_cache_kb: 64    # KiB of L1 data cache PER CORE; mapping unverified.
+  l2_cache_kb: 1024  # KiB TOTAL shared L2; topology unverified.
+  cores: 2          # Modeled CPU cores, not Ray workers.
+  issue_width: 2    # Aggregate micro-operations/core/cycle; mapping unverified.
+
+metrics:
+  answer_quality: null
+  latency_ms: null
+  energy_joules: null
+  memory_mb: null
+  throughput_qps: null
+
+status:
+  state: planned
+  message: "Replace placeholder references and verify runtime/simulator support before execution."
