@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/chia/schemas/experiment.schema.json",
+  "title": "CHIA Attention-Kernel Experiment Configuration",
+  "description": "Immutable scientific input for one CHIA attention-kernel design-space candidate. It describes what is tested, not where the job physically runs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "experiment",
+    "workload",
+    "software",
+    "hardware"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.2"
+    },
+    "experiment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "campaign_id",
+        "description"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]+$"
+        },
+        "campaign_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]+$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "implementation",
+        "sequence_length",
+        "head_dimension",
+        "num_heads",
+        "batch_size",
+        "dtype",
+        "seed"
+      ],
+      "properties": {
+        "type": {
+          "const": "attention_kernel"
+        },
+        "implementation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sequence_length": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65536
+        },
+        "head_dimension": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4096
+        },
+        "num_heads": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1024
+        },
+        "batch_size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1024
+        },
+        "dtype": {
+          "enum": [
+            "fp32",
+            "fp16",
+            "bf16",
+            "int8"
+          ]
+        },
+        "causal": {
+          "type": "boolean",
+          "default": false
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "software": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kernel_variant",
+        "num_threads"
+      ],
+      "properties": {
+        "kernel_variant": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tile_q": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "tile_k": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "tile_v": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "num_threads": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256
+        },
+        "compiler_flags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      }
+    },
+    "hardware": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "l1_cache_kb",
+        "l2_cache_kb",
+        "cores",
+        "issue_width"
+      ],
+      "properties": {
+        "l1_cache_kb": {
+          "type": "integer",
+          "minimum": 4,
+          "maximum": 1024
+        },
+        "l2_cache_kb": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 65536
+        },
+        "cores": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "issue_width": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        }
+      }
+    }
+  }
+}

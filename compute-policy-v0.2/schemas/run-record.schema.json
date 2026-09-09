@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/chia/schemas/run-record.schema.json",
+  "title": "CHIA Attention-Kernel Run Record",
+  "description": "Observed execution record for one experiment candidate: where it ran, what it measured, what it cost, and exactly which code/tool versions produced it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "experiment_id",
+    "campaign_id",
+    "config_digest",
+    "execution",
+    "metrics",
+    "usage",
+    "provenance",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.2"
+    },
+    "experiment_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "campaign_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "config_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tier",
+        "backend",
+        "worker_id",
+        "started_at",
+        "finished_at",
+        "attempt"
+      ],
+      "properties": {
+        "tier": {
+          "enum": [
+            "dev",
+            "integration",
+            "pilot",
+            "final"
+          ]
+        },
+        "backend": {
+          "enum": [
+            "local",
+            "contabo",
+            "development_cloud",
+            "organizer_burst"
+          ]
+        },
+        "worker_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "finished_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "wall_time_s": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "correctness",
+        "architecture"
+      ],
+      "properties": {
+        "correctness": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "passed"
+          ],
+          "properties": {
+            "passed": {
+              "type": "boolean"
+            },
+            "max_abs_error": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "max_rel_error": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            }
+          }
+        },
+        "architecture": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "cycles",
+            "instructions",
+            "ipc",
+            "l1_miss_rate",
+            "l2_miss_rate"
+          ],
+          "properties": {
+            "cycles": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "instructions": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "ipc": {
+              "type": "number",
+              "minimum": 0
+            },
+            "l1_miss_rate": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "l2_miss_rate": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        }
+      }
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gemini"
+      ],
+      "properties": {
+        "gemini": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "calls",
+            "input_tokens",
+            "output_tokens",
+            "estimated_cost_usd"
+          ],
+          "properties": {
+            "model": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "calls": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "input_tokens": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "output_tokens": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "estimated_cost_usd": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "git_commit",
+        "chia_version",
+        "gem5_version",
+        "kernel_version",
+        "policy_version",
+        "seed"
+      ],
+      "properties": {
+        "git_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{7,40}$"
+        },
+        "chia_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gem5_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kernel_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "policy_version": {
+          "const": "CP-01"
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "gemini_prompt_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "completed",
+            "failed",
+            "rejected"
+          ]
+        },
+        "failure_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}
