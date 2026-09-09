@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/chia/run-record.schema.json",
+  "title": "CHIA Run Record",
+  "description": "Evidence record for one actual execution. Stores verified gem5 metrics, correctness, execution information, Gemini usage, provenance, and status.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "experiment",
+    "execution",
+    "metrics",
+    "usage",
+    "provenance",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.2.0"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "experiment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "experiment_id",
+        "config_digest"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "ai_tutor",
+            "attention_kernel"
+          ]
+        },
+        "experiment_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "config_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-fA-F]{64}$"
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tier",
+        "backend",
+        "worker_id",
+        "started_at",
+        "finished_at",
+        "attempt",
+        "host_seconds"
+      ],
+      "properties": {
+        "tier": {
+          "type": "string",
+          "enum": [
+            "dev",
+            "integration",
+            "pilot",
+            "final"
+          ]
+        },
+        "backend": {
+          "type": "string",
+          "enum": [
+            "local",
+            "contabo",
+            "development_cloud",
+            "organizer_burst"
+          ]
+        },
+        "worker_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "finished_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "host_seconds": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "execution_cycles",
+        "instructions",
+        "cpi",
+        "ipc",
+        "sim_ticks",
+        "sim_seconds",
+        "l1i_miss_rate",
+        "l1d_miss_rate",
+        "l2_miss_rate",
+        "checksum",
+        "passed"
+      ],
+      "properties": {
+        "execution_cycles": {
+          "type": "number",
+          "minimum": 0
+        },
+        "instructions": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cpi": {
+          "type": "number",
+          "minimum": 0
+        },
+        "ipc": {
+          "type": "number",
+          "minimum": 0
+        },
+        "sim_ticks": {
+          "type": "number",
+          "minimum": 0
+        },
+        "sim_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "l1i_miss_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "l1d_miss_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "l2_miss_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "checksum": {
+          "type": "string",
+          "minLength": 1
+        },
+        "passed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gemini"
+      ],
+      "properties": {
+        "gemini": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "model",
+            "calls",
+            "input_tokens",
+            "output_tokens",
+            "estimated_cost_usd"
+          ],
+          "properties": {
+            "model": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "calls": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "input_tokens": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "output_tokens": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "estimated_cost_usd": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "git_commit",
+        "chia_version",
+        "gem5_version",
+        "kernel_version",
+        "compiler",
+        "policy_version",
+        "seed"
+      ],
+      "properties": {
+        "git_commit": {
+          "type": "string",
+          "minLength": 7
+        },
+        "chia_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gem5_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kernel_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "compiler": {
+          "type": "string",
+          "minLength": 1
+        },
+        "policy_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "failure_reason"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "completed",
+            "failed",
+            "rejected"
+          ]
+        },
+        "failure_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,279 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/chia/attention-experiment.schema.json",
+  "title": "CHIA Attention Kernel Experiment",
+  "description": "One concrete attention-kernel + gem5 experiment. Values describe the simulated target and workload, not the real host machine running gem5.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "metadata",
+    "workload",
+    "software",
+    "hardware",
+    "measurement",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.2.0"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "experiment_id",
+        "campaign_id",
+        "description"
+      ],
+      "properties": {
+        "experiment_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "campaign_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context_tokens",
+        "query_heads",
+        "kv_heads",
+        "head_dimension",
+        "layers"
+      ],
+      "properties": {
+        "context_tokens": {
+          "type": "integer",
+          "enum": [
+            128,
+            256,
+            512,
+            1024,
+            2048,
+            4096
+          ]
+        },
+        "query_heads": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "kv_heads": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "head_dimension": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "layers": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2
+        }
+      }
+    },
+    "software": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "implementation",
+        "kv_format",
+        "threads"
+      ],
+      "properties": {
+        "implementation": {
+          "const": "AttentionKernelQuantizedKV"
+        },
+        "kv_format": {
+          "type": "string",
+          "enum": [
+            "FP32",
+            "FP16",
+            "Q8",
+            "Q4"
+          ]
+        },
+        "threads": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "hardware": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cpu_model",
+        "cores",
+        "frequency_ghz",
+        "l1i_cache_kib",
+        "l1i_associativity",
+        "l1i_latency_cycles",
+        "l1d_cache_kib",
+        "l1d_associativity",
+        "l1d_latency_cycles",
+        "l2_cache_kib",
+        "l2_associativity",
+        "l2_latency_cycles",
+        "memory_type",
+        "memory_size_mib",
+        "simulation_mode"
+      ],
+      "properties": {
+        "cpu_model": {
+          "type": "string",
+          "enum": [
+            "RiscvTimingSimpleCPU",
+            "RiscvO3CPU"
+          ]
+        },
+        "cores": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "frequency_ghz": {
+          "type": "integer",
+          "enum": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "l1i_cache_kib": {
+          "type": "integer",
+          "enum": [
+            16,
+            32,
+            64
+          ]
+        },
+        "l1i_associativity": {
+          "type": "integer",
+          "enum": [
+            2,
+            4,
+            8
+          ]
+        },
+        "l1i_latency_cycles": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "l1d_cache_kib": {
+          "type": "integer",
+          "enum": [
+            16,
+            32,
+            64
+          ]
+        },
+        "l1d_associativity": {
+          "type": "integer",
+          "enum": [
+            2,
+            4,
+            8
+          ]
+        },
+        "l1d_latency_cycles": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "l2_cache_kib": {
+          "type": "integer",
+          "enum": [
+            256,
+            512,
+            1024
+          ]
+        },
+        "l2_associativity": {
+          "type": "integer",
+          "enum": [
+            4,
+            8,
+            16
+          ]
+        },
+        "l2_latency_cycles": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "memory_type": {
+          "const": "DDR3_1600_8x8"
+        },
+        "memory_size_mib": {
+          "type": "integer",
+          "minimum": 16
+        },
+        "simulation_mode": {
+          "const": "SE"
+        }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repetitions",
+        "warmup_runs",
+        "max_simulation_instructions"
+      ],
+      "properties": {
+        "repetitions": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "warmup_runs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_simulation_instructions": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        }
+      }
+    },
+    "status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "message"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "planned",
+            "validated",
+            "running",
+            "completed",
+            "failed",
+            "rejected"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

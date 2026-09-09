@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/chia/attention-design-space.schema.json",
+  "title": "CHIA Attention Design Space",
+  "description": "Declares the baseline, active CHIA candidates, controlled workload axes, fixed parameters, and future candidates for the attention/gem5 campaign.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "baseline",
+    "active_candidates",
+    "evaluation_axes",
+    "fixed",
+    "future"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.2.0"
+    },
+    "baseline": {
+      "type": "object"
+    },
+    "active_candidates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hardware",
+        "software"
+      ],
+      "properties": {
+        "hardware": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "l1d_cache_kib": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "enum": [
+                  16,
+                  32,
+                  64
+                ]
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "l2_cache_kib": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "enum": [
+                  256,
+                  512,
+                  1024
+                ]
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "l1d_associativity": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "enum": [
+                  2,
+                  4,
+                  8
+                ]
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "l2_associativity": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "enum": [
+                  4,
+                  8,
+                  16
+                ]
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          }
+        },
+        "software": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kv_format": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "FP32",
+                  "FP16",
+                  "Q8",
+                  "Q4"
+                ]
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          }
+        }
+      }
+    },
+    "evaluation_axes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context_tokens"
+      ],
+      "properties": {
+        "context_tokens": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "enum": [
+              128,
+              256,
+              512
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "fixed": {
+      "type": "object"
+    },
+    "future": {
+      "type": "object"
+    }
+  }
+}
