@@ -1,15 +1,5 @@
 # CHIA design parameter and metric mapping
 
-> Issue #11 · Review draft · Runtime bindings PLANNED · 10 September 2026
-
-## Purpose
-
-Define the interface contract for Issue #11 so Yehya, the CHIA loop and Gemini can trace every experiment field to its future implementation and trace measured outputs back to an optimization decision. Change immutable candidate configurations through a validated service; backend adapters alone translate values into simulator or workload settings.
-
-Review basis — 10 September 2026. The clean local checkout is feat/experiment-contracts at 2f94bd87a5b77588075c040a541b0fce25c97e63. A read-only remote lookup confirmed main at 98ee9a9b6d817f84608a9c9e8fad011cbf5d6e94. Inspection of that main tree shows the older config-schema and compute-policy-v0.2 layout, without experiment-contracts. This document targets the updated feature-branch contract, not a verified merge into main. The GitHub connector could not retrieve Issue #11; its title and scope come from the request.
-
-FACT denotes inspected contracts or official documentation. PROPOSED denotes our interface design. UNKNOWN denotes an unresolved binding or measurement definition. All runtime mappings in this document are PLANNED. Existing schema validation is real, but it is not evidence that a knob reaches gem5. Team documentation labels FP32, Q4 and DDR3 validated; no proxy simulation was rerun for this deliverable.
-
 ## Architecture
 
 The Tutor LLM is the application being optimized. Gemini proposes candidates. CHIA orchestrates nodes and feedback. gem5 simulates an Attention Kernel proxy. Native application measurements and simulated proxy measurements remain separate.
