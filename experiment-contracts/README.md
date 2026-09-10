@@ -2,16 +2,16 @@
 
 A clean contract-oriented layout for the CHIA offline AI Tutor project.
 
-## Why this replaces the current mixed layout
+## Why this replaces the legacy mixed layout
 
-The previous repository structure split related schemas across `config-schema/` and `compute-policy-v0.2/`, and mixed examples, docs, runtime policy, and result records. This package groups each contract with its own schema, example/config, and documentation.
+The previous repository structure split related schemas across the legacy `config-schema/` and `compute-policy-v0.2/` directories (now removed). This package groups each contract cleanly with its own schema, example/config, and documentation.
 
 ## Contract map
 
 - `ai-tutor-config/` — application-level AI Tutor configuration.
 - `attention-experiments/` — concrete gem5 attention experiments plus the CHIA design-space contract.
 - `compute-policy/` — real execution/back-end/parallelism/Gemini guardrails.
-- `run-record/` — evidence from an actual run.
+- `run-records/` — evidence from an actual run.
 - `docs/` — cross-contract architecture and migration notes.
 - `scripts/validate_all.py` — validates all shipped YAML files and important semantic rules.
 

@@ -32,6 +32,58 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "cpu_model": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "RiscvTimingSimpleCPU",
+                  "RiscvO3CPU"
+                ]
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "cores": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "enum": [
+                  1,
+                  2,
+                  4
+                ]
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "frequency_ghz": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "enum": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "issue_width": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "enum": [
+                  1,
+                  2,
+                  4
+                ]
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
             "l1d_cache_kib": {
               "type": "array",
               "items": {
@@ -96,8 +148,6 @@
                 "type": "string",
                 "enum": [
                   "FP32",
-                  "FP16",
-                  "Q8",
                   "Q4"
                 ]
               },

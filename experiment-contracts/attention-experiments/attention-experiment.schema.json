@@ -98,10 +98,9 @@
           "type": "string",
           "enum": [
             "FP32",
-            "FP16",
-            "Q8",
             "Q4"
-          ]
+          ],
+          "description": "Validated proxy KV cache numeric format. FP32 and Q4 are currently validated; FP16 and Q8 are planned."
         },
         "threads": {
           "type": "integer",
@@ -116,6 +115,7 @@
         "cpu_model",
         "cores",
         "frequency_ghz",
+        "issue_width",
         "l1i_cache_kib",
         "l1i_associativity",
         "l1i_latency_cycles",
@@ -135,11 +135,19 @@
           "enum": [
             "RiscvTimingSimpleCPU",
             "RiscvO3CPU"
-          ]
+          ],
+          "default": "RiscvO3CPU",
+          "description": "gem5 CPU model used for the simulated target."
         },
         "cores": {
           "type": "integer",
-          "minimum": 1
+          "enum": [
+            1,
+            2,
+            4
+          ],
+          "default": 2,
+          "description": "Number of simulated CPU cores."
         },
         "frequency_ghz": {
           "type": "integer",
@@ -148,27 +156,31 @@
             2,
             3,
             4
-          ]
+          ],
+          "default": 1,
+          "description": "Simulated CPU clock frequency in GHz."
+        },
+        "issue_width": {
+          "type": "integer",
+          "enum": [
+            1,
+            2,
+            4
+          ],
+          "default": 2,
+          "description": "Maximum instruction issue width. RiscvTimingSimpleCPU supports only the value 1."
         },
         "l1i_cache_kib": {
-          "type": "integer",
-          "enum": [
-            16,
-            32,
-            64
-          ]
+          "const": 16,
+          "description": "Fixed L1 instruction-cache capacity per core in KiB."
         },
         "l1i_associativity": {
-          "type": "integer",
-          "enum": [
-            2,
-            4,
-            8
-          ]
+          "const": 2,
+          "description": "Fixed L1 instruction-cache associativity."
         },
         "l1i_latency_cycles": {
-          "type": "integer",
-          "minimum": 1
+          "const": 2,
+          "description": "Fixed L1 instruction-cache latency in cycles."
         },
         "l1d_cache_kib": {
           "type": "integer",
@@ -176,7 +188,9 @@
             16,
             32,
             64
-          ]
+          ],
+          "default": 64,
+          "description": "L1 data-cache capacity per core in KiB."
         },
         "l1d_associativity": {
           "type": "integer",
@@ -184,11 +198,13 @@
             2,
             4,
             8
-          ]
+          ],
+          "default": 4,
+          "description": "L1 data-cache associativity."
         },
         "l1d_latency_cycles": {
-          "type": "integer",
-          "minimum": 1
+          "const": 2,
+          "description": "Fixed L1 data-cache latency in cycles."
         },
         "l2_cache_kib": {
           "type": "integer",
@@ -196,7 +212,9 @@
             256,
             512,
             1024
-          ]
+          ],
+          "default": 1024,
+          "description": "Total shared L2-cache capacity in KiB."
         },
         "l2_associativity": {
           "type": "integer",
@@ -204,21 +222,25 @@
             4,
             8,
             16
-          ]
+          ],
+          "default": 8,
+          "description": "Shared L2-cache associativity."
         },
         "l2_latency_cycles": {
-          "type": "integer",
-          "minimum": 1
+          "const": 20,
+          "description": "Fixed shared L2-cache latency in cycles."
         },
         "memory_type": {
-          "const": "DDR3_1600_8x8"
+          "const": "DDR3_1600_8x8",
+          "description": "Validated gem5 memory model."
         },
         "memory_size_mib": {
-          "type": "integer",
-          "minimum": 16
+          "const": 16,
+          "description": "Physical address range assigned to the proxy workload in MiB."
         },
         "simulation_mode": {
-          "const": "SE"
+          "const": "SE",
+          "description": "gem5 syscall-emulation mode."
         }
       }
     },
@@ -275,5 +297,34 @@
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "hardware": {
+            "properties": {
+              "cpu_model": {
+                "const": "RiscvTimingSimpleCPU"
+              }
+            },
+            "required": [
+              "cpu_model"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "hardware": {
+            "properties": {
+              "issue_width": {
+                "const": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

@@ -21,6 +21,7 @@ hardware:
   cpu_model: RiscvTimingSimpleCPU
   cores: 1
   frequency_ghz: 1
+  issue_width: 1
 
   l1i_cache_kib: 16
   l1i_associativity: 2

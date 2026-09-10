@@ -17,8 +17,8 @@ CASES = [
      ROOT / "attention-experiments" / "attention-design-space.schema.json"),
     (ROOT / "compute-policy" / "compute-policy.yaml",
      ROOT / "compute-policy" / "compute-policy.schema.json"),
-    (ROOT / "run-record" / "example.completed.yaml",
-     ROOT / "run-record" / "run-record.schema.json"),
+    (ROOT / "run-records" / "example.completed.yaml",
+     ROOT / "run-records" / "run-record.schema.json"),
 ]
 
 def load_yaml(path):
@@ -63,10 +63,21 @@ def semantic_checks():
         print("FAIL semantic: attention threads exceed modeled cores")
         ok = False
 
-    # Design space: current active KV formats must not include teammate-marked planned values.
+    # Hardware: RiscvTimingSimpleCPU requires issue_width == 1
+    hw = baseline["hardware"]
+    if hw["cpu_model"] == "RiscvTimingSimpleCPU" and hw.get("issue_width", 1) != 1:
+        print("FAIL semantic: TimingSimpleCPU requires issue_width 1")
+        ok = False
+
+    # Hardware: DDR4 must not be the active memory_type
+    if hw["memory_type"] != "DDR3_1600_8x8":
+        print(f"FAIL semantic: unsupported memory model {hw['memory_type']}")
+        ok = False
+
+    # Design space: current active KV formats must not include teammate-marked planned values (FP16, Q8).
     ds = load_yaml(ROOT / "attention-experiments" / "design-space.yaml")
     active_kv = set(ds["active_candidates"]["software"].get("kv_format", []))
-    forbidden_now = {"FP16", "Q8", "Q4"}
+    forbidden_now = {"FP16", "Q8"}
     if active_kv & forbidden_now:
         print("FAIL semantic: planned KV formats exposed as active before verification")
         ok = False
