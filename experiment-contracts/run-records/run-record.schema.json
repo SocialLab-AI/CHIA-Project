@@ -1,15 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/chia/schemas/run-record.schema.json",
-  "title": "CHIA Attention-Kernel Run Record",
-  "description": "Observed execution record for one experiment candidate: where it ran, what it measured, what it cost, and exactly which code/tool versions produced it.",
+  "$id": "https://example.local/chia/run-record.schema.json",
+  "title": "CHIA Run Record",
+  "description": "Evidence record for one actual execution. Stores verified gem5 metrics, correctness, execution information, Gemini usage, provenance, and status.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema_version",
-    "experiment_id",
-    "campaign_id",
-    "config_digest",
+    "run_id",
+    "experiment",
     "execution",
     "metrics",
     "usage",
@@ -18,19 +17,37 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "0.2"
+      "const": "0.2.0"
     },
-    "experiment_id": {
+    "run_id": {
       "type": "string",
       "minLength": 1
     },
-    "campaign_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "config_digest": {
-      "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+    "experiment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "experiment_id",
+        "config_digest"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "ai_tutor",
+            "attention_kernel"
+          ]
+        },
+        "experiment_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "config_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-fA-F]{64}$"
+        }
+      }
     },
     "execution": {
       "type": "object",
@@ -41,10 +58,12 @@
         "worker_id",
         "started_at",
         "finished_at",
-        "attempt"
+        "attempt",
+        "host_seconds"
       ],
       "properties": {
         "tier": {
+          "type": "string",
           "enum": [
             "dev",
             "integration",
@@ -53,6 +72,7 @@
           ]
         },
         "backend": {
+          "type": "string",
           "enum": [
             "local",
             "contabo",
@@ -76,7 +96,7 @@
           "type": "integer",
           "minimum": 1
         },
-        "wall_time_s": {
+        "host_seconds": {
           "type": "number",
           "minimum": 0
         }
@@ -86,70 +106,64 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "correctness",
-        "architecture"
+        "execution_cycles",
+        "instructions",
+        "cpi",
+        "ipc",
+        "sim_ticks",
+        "sim_seconds",
+        "l1i_miss_rate",
+        "l1d_miss_rate",
+        "l2_miss_rate",
+        "checksum",
+        "passed"
       ],
       "properties": {
-        "correctness": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "passed"
-          ],
-          "properties": {
-            "passed": {
-              "type": "boolean"
-            },
-            "max_abs_error": {
-              "type": [
-                "number",
-                "null"
-              ],
-              "minimum": 0
-            },
-            "max_rel_error": {
-              "type": [
-                "number",
-                "null"
-              ],
-              "minimum": 0
-            }
-          }
+        "execution_cycles": {
+          "type": "number",
+          "minimum": 0
         },
-        "architecture": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "cycles",
-            "instructions",
-            "ipc",
-            "l1_miss_rate",
-            "l2_miss_rate"
-          ],
-          "properties": {
-            "cycles": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "instructions": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "ipc": {
-              "type": "number",
-              "minimum": 0
-            },
-            "l1_miss_rate": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            },
-            "l2_miss_rate": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            }
-          }
+        "instructions": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cpi": {
+          "type": "number",
+          "minimum": 0
+        },
+        "ipc": {
+          "type": "number",
+          "minimum": 0
+        },
+        "sim_ticks": {
+          "type": "number",
+          "minimum": 0
+        },
+        "sim_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "l1i_miss_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "l1d_miss_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "l2_miss_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "checksum": {
+          "type": "string",
+          "minLength": 1
+        },
+        "passed": {
+          "type": "boolean"
         }
       }
     },
@@ -164,6 +178,7 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
+            "model",
             "calls",
             "input_tokens",
             "output_tokens",
@@ -204,13 +219,14 @@
         "chia_version",
         "gem5_version",
         "kernel_version",
+        "compiler",
         "policy_version",
         "seed"
       ],
       "properties": {
         "git_commit": {
           "type": "string",
-          "pattern": "^[0-9a-fA-F]{7,40}$"
+          "minLength": 7
         },
         "chia_version": {
           "type": "string",
@@ -224,18 +240,17 @@
           "type": "string",
           "minLength": 1
         },
+        "compiler": {
+          "type": "string",
+          "minLength": 1
+        },
         "policy_version": {
-          "const": "CP-01"
+          "type": "string",
+          "minLength": 1
         },
         "seed": {
           "type": "integer",
           "minimum": 0
-        },
-        "gemini_prompt_version": {
-          "type": [
-            "string",
-            "null"
-          ]
         }
       }
     },
@@ -243,10 +258,12 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "state"
+        "state",
+        "failure_reason"
       ],
       "properties": {
         "state": {
+          "type": "string",
           "enum": [
             "completed",
             "failed",

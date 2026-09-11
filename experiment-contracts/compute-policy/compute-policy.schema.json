@@ -1,45 +1,32 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/chia/schemas/compute-policy.schema.json",
-  "title": "CHIA Progressive Compute Validation Policy",
-  "description": "Governance policy for real execution infrastructure, Gemini API budget, and promotion gates. This must remain separate from simulated hardware knobs.",
+  "$id": "https://example.local/chia/compute-policy.schema.json",
+  "title": "CHIA Progressive Compute Policy",
+  "description": "Small operational policy: allowed real execution backends, parallelism, Gemini use, and organizer-burst access by tier.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "policy_version",
-    "currency",
     "gemini",
-    "tiers",
-    "promotion_gates"
+    "tiers"
   ],
   "properties": {
     "policy_version": {
-      "const": "CP-01"
-    },
-    "currency": {
-      "const": "USD"
+      "const": "0.2.0"
     },
     "gemini": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "total_budget_usd",
-        "reserve_usd",
+        "budget_usd",
         "metering_required"
       ],
       "properties": {
-        "total_budget_usd": {
-          "type": "number",
-          "minimum": 0
-        },
-        "reserve_usd": {
+        "budget_usd": {
           "type": "number",
           "minimum": 0
         },
         "metering_required": {
-          "const": true
-        },
-        "cache_reuse_recommended": {
           "type": "boolean"
         }
       }
@@ -58,19 +45,18 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "allowed_backends",
+            "backends",
             "max_parallel_jobs",
             "gemini_allowed",
-            "gemini_budget_usd",
-            "organizer_burst_allowed",
-            "candidate_run_guidance"
+            "organizer_burst_allowed"
           ],
           "properties": {
-            "allowed_backends": {
+            "backends": {
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
               "items": {
+                "type": "string",
                 "enum": [
                   "local",
                   "contabo",
@@ -86,19 +72,8 @@
             "gemini_allowed": {
               "type": "boolean"
             },
-            "gemini_budget_usd": {
-              "type": "number",
-              "minimum": 0
-            },
             "organizer_burst_allowed": {
               "type": "boolean"
-            },
-            "candidate_run_guidance": {
-              "type": "string",
-              "minLength": 1
-            },
-            "notes": {
-              "type": "string"
             }
           }
         },
@@ -106,19 +81,18 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "allowed_backends",
+            "backends",
             "max_parallel_jobs",
             "gemini_allowed",
-            "gemini_budget_usd",
-            "organizer_burst_allowed",
-            "candidate_run_guidance"
+            "organizer_burst_allowed"
           ],
           "properties": {
-            "allowed_backends": {
+            "backends": {
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
               "items": {
+                "type": "string",
                 "enum": [
                   "local",
                   "contabo",
@@ -134,19 +108,8 @@
             "gemini_allowed": {
               "type": "boolean"
             },
-            "gemini_budget_usd": {
-              "type": "number",
-              "minimum": 0
-            },
             "organizer_burst_allowed": {
               "type": "boolean"
-            },
-            "candidate_run_guidance": {
-              "type": "string",
-              "minLength": 1
-            },
-            "notes": {
-              "type": "string"
             }
           }
         },
@@ -154,19 +117,18 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "allowed_backends",
+            "backends",
             "max_parallel_jobs",
             "gemini_allowed",
-            "gemini_budget_usd",
-            "organizer_burst_allowed",
-            "candidate_run_guidance"
+            "organizer_burst_allowed"
           ],
           "properties": {
-            "allowed_backends": {
+            "backends": {
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
               "items": {
+                "type": "string",
                 "enum": [
                   "local",
                   "contabo",
@@ -182,19 +144,8 @@
             "gemini_allowed": {
               "type": "boolean"
             },
-            "gemini_budget_usd": {
-              "type": "number",
-              "minimum": 0
-            },
             "organizer_burst_allowed": {
               "type": "boolean"
-            },
-            "candidate_run_guidance": {
-              "type": "string",
-              "minLength": 1
-            },
-            "notes": {
-              "type": "string"
             }
           }
         },
@@ -202,19 +153,18 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "allowed_backends",
+            "backends",
             "max_parallel_jobs",
             "gemini_allowed",
-            "gemini_budget_usd",
-            "organizer_burst_allowed",
-            "candidate_run_guidance"
+            "organizer_burst_allowed"
           ],
           "properties": {
-            "allowed_backends": {
+            "backends": {
               "type": "array",
               "minItems": 1,
               "uniqueItems": true,
               "items": {
+                "type": "string",
                 "enum": [
                   "local",
                   "contabo",
@@ -230,55 +180,9 @@
             "gemini_allowed": {
               "type": "boolean"
             },
-            "gemini_budget_usd": {
-              "type": "number",
-              "minimum": 0
-            },
             "organizer_burst_allowed": {
               "type": "boolean"
-            },
-            "candidate_run_guidance": {
-              "type": "string",
-              "minLength": 1
-            },
-            "notes": {
-              "type": "string"
             }
-          }
-        }
-      }
-    },
-    "promotion_gates": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "dev_to_integration",
-        "integration_to_pilot",
-        "pilot_to_final"
-      ],
-      "properties": {
-        "dev_to_integration": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "integration_to_pilot": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "pilot_to_final": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string",
-            "minLength": 1
           }
         }
       }
