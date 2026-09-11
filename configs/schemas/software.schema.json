@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "software.schema.json",
+  "title": "CHIA Tutor Software Configuration",
+  "description": "Canonical software-side configuration for the Llama tutor workload. OpenStax references are intentionally excluded from model inputs and are used only by evaluation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "model",
+    "prompt",
+    "inference"
+  ],
+  "properties": {
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "family",
+        "runtime"
+      ],
+      "properties": {
+        "family": {
+          "type": "string",
+          "const": "llama3.1",
+          "description": "Model family used by the tutor workload."
+        },
+        "variant": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Runtime/model tag or variant, e.g. 8b or a locally defined tag."
+        },
+        "runtime": {
+          "type": "string",
+          "enum": [
+            "ollama",
+            "llama.cpp",
+            "transformers",
+            "other"
+          ],
+          "description": "Inference runtime. The adapter layer maps canonical knobs to runtime-specific options."
+        }
+      }
+    },
+    "prompt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "system_prompt_file"
+      ],
+      "properties": {
+        "system_prompt_file": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path to the system prompt. OpenStax reference text must not be inserted here."
+        }
+      }
+    },
+    "inference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "temperature",
+        "top_p",
+        "max_new_tokens",
+        "context_window",
+        "seed"
+      ],
+      "properties": {
+        "temperature": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 2.0,
+          "description": "Canonical sampling temperature."
+        },
+        "top_p": {
+          "type": "number",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "description": "Canonical nucleus-sampling probability."
+        },
+        "max_new_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4096,
+          "description": "Maximum generated tokens per answer."
+        },
+        "context_window": {
+          "type": "integer",
+          "minimum": 512,
+          "maximum": 131072,
+          "description": "Requested model context window."
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Seed used when supported by the selected runtime."
+        },
+        "threads": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256,
+          "description": "Optional canonical CPU thread count."
+        },
+        "batch_size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4096,
+          "description": "Optional canonical inference/runtime batch knob."
+        }
+      }
+    }
+  }
+}
