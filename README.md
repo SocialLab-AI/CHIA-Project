@@ -56,14 +56,20 @@ Owner and reviewer for each task are in the issue body. Start with `phase:1` `P0
 
 The biggest risk on a project like this is three solid pieces that never connect. Integration tickets are first-class, not end-of-hackathon cleanup.
 
-## Proposed layout
+## Repository layout
 
-```
-schema/        # the shared config + metrics contract (build against this first)
-tutor/         # edge AI tutor workload + eval  (Intern 3)
-gem5/          # gem5 proxy model + metrics interface  (Intern 2)
-chia/          # CHIA loop, nodes, agentic edges  (Intern 1)
-experiments/   # experiment configs + run scripts
-results/       # logged metrics, cost sheet, plots
-docs/          # decisions, glossary, per-component READMEs
-```
+```text
+experiment-contracts/   # canonical schemas, design space, configs, and run records
+gem5/                   # executable attention proxy, gem5 configuration, and metrics
+src/                    # stable software/hardware/orchestration adapter boundaries
+scripts/                # CLI boundaries
+data/                   # tutor questions and evaluation references
+prompts/                # tutor prompts
+infra/                  # CHIA and infrastructure configuration
+results/                # generated experiment outputs
+docs/                   # decisions, architecture, and experiment evidence
+
+experiment-contracts/ is the configuration source of truth. The executable
+hardware path lives under gem5/. The src/ package defines the modular
+integration boundaries; some tutor and orchestration components intentionally
+remain skeletons while their implementation is finalized.
