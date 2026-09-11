@@ -5,7 +5,7 @@ This directory contains the reviewed project documentation for the CHIA hackatho
 ## Current project
 
 - **Application:** Offline AI Tutor
-- **Proxy workload:** `AttentionKernelQuantizedKV`
+- **Proxy workload:** Attention kernel with KV cache; FP32 baseline verified, quantization planned.
 - **Simulation:** gem5 / RISC-V
 - **Orchestration:** CHIA
 - **Current baseline:** `RiscvTimingSimpleCPU`, 1 core, 1 GHz, 16 KiB L1D, 256 KiB L2, FP32 KV cache, context length 512

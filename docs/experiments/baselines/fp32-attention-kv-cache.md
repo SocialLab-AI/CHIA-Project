@@ -114,7 +114,7 @@ checksum=55.695413424
 status=PASS
 ```
 
-The successful status and finite checksum confirm that the attention workload executed correctly.
+The successful status and finite checksum confirm that the workload completed and produced a finite result; mathematical correctness has not yet been validated against a trusted reference.
 
 ## Simulation results
 
@@ -143,7 +143,7 @@ At 1 GHz, one simulated CPU cycle corresponds to 1,000 gem5 ticks:
 - The instruction-cache miss rate was almost zero, showing that the program instructions fit comfortably in the instruction cache.
 - The L1 data-cache miss rate was approximately 3.67%, showing that the attention data created measurable cache activity.
 - The L2 miss rate was approximately 18.89%, indicating that some requests could not be served by the 256 KiB L2 cache and needed main-memory access.
-- The FP32 KV cache is approximately the same size as the 256 KiB L2 cache. Additional program data and cache effects prevent the entire working set from remaining in L2.
+- The FP32 KV cache is approximately the same size as the 256 KiB L2 cache, which likely contributes to the observed L2 misses together with other program data and cache effects.
 
 ## Issues and limitations
 

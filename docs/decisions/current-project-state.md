@@ -2,7 +2,7 @@
 
 ## Current thesis
 
-Build an offline AI Tutor experiment where CHIA orchestrates software/hardware exploration and uses an attention kernel with a quantized KV cache as the gem5 proxy for LLM inference behavior.
+Build an offline AI Tutor experiment where CHIA orchestrates software/hardware exploration and uses an attention kernel with a KV cache as the gem5 proxy for LLM inference behavior. FP32 is the current verified baseline; KV-cache quantization is a planned software knob.
 
 ## Current baseline
 
