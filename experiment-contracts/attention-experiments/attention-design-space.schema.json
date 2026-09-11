@@ -16,10 +16,9 @@
         "hardware": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["cpu_model", "cores", "frequency_ghz", "issue_width", "l1d_cache_kib", "l1d_associativity", "l2_cache_kib", "l2_associativity"],
+          "required": ["cpu_model", "frequency_ghz", "issue_width", "l1d_cache_kib", "l1d_associativity", "l2_cache_kib", "l2_associativity"],
           "properties": {
             "cpu_model": { "$ref": "#/$defs/cpu_array" },
-            "cores": { "$ref": "#/$defs/cores_array" },
             "frequency_ghz": { "$ref": "#/$defs/frequency_array" },
             "issue_width": { "$ref": "#/$defs/issue_array" },
             "l1d_cache_kib": { "$ref": "#/$defs/l1d_size_array" },
@@ -87,8 +86,9 @@
     "fixed": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["l1i_cache_kib", "l1i_associativity", "l1i_latency_cycles", "l1d_latency_cycles", "l2_latency_cycles", "memory_type", "memory_size_mib", "simulation_mode", "query_heads", "kv_heads", "head_dimension", "layers", "threads", "repetitions", "warmup_runs"],
+      "required": ["cores", "l1i_cache_kib", "l1i_associativity", "l1i_latency_cycles", "l1d_latency_cycles", "l2_latency_cycles", "memory_type", "memory_size_mib", "simulation_mode", "query_heads", "kv_heads", "head_dimension", "layers", "threads", "repetitions", "warmup_runs"],
       "properties": {
+        "cores": { "const": 2 },
         "l1i_cache_kib": { "const": 16 },
         "l1i_associativity": { "const": 2 },
         "l1i_latency_cycles": { "const": 2 },
@@ -107,7 +107,6 @@
       }
     },
     "cpu_array": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["RiscvTimingSimpleCPU", "RiscvO3CPU"] } },
-    "cores_array": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": [1, 2, 4] } },
     "frequency_array": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": [1, 2, 3, 4] } },
     "issue_array": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": [1, 2, 4] } },
     "l1d_size_array": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": [16, 32, 64] } },
