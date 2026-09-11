@@ -1,3 +1,3 @@
 def run_tutor(config: dict) -> dict:
-    """Execute the tutor workload and return structured software-side metrics."""
+    """Run the tutor side from the canonical experiment contract."""
     raise NotImplementedError("Tutor runner not implemented yet.")
