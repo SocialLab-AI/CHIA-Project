@@ -14,4 +14,9 @@ metrics:
 
 status:
     git status --short
+all:
+    just test
+    just run
+    just metrics
+    just statu
 
