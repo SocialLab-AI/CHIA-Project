@@ -35,15 +35,141 @@ def require(config, *keys):
     return current
 
 
-def ensure_q4(config):
+def require_positive_int(config, *keys):
+    value = require(config, *keys)
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        path = ".".join(keys)
+        raise ValueError(f"{path} must be a positive integer, got {value!r}")
+    return value
+
+
+def require_positive_number(config, *keys):
+    value = require(config, *keys)
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or value <= 0
+    ):
+        path = ".".join(keys)
+        raise ValueError(f"{path} must be positive, got {value!r}")
+    return value
+
+
+def validate_supported_config(config):
     kv_format = require(config, "software", "kv_format")
     if kv_format != "Q4":
         raise ValueError(
             f"this proxy currently supports kv_format=Q4, got {kv_format}"
         )
 
+    threads = require_positive_int(config, "software", "threads")
+    if threads != 2:
+        raise ValueError(
+            f"this proxy currently supports exactly 2 software threads, got {threads}"
+        )
 
-def build_binary(project_gem5_dir, gem5_src_dir, image):
+    layers = require_positive_int(config, "workload", "layers")
+    if layers != 1:
+        raise ValueError(
+            f"this proxy currently supports workload.layers=1, got {layers}"
+        )
+
+    warmup_runs = require(config, "measurement", "warmup_runs")
+    if warmup_runs != 0:
+        raise ValueError(
+            f"warmup runs are not implemented; expected 0, got {warmup_runs}"
+        )
+
+    head_dimension = require_positive_int(
+        config, "workload", "head_dimension"
+    )
+    if head_dimension % 2 != 0:
+        raise ValueError(
+            "workload.head_dimension must be even for packed Q4 storage"
+        )
+
+    cpu_model = require(config, "hardware", "cpu_model")
+    if cpu_model not in {"RiscvO3CPU", "RiscvTimingSimpleCPU"}:
+        raise ValueError(f"unsupported hardware.cpu_model: {cpu_model}")
+
+    cores = require_positive_int(config, "hardware", "cores")
+    if threads > cores:
+        raise ValueError(
+            f"software.threads ({threads}) cannot exceed hardware.cores ({cores})"
+        )
+
+    issue_width = require_positive_int(
+        config, "hardware", "issue_width"
+    )
+    if cpu_model == "RiscvTimingSimpleCPU" and issue_width != 1:
+        raise ValueError(
+            "RiscvTimingSimpleCPU requires hardware.issue_width=1"
+        )
+
+    require_positive_number(config, "hardware", "frequency_ghz")
+
+    for field in (
+        "l1i_cache_kib",
+        "l1i_associativity",
+        "l1i_latency_cycles",
+        "l1d_cache_kib",
+        "l1d_associativity",
+        "l1d_latency_cycles",
+        "l2_cache_kib",
+        "l2_associativity",
+        "l2_latency_cycles",
+        "memory_size_mib",
+    ):
+        require_positive_int(config, "hardware", field)
+
+    memory_type = require(config, "hardware", "memory_type")
+    if memory_type != "DDR3_1600_8x8":
+        raise ValueError(
+            f"unsupported hardware.memory_type: {memory_type}"
+        )
+
+    simulation_mode = require(config, "hardware", "simulation_mode")
+    if simulation_mode != "SE":
+        raise ValueError(
+            f"unsupported hardware.simulation_mode: {simulation_mode}"
+        )
+
+
+def workload_defines(config):
+    return [
+        f"-DCONTEXT={require_positive_int(config, 'workload', 'context_tokens')}",
+        f"-DQUERY_HEADS={require_positive_int(config, 'workload', 'query_heads')}",
+        f"-DKV_HEADS={require_positive_int(config, 'workload', 'kv_heads')}",
+        f"-DHEAD_DIM={require_positive_int(config, 'workload', 'head_dimension')}",
+        f"-DTHREADS={require_positive_int(config, 'software', 'threads')}",
+        f"-DREPETITIONS={require_positive_int(config, 'measurement', 'repetitions')}",
+    ]
+
+
+def hardware_args(config):
+    hardware = config["hardware"]
+
+    return [
+        "--cpu-model", str(hardware["cpu_model"]),
+        "--cores", str(hardware["cores"]),
+        "--frequency-ghz", str(hardware["frequency_ghz"]),
+        "--issue-width", str(hardware["issue_width"]),
+        "--l1i-cache-kib", str(hardware["l1i_cache_kib"]),
+        "--l1i-associativity", str(hardware["l1i_associativity"]),
+        "--l1i-latency-cycles", str(hardware["l1i_latency_cycles"]),
+        "--l1d-cache-kib", str(hardware["l1d_cache_kib"]),
+        "--l1d-associativity", str(hardware["l1d_associativity"]),
+        "--l1d-latency-cycles", str(hardware["l1d_latency_cycles"]),
+        "--l2-cache-kib", str(hardware["l2_cache_kib"]),
+        "--l2-associativity", str(hardware["l2_associativity"]),
+        "--l2-latency-cycles", str(hardware["l2_latency_cycles"]),
+        "--memory-type", str(hardware["memory_type"]),
+        "--memory-size-mib", str(hardware["memory_size_mib"]),
+        "--simulation-mode", str(hardware["simulation_mode"]),
+    ]
+
+
+def build_binary(project_gem5_dir, gem5_src_dir, image, config):
     source = project_gem5_dir / DEFAULT_WORKLOAD_SOURCE
     target_source = gem5_src_dir / "attention_kv_q4.c"
 
@@ -64,6 +190,7 @@ def build_binary(project_gem5_dir, gem5_src_dir, image):
             "-O2",
             "-std=c11",
             "-pthread",
+            *workload_defines(config),
             "-o",
             DEFAULT_BINARY_NAME,
             "attention_kv_q4.c",
@@ -72,7 +199,7 @@ def build_binary(project_gem5_dir, gem5_src_dir, image):
     )
 
 
-def run_gem5(project_gem5_dir, gem5_src_dir, image, outdir):
+def run_gem5(project_gem5_dir, gem5_src_dir, image, outdir, config):
     outdir.mkdir(parents=True, exist_ok=True)
 
     run(
@@ -90,6 +217,7 @@ def run_gem5(project_gem5_dir, gem5_src_dir, image, outdir):
             "gem5",
             f"--outdir=/project/gem5/{outdir.relative_to(project_gem5_dir)}",
             f"/project/gem5/{DEFAULT_GEM5_CONFIG}",
+            *hardware_args(config),
         ]
     )
 
@@ -158,10 +286,16 @@ def main():
     output_path = (project_gem5_dir / args.output).resolve()
 
     config = load_config(config_path)
-    ensure_q4(config)
+    validate_supported_config(config)
 
-    build_binary(project_gem5_dir, gem5_src_dir, args.image)
-    run_gem5(project_gem5_dir, gem5_src_dir, args.image, outdir)
+    build_binary(project_gem5_dir, gem5_src_dir, args.image, config)
+    run_gem5(
+        project_gem5_dir,
+        gem5_src_dir,
+        args.image,
+        outdir,
+        config,
+    )
     write_metrics(config_path, outdir, output_path)
 
     return 0

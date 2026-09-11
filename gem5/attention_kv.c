@@ -3,13 +3,31 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#ifndef CONTEXT
 #define CONTEXT 512
+#endif
+
+#ifndef QUERY_HEADS
 #define QUERY_HEADS 4
+#endif
+
+#ifndef KV_HEADS
 #define KV_HEADS 2
+#endif
+
+#ifndef HEAD_DIM
 #define HEAD_DIM 32
-#define PACKED_DIM (HEAD_DIM / 2)
+#endif
+
+#ifndef REPETITIONS
 #define REPETITIONS 10
+#endif
+
+#ifndef THREADS
 #define THREADS 2
+#endif
+
+#define PACKED_DIM (HEAD_DIM / 2)
 #define Q4_MAX 7
 
 static float query[QUERY_HEADS][HEAD_DIM];
