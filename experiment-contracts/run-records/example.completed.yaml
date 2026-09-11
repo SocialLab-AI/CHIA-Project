@@ -1,0 +1,51 @@
+schema_version: "0.2.0"
+
+run_id: run-attn-baseline-001-attempt1
+
+experiment:
+  type: attention_kernel
+  experiment_id: attn-baseline-001
+  config_digest: "sha256:586507a0c51421ab9d989d0e1d47b883351cd9781bc579e154736aedc4eabaf0"
+
+execution:
+  tier: pilot
+  backend: development_cloud
+  worker_id: gem5-worker-01
+  started_at: "2026-09-09T09:00:00Z"
+  finished_at: "2026-09-09T09:12:30Z"
+  attempt: 1
+  host_seconds: 750.0
+
+metrics:
+  execution_cycles: 18390211
+  instructions: 25133128
+  cpi: 0.7317
+  ipc: 1.3667
+  sim_ticks: 490394000
+  sim_seconds: 0.000490394
+  l1i_miss_rate: 0.003
+  l1d_miss_rate: 0.041
+  l2_miss_rate: 0.017
+  checksum: "example-checksum"
+  passed: true
+
+usage:
+  gemini:
+    model: "placeholder:gemini-model"
+    calls: 1
+    input_tokens: 2400
+    output_tokens: 310
+    estimated_cost_usd: 0.0
+
+provenance:
+  git_commit: "abcdef1234567890"
+  chia_version: "placeholder"
+  gem5_version: "placeholder"
+  kernel_version: "placeholder"
+  compiler: "placeholder"
+  policy_version: "0.2.0"
+  seed: 42
+
+status:
+  state: completed
+  failure_reason: null

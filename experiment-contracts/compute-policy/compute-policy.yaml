@@ -1,0 +1,31 @@
+# Small operational policy. The long reasoning belongs in README.md, not in this YAML.
+policy_version: "0.2.0"
+
+gemini:
+  budget_usd: 300
+  metering_required: true
+
+tiers:
+  dev:
+    backends: [local, contabo]
+    max_parallel_jobs: 1
+    gemini_allowed: true
+    organizer_burst_allowed: false
+
+  integration:
+    backends: [contabo, development_cloud]
+    max_parallel_jobs: 2
+    gemini_allowed: true
+    organizer_burst_allowed: false
+
+  pilot:
+    backends: [contabo, development_cloud]
+    max_parallel_jobs: 4
+    gemini_allowed: true
+    organizer_burst_allowed: false
+
+  final:
+    backends: [organizer_burst]
+    max_parallel_jobs: 32
+    gemini_allowed: true
+    organizer_burst_allowed: true

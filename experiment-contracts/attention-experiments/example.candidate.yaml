@@ -1,0 +1,64 @@
+chema_version: "0.2.0"
+
+metadata:
+  experiment_id: attn-candidate-l1d32-l2512-001
+  campaign_id: attention-cache-search-v1
+  description: "Planned Q4 candidate generated from the active cache design space."
+
+workload:
+  context_tokens: 512
+  query_heads: 4
+  kv_heads: 2
+  head_dimension: 32
+  layers: 1
+
+software:
+  implementation: AttentionKernelQuantizedKV
+  kv_format: Q4
+  threads: 1
+
+hardware:
+  cpu_model: RiscvTimingSimpleCPU
+  cores: 1
+  frequency_ghz: 1
+  issue_width: 1
+  l1i_cache_kib: 16
+  l1i_associativity: 2
+  l1i_latency_cycles: 2
+  l1d_cache_kib: 32
+  l1d_associativity: 2
+  l1d_latency_cycles: 2
+  l2_cache_kib: 512
+  l2_associativity: 8
+  l2_latency_cycles: 20
+  memory_type: DDR3_1600_8x8
+  memory_size_mib: 16
+  simulation_mode: SE
+
+measurement:
+  repetitions: 10
+  warmup_runs: 0
+  max_simulation_instructions: null
+
+metrics:
+  sim_ticks: null
+  simulated_seconds: null
+  latency_ms: null
+  host_seconds: null
+  instructions: null
+  cycles_per_core: null
+  cpi_per_core: null
+  ipc_per_core: null
+  aggregate_ipc: null
+  l1i_miss_rate_per_core: null
+  l1d_miss_rate_per_core: null
+  l2_miss_rate: null
+  dram_bytes_read: null
+  dram_bytes_written: null
+  dram_bandwidth_bytes_per_second: null
+  dram_bandwidth_utilization_percent: null
+  average_dram_access_latency_ns: null
+
+status:
+  state: planned
+  message: null
