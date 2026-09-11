@@ -1,15 +1,5 @@
 # CHIA design parameter and metric mapping
 
-> Issue #11 · Review draft · Runtime bindings PLANNED · 10 September 2026
-
-## Purpose
-
-Define the interface contract for Issue #11 so Yehya, the CHIA loop and Gemini can trace every experiment field to its future implementation and trace measured outputs back to an optimization decision. Change immutable candidate configurations through a validated service; backend adapters alone translate values into simulator or workload settings.
-
-Review basis — 10 September 2026. The clean local checkout is feat/experiment-contracts at 2f94bd87a5b77588075c040a541b0fce25c97e63. A read-only remote lookup confirmed main at 98ee9a9b6d817f84608a9c9e8fad011cbf5d6e94. Inspection of that main tree shows the older config-schema and compute-policy-v0.2 layout, without experiment-contracts. This document targets the updated feature-branch contract, not a verified merge into main. The GitHub connector could not retrieve Issue #11; its title and scope come from the request.
-
-FACT denotes inspected contracts or official documentation. PROPOSED denotes our interface design. UNKNOWN denotes an unresolved binding or measurement definition. All runtime mappings in this document are PLANNED. Existing schema validation is real, but it is not evidence that a knob reaches gem5. Team documentation labels FP32, Q4 and DDR3 validated; no proxy simulation was rerun for this deliverable.
-
 ## Architecture
 
 The Tutor LLM is the application being optimized. Gemini proposes candidates. CHIA orchestrates nodes and feedback. gem5 simulates an Attention Kernel proxy. Native application measurements and simulated proxy measurements remain separate.
@@ -72,7 +62,7 @@ Each row includes schema limits, fixed/variable classification, exact design-spa
 | Field and contract | Planned binding | Constraints and evidence |
 | --- | --- | --- |
 | hardware.cpu_model<br>VARIABLE  /  RiscvTimingSimpleCPU / RiscvO3CPU<br>Baseline: RiscvO3CPU<br>Source: active_candidates.hardware.cpu_model | CPU: Gem5CPUAdapter.select_model()<br>Target: RISC-V CPU class instances | Allowlist the two schema model names; build must support RISC-V; apply width rule.<br>Related: cycles, IPC, simulated time<br>PLANNED |
-| hardware.cores<br>VARIABLE  /  1 / 2 / 4<br>Baseline: 2<br>Source: active_candidates.hardware.cores | CPU: Gem5CPUAdapter.set_cores()<br>Target: CPU instance count and per-core L1 hierarchy | Modeled cores are not Ray CPUs. threads stays 1; extra cores do not imply parallel work.<br>Related: cycles, simulated time<br>PLANNED |
+| hardware.cores<br>FIXED  /  2<br>Baseline: 2<br>Source: fixed.cores | CPU: Gem5CPUAdapter.set_cores()<br>Target: CPU instance count and per-core L1 hierarchy | Core count is fixed at 2 for the initial campaign to keep the validated two-thread workload unchanged. Multi-core exploration is deferred until thread/core partitioning is generalized.<br>Related: cycles, simulated time<br>PLANNED |
 | hardware.frequency_ghz<br>VARIABLE  /  1 / 2 / 3 / 4<br>Baseline: 1<br>Source: active_candidates.hardware.frequency_ghz | CPU: Gem5CPUAdapter.set_frequency()<br>Target: CPU SrcClockDomain.clock | Convert GHz to explicit clock units; record cache/DRAM clock domains; do not silently scale every domain.<br>Related: sim_seconds; cycles interpreted with clock<br>PLANNED |
 | hardware.issue_width<br>VARIABLE  /  1 / 2 / 4<br>Baseline: 2<br>Source: active_candidates.hardware.issue_width | CPU: Gem5CPUAdapter.set_issue_width()<br>Target: O3 CPU issueWidth | TimingSimpleCPU requires 1; validate and skip assignment there. Do not set fetch/decode/commit widths implicitly.<br>Related: IPC, CPI, cycles<br>PLANNED |
 | hardware.l1i_cache_kib<br>FIXED  /  16<br>Baseline: 16<br>Source: fixed.l1i_cache_kib | CACHE: Gem5CacheAdapter.set_l1i()<br>Target: each core’s L1I instance.size | Convert KiB to bytes using 1024; L2 is total shared capacity. Validate size/line-size/associativity geometry.<br>Related: l1i_miss_rate, cycles, simulated time<br>PLANNED |
@@ -93,8 +83,8 @@ Each row includes schema limits, fixed/variable classification, exact design-spa
 | Field and contract | Planned binding | Constraints and evidence |
 | --- | --- | --- |
 | software.implementation<br>FIXED  /  AttentionKernelQuantizedKV<br>Baseline: AttentionKernelQuantizedKV<br>Source: experiment schema const; baseline.attention.yaml | ATTN: AttentionAdapter.select_implementation()<br>Target: Allowlisted attention workload build | Fixed implementation ID; resolve a versioned executable. No arbitrary binary paths.<br>Related: checksum, passed, instructions<br>PLANNED |
-| software.kv_format<br>VARIABLE  /  FP32 / Q4<br>Baseline: FP32<br>Source: active_candidates.software.kv_format | ATTN: AttentionAdapter.set_kv_format()<br>Target: K/V storage packing and matching attention/dequantization path | FP32/Q4 active; FP16/Q8 gated. CLI or build flag is not yet established. Q4 is KV representation, not Tutor model quantization.<br>Related: checksum, passed, cycles, cache misses<br>PLANNED |
-| software.threads<br>FIXED  /  integer ≥ 1<br>Baseline: 1<br>Source: fixed.threads | ATTN: AttentionAdapter.set_threads()<br>Target: Kernel worker/thread count | Campaign fixed at 1. Schema integer ≥1 is broader; require threads ≤ cores and proven parallel kernel before expansion.<br>Related: passed; simulated time<br>PLANNED |
+| software.kv_format<br>FIXED  /  Q4<br>Baseline: Q4<br>Source: fixed.kv_format | ATTN: AttentionAdapter.set_kv_format()<br>Target: K/V storage packing and matching attention/dequantization path | Q4 is fixed for the validated baseline while the team finalizes the software search space. Q4 is KV representation, not Tutor model quantization.<br>Related: checksum, passed, cycles, cache misses<br>PLANNED |
+| software.threads<br>FIXED  /  2<br>Baseline: 2<br>Source: fixed.threads | ATTN: AttentionAdapter.set_threads()<br>Target: Kernel worker/thread count | Fixed at 2 for the validated two-core baseline. Thread-count exploration is deferred until thread/core partitioning is generalized.<br>Related: passed; simulated time<br>PLANNED |
 
 ### Workload controls
 
