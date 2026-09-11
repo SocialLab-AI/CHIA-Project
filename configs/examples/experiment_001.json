@@ -2,48 +2,71 @@
   "schema_version": "1.0",
   "experiment_id": "experiment_001",
   "software": {
-    "model": {
-      "family": "llama3.1",
-      "variant": "8b",
-      "runtime": "ollama"
+    "status": "draft",
+    "runtime_ready": false,
+    "description": "Draft candidate AI Tutor software configuration. Confirmed architecture: 1B quantized Ollama model with integrated RAG pipeline. Concrete parameter values pending team definition.",
+    "runtime": "ollama",
+    "parameter_count": "1B",
+    "rag": {
+      "enabled": true
     },
-    "prompt": {
-      "system_prompt_file": "prompts/tutor_system.txt"
+    "active_knobs": {
+      "temperature": {
+        "status": "pending_definition",
+        "unit": "unitless"
+      },
+      "chunk_overlap": {
+        "status": "pending_definition",
+        "unit": "tokens"
+      },
+      "similarity_metric": {
+        "status": "pending_definition"
+      },
+      "quantization": {
+        "status": "pending_definition"
+      }
     },
-    "inference": {
-      "temperature": 0.0,
-      "top_p": 0.9,
-      "max_new_tokens": 192,
-      "context_window": 4096,
-      "seed": 42,
-      "threads": 4,
-      "batch_size": 1
-    }
+    "metrics": {
+      "application": {
+        "answer_quality": null,
+        "latency_ms": null
+      }
+    },
+    "unresolved_fields": [
+      "exact 1B Ollama model artifact",
+      "temperature baseline and legal values",
+      "chunk_overlap baseline and legal values",
+      "similarity_metric baseline and legal values",
+      "quantization baseline and legal values",
+      "embedding model",
+      "chunk size",
+      "retrieval top-k",
+      "max context tokens",
+      "max new tokens",
+      "batch size",
+      "seed",
+      "exact RAG corpus"
+    ]
   },
   "hardware": {
-    "simulator": "gem5",
-    "proxy_workload": {
-      "name": "attention_kernel",
-      "sequence_length": 128,
-      "head_dim": 64,
-      "num_heads": 8,
-      "dtype": "fp32"
-    },
-    "cpu": {
-      "model": "O3CPU",
-      "cores": 1,
-      "clock_ghz": 2.0,
-      "issue_width": 6
-    },
-    "caches": {
-      "l1i_kib": 32,
-      "l1d_kib": 64,
-      "l2_kib": 1024,
-      "line_bytes": 64
-    },
-    "memory": {
-      "size_mib": 2048
-    }
+    "isa": "RISCV64",
+    "cpu_model": "RiscvO3CPU",
+    "cores": 4,
+    "frequency_ghz": 2,
+    "issue_width": 4,
+    "l1i_cache_kib": 16,
+    "l1i_associativity": 2,
+    "l1i_latency_cycles": 2,
+    "l1d_cache_kib": 32,
+    "l1d_associativity": 4,
+    "l1d_latency_cycles": 2,
+    "l2_cache_kib": 512,
+    "l2_associativity": 8,
+    "l2_latency_cycles": 20,
+    "memory_type": "DDR3_1600_8x8",
+    "memory_size_mib": 16,
+    "simulation_mode": "SE",
+    "software_threads": 2
   },
   "evaluation": {
     "questions_file": "data/questions/questions.json",
@@ -53,11 +76,22 @@
     "comparison_method": "semantic_similarity",
     "sample_limit": 50
   },
+  "objectives": {
+    "answer_quality": "maximize",
+    "latency_ms": "minimize"
+  },
+  "metrics": {
+    "application": {
+      "answer_quality": null,
+      "latency_ms": null
+    }
+  },
   "metadata": {
-    "description": "Example candidate configuration that changes both tutor inference knobs and gem5 hardware knobs.",
+    "description": "Example candidate configuration exploring modified hardware knobs alongside draft 1B Ollama + RAG tutor software.",
     "tags": [
       "candidate",
-      "co-design"
+      "co-design",
+      "hardware-exploration"
     ]
   }
 }

@@ -1,0 +1,89 @@
+metadata:
+  experiment_id: TBD
+  campaign_id: TBD
+  description: TBD
+
+workload:
+  dataset: TBD
+  corpus: TBD
+  evaluation_protocol: TBD
+  num_questions: TBD
+  seed: TBD
+
+software:
+  model: TBD
+  parameter_count: "1B"
+  runtime: ollama
+
+  quantization: TBD
+
+  prompt:
+    system_prompt_file: prompts/tutor_system.txt
+
+  generation:
+    temperature: TBD
+    max_context_tokens: TBD
+    max_new_tokens: TBD
+    batch_size: TBD
+    seed: TBD
+
+  rag:
+    enabled: true
+    embedding_model: TBD
+    chunk_size: TBD
+    chunk_overlap: TBD
+    retrieval_top_k: TBD
+    similarity_metric: TBD
+
+hardware:
+  isa: RISCV64
+  cpu_model: RiscvO3CPU
+  cores: 2
+  frequency_ghz: 1
+  issue_width: 2
+
+  l1i_cache_kib: 16
+  l1i_associativity: 2
+  l1i_latency_cycles: 2
+
+  l1d_cache_kib: 64
+  l1d_associativity: 4
+  l1d_latency_cycles: 2
+
+  l2_cache_kib: 1024
+  l2_associativity: 8
+  l2_latency_cycles: 20
+
+  memory_type: DDR3_1600_8x8
+  memory_size_mib: 16
+  simulation_mode: SE
+  software_threads: 2
+
+objectives:
+  maximize:
+    - answer_quality
+
+  minimize:
+    - latency_ms
+
+metrics:
+  application:
+    answer_quality: TBD
+    latency_ms: TBD
+    memory_mb: TBD
+    throughput_qps: TBD
+
+  hardware:
+    cycles: TBD
+    instructions: TBD
+    ipc: TBD
+    cpi: TBD
+    sim_ticks: TBD
+    sim_seconds: TBD
+    l1i_miss_rate: TBD
+    l1d_miss_rate: TBD
+    l2_miss_rate: TBD
+
+status:
+  state: planned
+  message: TBD

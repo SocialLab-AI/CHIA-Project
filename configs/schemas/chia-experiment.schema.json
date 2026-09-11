@@ -1,0 +1,1731 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/chia/chia-experiment.schema.json",
+  "title": "CHIA Experiment Master Contract",
+  "description": "Master canonical JSON Schema (Draft 2020-12) for CHIA co-design experiments. Acts as the single source of truth for software, hardware, workload, metrics, objectives, design spaces, and run records.",
+  "$ref": "#/$defs/experiment",
+  "$defs": {
+    "metadata": {
+      "type": "object",
+      "title": "Experiment Metadata",
+      "description": "Informational metadata for human and tool provenance tracking.",
+      "additionalProperties": false,
+      "properties": {
+        "experiment_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "description": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "artifact_manifest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "author": {
+          "type": "string"
+        }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "title": "Workload & Evaluation Controls",
+      "description": "Workload and benchmark controls. Kept strictly distinct from active CHIA search knobs and model prompt contexts.",
+      "additionalProperties": false,
+      "properties": {
+        "dataset": {
+          "type": "string"
+        },
+        "dataset_id": {
+          "type": "string"
+        },
+        "corpus": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "evaluation_protocol": {
+          "type": "string"
+        },
+        "num_questions": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sample_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sample_limit": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "questions_file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "references_file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reference_source": {
+          "type": "string",
+          "const": "openstax",
+          "description": "Evaluation reference answer source. Hard guardrail: evaluation only, never visible to model or RAG corpus."
+        },
+        "reference_visible_to_model": {
+          "type": "boolean",
+          "const": false,
+          "description": "Hard guardrail: OpenStax evaluation reference answers are NEVER visible to the model."
+        },
+        "comparison_method": {
+          "type": "string",
+          "enum": [
+            "exact_match",
+            "token_f1",
+            "semantic_similarity",
+            "llm_judge",
+            "custom"
+          ]
+        }
+      }
+    },
+    "hardware_config": {
+      "type": "object",
+      "title": "CHIA Hardware Configuration",
+      "description": "Official concrete hardware configuration. Enforces exact 18-parameter contract (8 active search knobs, 10 fixed parameters).",
+      "additionalProperties": false,
+      "required": [
+        "isa",
+        "cpu_model",
+        "cores",
+        "frequency_ghz",
+        "issue_width",
+        "l1i_cache_kib",
+        "l1i_associativity",
+        "l1i_latency_cycles",
+        "l1d_cache_kib",
+        "l1d_associativity",
+        "l1d_latency_cycles",
+        "l2_cache_kib",
+        "l2_associativity",
+        "l2_latency_cycles",
+        "memory_type",
+        "memory_size_mib",
+        "simulation_mode",
+        "software_threads"
+      ],
+      "properties": {
+        "isa": {
+          "type": "string",
+          "const": "RISCV64",
+          "description": "Canonical target architecture: RISC-V 64-bit."
+        },
+        "cpu_model": {
+          "type": "string",
+          "enum": [
+            "RiscvTimingSimpleCPU",
+            "RiscvO3CPU"
+          ],
+          "description": "Active CPU model knob."
+        },
+        "cores": {
+          "type": "integer",
+          "enum": [
+            1,
+            2,
+            4
+          ],
+          "description": "Active simulated core count knob."
+        },
+        "frequency_ghz": {
+          "type": "integer",
+          "enum": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "description": "Active CPU clock frequency knob in GHz."
+        },
+        "issue_width": {
+          "type": "integer",
+          "enum": [
+            1,
+            2,
+            4
+          ],
+          "description": "Active instruction issue width knob (applicable to RiscvO3CPU)."
+        },
+        "l1i_cache_kib": {
+          "type": "integer",
+          "const": 16,
+          "description": "Fixed per-core L1 instruction cache capacity in KiB."
+        },
+        "l1i_associativity": {
+          "type": "integer",
+          "const": 2,
+          "description": "Fixed L1 instruction cache associativity."
+        },
+        "l1i_latency_cycles": {
+          "type": "integer",
+          "const": 2,
+          "description": "Fixed L1 instruction cache hit latency in cycles."
+        },
+        "l1d_cache_kib": {
+          "type": "integer",
+          "enum": [
+            16,
+            32,
+            64
+          ],
+          "description": "Active per-core L1 data cache capacity knob in KiB."
+        },
+        "l1d_associativity": {
+          "type": "integer",
+          "enum": [
+            2,
+            4,
+            8
+          ],
+          "description": "Active L1 data cache associativity knob."
+        },
+        "l1d_latency_cycles": {
+          "type": "integer",
+          "const": 2,
+          "description": "Fixed L1 data cache hit latency in cycles."
+        },
+        "l2_cache_kib": {
+          "type": "integer",
+          "enum": [
+            256,
+            512,
+            1024
+          ],
+          "description": "Active shared L2 cache capacity knob in KiB."
+        },
+        "l2_associativity": {
+          "type": "integer",
+          "enum": [
+            4,
+            8,
+            16
+          ],
+          "description": "Active shared L2 cache associativity knob."
+        },
+        "l2_latency_cycles": {
+          "type": "integer",
+          "const": 20,
+          "description": "Fixed shared L2 cache hit latency in cycles."
+        },
+        "memory_type": {
+          "type": "string",
+          "const": "DDR3_1600_8x8",
+          "description": "Fixed gem5 DRAM controller model."
+        },
+        "memory_size_mib": {
+          "type": "integer",
+          "const": 16,
+          "description": "Fixed simulated physical address space in MiB."
+        },
+        "simulation_mode": {
+          "type": "string",
+          "const": "SE",
+          "description": "Fixed gem5 simulation mode: Syscall Emulation."
+        },
+        "software_threads": {
+          "type": "integer",
+          "const": 2,
+          "description": "Fixed workload software thread count."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "cpu_model": {
+                "const": "RiscvTimingSimpleCPU"
+              }
+            },
+            "required": [
+              "cpu_model"
+            ]
+          },
+          "then": {
+            "properties": {
+              "issue_width": {
+                "const": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "hardware_active_knob_candidates": {
+      "type": "object",
+      "title": "Hardware Active Knob Candidates",
+      "description": "Allowed candidate values for active hardware search knobs, referencing the authoritative hardware configuration knob definitions.",
+      "additionalProperties": false,
+      "properties": {
+        "cpu_model": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hardware_config/properties/cpu_model"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "cores": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hardware_config/properties/cores"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "frequency_ghz": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hardware_config/properties/frequency_ghz"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "issue_width": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hardware_config/properties/issue_width"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "l1d_cache_kib": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hardware_config/properties/l1d_cache_kib"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "l1d_associativity": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hardware_config/properties/l1d_associativity"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "l2_cache_kib": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hardware_config/properties/l2_cache_kib"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "l2_associativity": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hardware_config/properties/l2_associativity"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "hardware_design_space": {
+      "type": "object",
+      "title": "CHIA Hardware Design Space",
+      "description": "Defines the 8 active hardware search knobs, 10 fixed parameters, and official baseline values.",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "active_knobs",
+        "fixed_parameters",
+        "baseline"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "active_knobs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "cpu_model",
+            "cores",
+            "frequency_ghz",
+            "issue_width",
+            "l1d_cache_kib",
+            "l1d_associativity",
+            "l2_cache_kib",
+            "l2_associativity"
+          ],
+          "properties": {
+            "cpu_model": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "values",
+                "baseline"
+              ],
+              "properties": {
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/hardware_config/properties/cpu_model"
+                  },
+                  "uniqueItems": true
+                },
+                "baseline": {
+                  "type": "string",
+                  "const": "RiscvO3CPU"
+                }
+              }
+            },
+            "cores": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "values",
+                "baseline"
+              ],
+              "properties": {
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/hardware_config/properties/cores"
+                  },
+                  "uniqueItems": true
+                },
+                "baseline": {
+                  "type": "integer",
+                  "const": 2
+                }
+              }
+            },
+            "frequency_ghz": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "values",
+                "baseline"
+              ],
+              "properties": {
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/hardware_config/properties/frequency_ghz"
+                  },
+                  "uniqueItems": true
+                },
+                "baseline": {
+                  "type": "integer",
+                  "const": 1
+                }
+              }
+            },
+            "issue_width": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "values",
+                "baseline"
+              ],
+              "properties": {
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/hardware_config/properties/issue_width"
+                  },
+                  "uniqueItems": true
+                },
+                "baseline": {
+                  "type": "integer",
+                  "const": 2
+                },
+                "applicability": {
+                  "type": "string",
+                  "const": "RiscvO3CPU"
+                },
+                "implementation_status": {
+                  "type": "string",
+                  "const": "pending_validation"
+                }
+              }
+            },
+            "l1d_cache_kib": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "values",
+                "baseline"
+              ],
+              "properties": {
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/hardware_config/properties/l1d_cache_kib"
+                  },
+                  "uniqueItems": true
+                },
+                "baseline": {
+                  "type": "integer",
+                  "const": 64
+                }
+              }
+            },
+            "l1d_associativity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "values",
+                "baseline"
+              ],
+              "properties": {
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/hardware_config/properties/l1d_associativity"
+                  },
+                  "uniqueItems": true
+                },
+                "baseline": {
+                  "type": "integer",
+                  "const": 4
+                }
+              }
+            },
+            "l2_cache_kib": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "values",
+                "baseline"
+              ],
+              "properties": {
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/hardware_config/properties/l2_cache_kib"
+                  },
+                  "uniqueItems": true
+                },
+                "baseline": {
+                  "type": "integer",
+                  "const": 1024
+                }
+              }
+            },
+            "l2_associativity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "values",
+                "baseline"
+              ],
+              "properties": {
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/hardware_config/properties/l2_associativity"
+                  },
+                  "uniqueItems": true
+                },
+                "baseline": {
+                  "type": "integer",
+                  "const": 8
+                }
+              }
+            }
+          }
+        },
+        "fixed_parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "isa",
+            "l1i_cache_kib",
+            "l1i_associativity",
+            "l1i_latency_cycles",
+            "l1d_latency_cycles",
+            "l2_latency_cycles",
+            "memory_type",
+            "memory_size_mib",
+            "simulation_mode",
+            "software_threads"
+          ],
+          "properties": {
+            "isa": {
+              "type": "string",
+              "const": "RISCV64"
+            },
+            "l1i_cache_kib": {
+              "type": "integer",
+              "const": 16
+            },
+            "l1i_associativity": {
+              "type": "integer",
+              "const": 2
+            },
+            "l1i_latency_cycles": {
+              "type": "integer",
+              "const": 2
+            },
+            "l1d_latency_cycles": {
+              "type": "integer",
+              "const": 2
+            },
+            "l2_latency_cycles": {
+              "type": "integer",
+              "const": 20
+            },
+            "memory_type": {
+              "type": "string",
+              "const": "DDR3_1600_8x8"
+            },
+            "memory_size_mib": {
+              "type": "integer",
+              "const": 16
+            },
+            "simulation_mode": {
+              "type": "string",
+              "const": "SE"
+            },
+            "software_threads": {
+              "type": "integer",
+              "const": 2
+            }
+          }
+        },
+        "baseline": {
+          "$ref": "#/$defs/hardware_config"
+        }
+      }
+    },
+    "software_config": {
+      "type": "object",
+      "title": "CHIA AI Tutor Software Configuration",
+      "description": "Software configuration for the confirmed 1B quantized Ollama AI Tutor with integrated RAG pipeline. Distinguishes draft and execution-ready configurations.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/software_config_draft"
+        },
+        {
+          "$ref": "#/$defs/software_config_execution_ready"
+        }
+      ]
+    },
+    "software_config_execution_ready": {
+      "type": "object",
+      "title": "Execution-Ready Software Configuration",
+      "description": "Concrete execution-ready software configuration with all active knobs and fixed parameters resolved to concrete typed values.",
+      "additionalProperties": false,
+      "required": [
+        "runtime",
+        "parameter_count",
+        "model",
+        "quantization",
+        "prompt",
+        "generation",
+        "rag"
+      ],
+      "properties": {
+        "runtime": {
+          "type": "string",
+          "const": "ollama",
+          "description": "Fixed inference runtime engine."
+        },
+        "parameter_count": {
+          "type": "string",
+          "const": "1B",
+          "description": "Fixed model parameter scale."
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Concrete 1B model artifact name approved by the team."
+        },
+        "quantization": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Active model quantization knob for the 1B Ollama model."
+        },
+        "runtime_ready": {
+          "type": "boolean",
+          "const": true,
+          "description": "Explicit readiness flag indicating the configuration is executable."
+        },
+        "prompt": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "system_prompt_file"
+          ],
+          "properties": {
+            "system_prompt_file": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Path to the system prompt file."
+            }
+          }
+        },
+        "generation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "temperature",
+            "max_context_tokens",
+            "max_new_tokens",
+            "batch_size",
+            "seed"
+          ],
+          "properties": {
+            "temperature": {
+              "type": "number",
+              "description": "Active sampling temperature knob for answer generation (unit: unitless)."
+            },
+            "max_context_tokens": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Maximum model context window in tokens."
+            },
+            "max_new_tokens": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Maximum generated tokens per response."
+            },
+            "batch_size": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Inference batch size."
+            },
+            "seed": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Generation random seed."
+            }
+          }
+        },
+        "rag": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enabled",
+            "embedding_model",
+            "chunk_size",
+            "chunk_overlap",
+            "retrieval_top_k",
+            "similarity_metric"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "const": true,
+              "description": "Fixed flag enabling the RAG pipeline."
+            },
+            "embedding_model": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Embedding model used for text indexing and retrieval."
+            },
+            "chunk_size": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Document chunk size in tokens."
+            },
+            "chunk_overlap": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Active chunk overlap knob (unit: tokens)."
+            },
+            "retrieval_top_k": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of retrieved context passages."
+            },
+            "similarity_metric": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Active vector distance metric knob for retrieval."
+            },
+            "rag_corpus": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Approved RAG knowledge corpus identifier or path."
+            }
+          }
+        },
+        "metrics": {
+          "$ref": "#/$defs/metrics"
+        }
+      }
+    },
+    "software_config_draft": {
+      "type": "object",
+      "title": "Draft Software Configuration",
+      "description": "Draft software configuration where confirmed architecture (1B Ollama + RAG) is fixed but concrete numeric/model values remain pending definition.",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "runtime_ready",
+        "runtime",
+        "parameter_count",
+        "rag",
+        "unresolved_fields"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "const": "draft",
+          "description": "Status marker indicating this is a draft configuration."
+        },
+        "runtime_ready": {
+          "type": "boolean",
+          "const": false,
+          "description": "Explicit readiness flag: false indicates configuration cannot yet be executed."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of draft state."
+        },
+        "runtime": {
+          "type": "string",
+          "const": "ollama",
+          "description": "Fixed inference runtime engine."
+        },
+        "parameter_count": {
+          "type": "string",
+          "const": "1B",
+          "description": "Fixed model parameter scale."
+        },
+        "rag": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "enabled"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "const": true,
+              "description": "Fixed flag enabling the RAG pipeline."
+            }
+          }
+        },
+        "active_knobs": {
+          "type": "object",
+          "description": "Draft active knob metadata."
+        },
+        "prompt": {
+          "type": "object",
+          "description": "Draft prompt configuration."
+        },
+        "metrics": {
+          "$ref": "#/$defs/metrics"
+        },
+        "unresolved_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of configuration fields pending definition by the team."
+        }
+      }
+    },
+    "software_design_space": {
+      "type": "object",
+      "title": "CHIA AI Tutor Software Design Space",
+      "description": "Defines the 4 active software search knobs, fixed runtime/application parameters, optimization metrics, and draft baseline status.",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "active_knobs",
+        "fixed_parameters",
+        "optimization_metrics",
+        "baseline"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "active_knobs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "temperature",
+            "chunk_overlap",
+            "similarity_metric",
+            "quantization"
+          ],
+          "properties": {
+            "temperature": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "intended_purpose",
+                "unit"
+              ],
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending_definition",
+                    "approved"
+                  ]
+                },
+                "intended_purpose": {
+                  "type": "string"
+                },
+                "unit": {
+                  "type": "string",
+                  "const": "unitless"
+                },
+                "baseline": {
+                  "type": [
+                    "number",
+                    "string"
+                  ]
+                },
+                "values": {
+                  "type": [
+                    "array",
+                    "string"
+                  ]
+                }
+              }
+            },
+            "chunk_overlap": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "intended_purpose",
+                "unit"
+              ],
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending_definition",
+                    "approved"
+                  ]
+                },
+                "intended_purpose": {
+                  "type": "string"
+                },
+                "unit": {
+                  "type": "string",
+                  "const": "tokens"
+                },
+                "baseline": {
+                  "type": [
+                    "integer",
+                    "string"
+                  ]
+                },
+                "values": {
+                  "type": [
+                    "array",
+                    "string"
+                  ]
+                }
+              }
+            },
+            "similarity_metric": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "intended_purpose"
+              ],
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending_definition",
+                    "approved"
+                  ]
+                },
+                "intended_purpose": {
+                  "type": "string"
+                },
+                "baseline": {
+                  "type": "string"
+                },
+                "values": {
+                  "type": [
+                    "array",
+                    "string"
+                  ]
+                }
+              }
+            },
+            "quantization": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "intended_purpose"
+              ],
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending_definition",
+                    "approved"
+                  ]
+                },
+                "intended_purpose": {
+                  "type": "string"
+                },
+                "baseline": {
+                  "type": "string"
+                },
+                "values": {
+                  "type": [
+                    "array",
+                    "string"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "fixed_parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "runtime",
+            "parameter_count",
+            "rag_enabled"
+          ],
+          "properties": {
+            "runtime": {
+              "type": "string",
+              "const": "ollama"
+            },
+            "parameter_count": {
+              "type": "string",
+              "const": "1B"
+            },
+            "rag_enabled": {
+              "type": "boolean",
+              "const": true
+            },
+            "prompt": {
+              "type": "object"
+            },
+            "model": {
+              "type": "object"
+            },
+            "embedding_model": {
+              "type": "object"
+            },
+            "chunk_size": {
+              "type": "object"
+            },
+            "retrieval_top_k": {
+              "type": "object"
+            },
+            "max_context_tokens": {
+              "type": "object"
+            },
+            "max_new_tokens": {
+              "type": "object"
+            },
+            "batch_size": {
+              "type": "object"
+            },
+            "seed": {
+              "type": "object"
+            },
+            "rag_corpus": {
+              "type": "object"
+            }
+          }
+        },
+        "optimization_metrics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "answer_quality",
+            "latency_ms"
+          ],
+          "properties": {
+            "answer_quality": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "direction",
+                "intended_purpose"
+              ],
+              "properties": {
+                "direction": {
+                  "type": "string",
+                  "const": "maximize"
+                },
+                "intended_purpose": {
+                  "type": "string"
+                }
+              }
+            },
+            "latency_ms": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "direction",
+                "intended_purpose"
+              ],
+              "properties": {
+                "direction": {
+                  "type": "string",
+                  "const": "minimize"
+                },
+                "intended_purpose": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "baseline": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "runtime_ready",
+            "message",
+            "unresolved_fields"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "ready"
+              ]
+            },
+            "runtime_ready": {
+              "type": "boolean"
+            },
+            "message": {
+              "type": "string"
+            },
+            "confirmed_parameters": {
+              "type": "object"
+            },
+            "unresolved_fields": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "application_metrics": {
+      "type": "object",
+      "title": "Tutor Application Metrics",
+      "description": "Application-level metrics measured from the native AI Tutor + RAG workload. Kept strictly separate from gem5 simulated hardware metrics.",
+      "additionalProperties": false,
+      "required": [
+        "answer_quality",
+        "latency_ms"
+      ],
+      "properties": {
+        "answer_quality": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Application quality metric evaluated against reference benchmark answers (direction: maximize). Null before execution."
+        },
+        "latency_ms": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Real Tutor application end-to-end response latency in milliseconds (direction: minimize). Do NOT confuse Tutor latency with gem5 simulated execution time. Null before execution."
+        },
+        "memory_mb": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Peak host memory usage in MiB. Null before execution."
+        },
+        "throughput_qps": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Queries processed per second. Null before execution."
+        }
+      }
+    },
+    "hardware_metrics": {
+      "type": "object",
+      "title": "gem5 Hardware Metrics",
+      "description": "Simulated hardware metrics measured from the gem5 proxy execution. Kept strictly separate from Tutor application latency and quality.",
+      "additionalProperties": false,
+      "properties": {
+        "cycles": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "execution_cycles": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "num_cycles": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "instructions": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "ipc": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "cpi": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "sim_ticks": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "sim_seconds": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "l1i_miss_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "l1d_miss_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "l2_miss_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "energy_mj": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "passed": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "checksum": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "title": "CHIA Combined Metrics Container",
+      "description": "Unified metrics container strictly isolating Tutor application metrics from gem5 simulated hardware metrics.",
+      "additionalProperties": false,
+      "properties": {
+        "application": {
+          "$ref": "#/$defs/application_metrics"
+        },
+        "hardware": {
+          "$ref": "#/$defs/hardware_metrics"
+        }
+      }
+    },
+    "objectives": {
+      "type": "object",
+      "title": "CHIA Optimization Objectives",
+      "description": "Objectives expressing optimization directions for multi-objective / Pareto search. No arbitrary scalar weights.",
+      "additionalProperties": false,
+      "properties": {
+        "maximize": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of metric names to maximize (e.g., ['answer_quality'])."
+        },
+        "minimize": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of metric names to minimize (e.g., ['latency_ms'])."
+        },
+        "answer_quality": {
+          "type": "string",
+          "const": "maximize",
+          "description": "Optimization direction for Tutor answer quality."
+        },
+        "latency_ms": {
+          "type": "string",
+          "const": "minimize",
+          "description": "Optimization direction for Tutor application latency."
+        }
+      }
+    },
+    "status": {
+      "type": "object",
+      "title": "Candidate Status",
+      "description": "Candidate lifecycle status and state message.",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "planned",
+            "draft",
+            "validated",
+            "running",
+            "completed",
+            "failed",
+            "rejected"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "experiment": {
+      "type": "object",
+      "title": "CHIA Experiment Candidate",
+      "description": "One complete co-design experiment candidate combining software configuration, hardware configuration, workload/evaluation controls, and optimization objectives.",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "experiment_id",
+        "software",
+        "hardware"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "experiment_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        },
+        "workload": {
+          "$ref": "#/$defs/workload"
+        },
+        "evaluation": {
+          "$ref": "#/$defs/workload"
+        },
+        "software": {
+          "$ref": "#/$defs/software_config"
+        },
+        "hardware": {
+          "$ref": "#/$defs/hardware_config"
+        },
+        "objectives": {
+          "$ref": "#/$defs/objectives"
+        },
+        "metrics": {
+          "$ref": "#/$defs/metrics"
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        }
+      }
+    },
+    "design_space": {
+      "type": "object",
+      "title": "CHIA Combined Design Space",
+      "description": "Combined search space defining what CHIA is allowed to explore across software and hardware.",
+      "additionalProperties": false,
+      "required": [
+        "software",
+        "hardware"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "software": {
+          "$ref": "#/$defs/software_design_space"
+        },
+        "hardware": {
+          "$ref": "#/$defs/hardware_design_space"
+        }
+      }
+    },
+    "execution_record": {
+      "type": "object",
+      "title": "Execution Record",
+      "description": "Execution environment and runtime details for an experiment run.",
+      "additionalProperties": false,
+      "required": [
+        "tier",
+        "backend",
+        "worker_id",
+        "started_at",
+        "finished_at",
+        "attempt",
+        "host_seconds"
+      ],
+      "properties": {
+        "tier": {
+          "type": "string",
+          "enum": [
+            "dev",
+            "integration",
+            "pilot",
+            "final"
+          ]
+        },
+        "backend": {
+          "type": "string",
+          "enum": [
+            "local",
+            "contabo",
+            "development_cloud",
+            "organizer_burst"
+          ]
+        },
+        "worker_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "finished_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "host_seconds": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "gemini_usage": {
+      "type": "object",
+      "title": "Gemini Usage Record",
+      "description": "Gemini API usage tracking for the run.",
+      "additionalProperties": false,
+      "required": [
+        "gemini"
+      ],
+      "properties": {
+        "gemini": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "model",
+            "calls",
+            "input_tokens",
+            "output_tokens",
+            "estimated_cost_usd"
+          ],
+          "properties": {
+            "model": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "calls": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "input_tokens": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "output_tokens": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "estimated_cost_usd": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "provenance_record": {
+      "type": "object",
+      "title": "Provenance Record",
+      "description": "Git and toolchain provenance tracking for reproducibility.",
+      "additionalProperties": false,
+      "required": [
+        "git_commit",
+        "chia_version",
+        "gem5_version",
+        "kernel_version",
+        "compiler",
+        "policy_version",
+        "seed"
+      ],
+      "properties": {
+        "git_commit": {
+          "type": "string",
+          "minLength": 7
+        },
+        "chia_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gem5_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kernel_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "compiler": {
+          "type": "string",
+          "minLength": 1
+        },
+        "policy_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "run_record": {
+      "type": "object",
+      "title": "CHIA Experiment Run Record",
+      "description": "Structured execution record produced after executing a configured tutor + hardware candidate. Captures combined metrics (application, hardware, or both), execution details, Gemini usage, and provenance.",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "run_id",
+        "status"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "experiment_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "experiment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "experiment_id",
+            "config_digest"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "ai_tutor",
+                "attention_kernel"
+              ]
+            },
+            "experiment_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "config_digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-fA-F]{64}$"
+            }
+          }
+        },
+        "status": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "success",
+                "failed",
+                "partial",
+                "completed",
+                "rejected"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "state"
+              ],
+              "properties": {
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "success",
+                    "failed",
+                    "partial",
+                    "completed",
+                    "rejected"
+                  ]
+                },
+                "failure_reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "message": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "finished_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "config_snapshot": {
+          "$ref": "#/$defs/experiment"
+        },
+        "metrics": {
+          "$ref": "#/$defs/metrics"
+        },
+        "software_result": {
+          "type": "object"
+        },
+        "hardware_result": {
+          "type": "object"
+        },
+        "execution": {
+          "$ref": "#/$defs/execution_record"
+        },
+        "usage": {
+          "$ref": "#/$defs/gemini_usage"
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance_record"
+        },
+        "error": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "stage": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

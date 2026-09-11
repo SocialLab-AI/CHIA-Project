@@ -20,6 +20,7 @@ software:
   threads: 1
 
 hardware:
+  isa: RISCV64
   cpu_model: RiscvO3CPU
   cores: 2
   frequency_ghz: 1
@@ -36,6 +37,7 @@ hardware:
   memory_type: DDR3_1600_8x8
   memory_size_mib: 16
   simulation_mode: SE
+  software_threads: 2
 
 measurement:
   repetitions: 4

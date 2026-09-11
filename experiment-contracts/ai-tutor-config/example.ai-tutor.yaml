@@ -1,5 +1,6 @@
-# Application-level AI Tutor config.
-# Schema-valid does not mean the referenced assets already exist.
+# Application-level AI Tutor experiment configuration.
+# Conforms to the canonical software architecture: 1B quantized Ollama model with integrated RAG pipeline.
+# Currently in draft status (runtime_ready: false) awaiting definition of concrete parameter values.
 schema_version: "0.2.0"
 
 metadata:
@@ -15,12 +16,42 @@ workload:
   seed: 42
 
 software:
-  model: "placeholder:chosen-small-instruct-model"
-  quantization: int4
-  retrieval_top_k: 3
-  max_context_tokens: 512
-  max_new_tokens: 128
-  batch_size: 1
+  status: draft
+  runtime_ready: false
+  description: "Draft AI Tutor software configuration reflecting confirmed 1B Ollama + RAG architecture pending team definition of concrete parameter values."
+  runtime: ollama
+  parameter_count: "1B"
+  rag:
+    enabled: true
+  active_knobs:
+    temperature:
+      status: pending_definition
+      unit: unitless
+      intended_purpose: "Sampling temperature for answer generation"
+    chunk_overlap:
+      status: pending_definition
+      unit: tokens
+      intended_purpose: "Token overlap between adjacent document chunks in RAG indexing"
+    similarity_metric:
+      status: pending_definition
+      intended_purpose: "Vector distance metric used for RAG embedding retrieval"
+    quantization:
+      status: pending_definition
+      intended_purpose: "Weight quantization format for 1B Ollama model"
+  unresolved_fields:
+    - "exact 1B Ollama model artifact"
+    - "temperature baseline and legal values"
+    - "chunk_overlap baseline and legal values"
+    - "similarity_metric baseline and legal values"
+    - "quantization baseline and legal values"
+    - "embedding model"
+    - "chunk size"
+    - "retrieval top-k"
+    - "max context tokens"
+    - "max new tokens"
+    - "batch size"
+    - "seed"
+    - "exact RAG corpus"
 
 proxy_evaluation:
   type: attention_kernel
@@ -31,9 +62,7 @@ metrics:
   application:
     answer_quality: null
     latency_ms: null
-    memory_mb: null
-    throughput_qps: null
 
 status:
   state: planned
-  message: "Replace placeholders and validate the Tutor-to-attention mapping before final experiments."
+  message: "Draft 1B Ollama + RAG configuration pending team definition of concrete values."

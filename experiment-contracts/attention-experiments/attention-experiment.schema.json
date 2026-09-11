@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.local/chia/attention-experiment.schema.json",
   "title": "CHIA Attention Kernel Experiment",
-  "description": "One concrete attention-kernel + gem5 experiment. Values describe the simulated target and workload, not the real host machine running gem5.",
+  "description": "One concrete attention-kernel + gem5 experiment. Hardware configuration delegates to canonical chia-experiment.schema.json, while attention-specific proxy workload controls remain defined here.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -109,140 +109,7 @@
       }
     },
     "hardware": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "cpu_model",
-        "cores",
-        "frequency_ghz",
-        "issue_width",
-        "l1i_cache_kib",
-        "l1i_associativity",
-        "l1i_latency_cycles",
-        "l1d_cache_kib",
-        "l1d_associativity",
-        "l1d_latency_cycles",
-        "l2_cache_kib",
-        "l2_associativity",
-        "l2_latency_cycles",
-        "memory_type",
-        "memory_size_mib",
-        "simulation_mode"
-      ],
-      "properties": {
-        "cpu_model": {
-          "type": "string",
-          "enum": [
-            "RiscvTimingSimpleCPU",
-            "RiscvO3CPU"
-          ],
-          "default": "RiscvO3CPU",
-          "description": "gem5 CPU model used for the simulated target."
-        },
-        "cores": {
-          "type": "integer",
-          "enum": [
-            1,
-            2,
-            4
-          ],
-          "default": 2,
-          "description": "Number of simulated CPU cores."
-        },
-        "frequency_ghz": {
-          "type": "integer",
-          "enum": [
-            1,
-            2,
-            3,
-            4
-          ],
-          "default": 1,
-          "description": "Simulated CPU clock frequency in GHz."
-        },
-        "issue_width": {
-          "type": "integer",
-          "enum": [
-            1,
-            2,
-            4
-          ],
-          "default": 2,
-          "description": "Maximum instruction issue width. RiscvTimingSimpleCPU supports only the value 1."
-        },
-        "l1i_cache_kib": {
-          "const": 16,
-          "description": "Fixed L1 instruction-cache capacity per core in KiB."
-        },
-        "l1i_associativity": {
-          "const": 2,
-          "description": "Fixed L1 instruction-cache associativity."
-        },
-        "l1i_latency_cycles": {
-          "const": 2,
-          "description": "Fixed L1 instruction-cache latency in cycles."
-        },
-        "l1d_cache_kib": {
-          "type": "integer",
-          "enum": [
-            16,
-            32,
-            64
-          ],
-          "default": 64,
-          "description": "L1 data-cache capacity per core in KiB."
-        },
-        "l1d_associativity": {
-          "type": "integer",
-          "enum": [
-            2,
-            4,
-            8
-          ],
-          "default": 4,
-          "description": "L1 data-cache associativity."
-        },
-        "l1d_latency_cycles": {
-          "const": 2,
-          "description": "Fixed L1 data-cache latency in cycles."
-        },
-        "l2_cache_kib": {
-          "type": "integer",
-          "enum": [
-            256,
-            512,
-            1024
-          ],
-          "default": 1024,
-          "description": "Total shared L2-cache capacity in KiB."
-        },
-        "l2_associativity": {
-          "type": "integer",
-          "enum": [
-            4,
-            8,
-            16
-          ],
-          "default": 8,
-          "description": "Shared L2-cache associativity."
-        },
-        "l2_latency_cycles": {
-          "const": 20,
-          "description": "Fixed shared L2-cache latency in cycles."
-        },
-        "memory_type": {
-          "const": "DDR3_1600_8x8",
-          "description": "Validated gem5 memory model."
-        },
-        "memory_size_mib": {
-          "const": 16,
-          "description": "Physical address range assigned to the proxy workload in MiB."
-        },
-        "simulation_mode": {
-          "const": "SE",
-          "description": "gem5 syscall-emulation mode."
-        }
-      }
+      "$ref": "https://example.local/chia/chia-experiment.schema.json#/$defs/hardware_config"
     },
     "measurement": {
       "type": "object",
@@ -297,34 +164,5 @@
         }
       }
     }
-  },
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "hardware": {
-            "properties": {
-              "cpu_model": {
-                "const": "RiscvTimingSimpleCPU"
-              }
-            },
-            "required": [
-              "cpu_model"
-            ]
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "hardware": {
-            "properties": {
-              "issue_width": {
-                "const": 1
-              }
-            }
-          }
-        }
-      }
-    }
-  ]
+  }
 }

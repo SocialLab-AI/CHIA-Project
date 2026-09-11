@@ -4,7 +4,8 @@ This file records the current teammate-provided implementation direction and har
 
 ## Baseline Configuration
 
-- `RiscvO3CPU` baseline
+- `isa`: `RISCV64`
+- `cpu_model`: `RiscvO3CPU` baseline
 - Cores: `2`
 - Frequency: `1 GHz`
 - Issue width: `2`
@@ -14,6 +15,7 @@ This file records the current teammate-provided implementation direction and har
 - Memory type: `DDR3_1600_8x8`
 - Memory size: `16 MiB` proxy physical address space
 - Simulation mode: `SE` (syscall-emulation)
+- Software threads: `2` (relationship with varying core count is a future clarification)
 - Context tokens: `512` baseline (`128, 256, 512` evaluation axis)
 - Query heads: `4`
 - KV heads: `2`
@@ -29,7 +31,7 @@ This file records the current teammate-provided implementation direction and har
 - `cpu_model`: `[RiscvTimingSimpleCPU, RiscvO3CPU]`
 - `cores`: `[1, 2, 4]`
 - `frequency_ghz`: `[1, 2, 3, 4]`
-- `issue_width`: `[1, 2, 4]` (compatibility constraint: `RiscvTimingSimpleCPU` restricted to `1`; `RiscvO3CPU` supports `1, 2, 4`)
+- `issue_width`: `[1, 2, 4]` (applicability: `RiscvO3CPU`, implementation_status: `pending_validation`)
 - `l1d_cache_kib`: `[16, 32, 64]`
 - `l1d_associativity`: `[2, 4, 8]`
 - `l2_cache_kib`: `[256, 512, 1024]`
@@ -37,6 +39,7 @@ This file records the current teammate-provided implementation direction and har
 
 ## Fixed Parameters
 
+- `isa`: `RISCV64`
 - `l1i_cache_kib`: `16`
 - `l1i_associativity`: `2`
 - `l1i_latency_cycles`: `2`
@@ -45,6 +48,7 @@ This file records the current teammate-provided implementation direction and har
 - `memory_type`: `DDR3_1600_8x8`
 - `memory_size_mib`: `16`
 - `simulation_mode`: `SE`
+- `software_threads`: `2` (relationship with varying core count is a future clarification)
 
 ## Software Formats Status
 

@@ -67,26 +67,38 @@ Every module/class above is a proposed destination; none is claimed to exist in 
 
 Each row includes schema limits, fixed/variable classification, exact design-space source, handler, backend target, dependencies and related metrics. All rows have wiring status PLANNED. Baseline values are recorded independently of schema defaults.
 
-### Hardware knobs
+### Official active hardware knobs
 
-| Field and contract | Planned binding | Constraints and evidence |
-| --- | --- | --- |
-| hardware.cpu_model<br>VARIABLE  /  RiscvTimingSimpleCPU / RiscvO3CPU<br>Baseline: RiscvO3CPU<br>Source: active_candidates.hardware.cpu_model | CPU: Gem5CPUAdapter.select_model()<br>Target: RISC-V CPU class instances | Allowlist the two schema model names; build must support RISC-V; apply width rule.<br>Related: cycles, IPC, simulated time<br>PLANNED |
-| hardware.cores<br>VARIABLE  /  1 / 2 / 4<br>Baseline: 2<br>Source: active_candidates.hardware.cores | CPU: Gem5CPUAdapter.set_cores()<br>Target: CPU instance count and per-core L1 hierarchy | Modeled cores are not Ray CPUs. threads stays 1; extra cores do not imply parallel work.<br>Related: cycles, simulated time<br>PLANNED |
-| hardware.frequency_ghz<br>VARIABLE  /  1 / 2 / 3 / 4<br>Baseline: 1<br>Source: active_candidates.hardware.frequency_ghz | CPU: Gem5CPUAdapter.set_frequency()<br>Target: CPU SrcClockDomain.clock | Convert GHz to explicit clock units; record cache/DRAM clock domains; do not silently scale every domain.<br>Related: sim_seconds; cycles interpreted with clock<br>PLANNED |
-| hardware.issue_width<br>VARIABLE  /  1 / 2 / 4<br>Baseline: 2<br>Source: active_candidates.hardware.issue_width | CPU: Gem5CPUAdapter.set_issue_width()<br>Target: O3 CPU issueWidth | TimingSimpleCPU requires 1; validate and skip assignment there. Do not set fetch/decode/commit widths implicitly.<br>Related: IPC, CPI, cycles<br>PLANNED |
-| hardware.l1i_cache_kib<br>FIXED  /  16<br>Baseline: 16<br>Source: fixed.l1i_cache_kib | CACHE: Gem5CacheAdapter.set_l1i()<br>Target: each core’s L1I instance.size | Convert KiB to bytes using 1024; L2 is total shared capacity. Validate size/line-size/associativity geometry.<br>Related: l1i_miss_rate, cycles, simulated time<br>PLANNED |
-| hardware.l1i_associativity<br>FIXED  /  2<br>Baseline: 2<br>Source: fixed.l1i_associativity | CACHE: Gem5CacheAdapter.set_l1i()<br>Target: each core’s L1I instance.assoc | Apply together with capacity; record cache line size and replacement policy.<br>Related: l1i_miss_rate, cycles<br>PLANNED |
-| hardware.l1i_latency_cycles<br>FIXED  /  2<br>Baseline: 2<br>Source: fixed.l1i_latency_cycles | CACHE: Gem5CacheAdapter.set_l1i()<br>Target: each core’s L1I instance latency parameters | Unresolved: gem5 separates tag_latency, data_latency, response_latency. Approve a mapping profile; do not call this total hit latency or silently assign all three.<br>Related: l1i_miss_rate, cycles, simulated time<br>PLANNED |
-| hardware.l1d_cache_kib<br>VARIABLE  /  16 / 32 / 64<br>Baseline: 64<br>Source: active_candidates.hardware.l1d_cache_kib | CACHE: Gem5CacheAdapter.set_l1d()<br>Target: each core’s L1D instance.size | Convert KiB to bytes using 1024; L2 is total shared capacity. Validate size/line-size/associativity geometry.<br>Related: l1d_miss_rate, cycles, simulated time<br>PLANNED |
-| hardware.l1d_associativity<br>VARIABLE  /  2 / 4 / 8<br>Baseline: 4<br>Source: active_candidates.hardware.l1d_associativity | CACHE: Gem5CacheAdapter.set_l1d()<br>Target: each core’s L1D instance.assoc | Apply together with capacity; record cache line size and replacement policy.<br>Related: l1d_miss_rate, cycles<br>PLANNED |
-| hardware.l1d_latency_cycles<br>FIXED  /  2<br>Baseline: 2<br>Source: fixed.l1d_latency_cycles | CACHE: Gem5CacheAdapter.set_l1d()<br>Target: each core’s L1D instance latency parameters | Unresolved: gem5 separates tag_latency, data_latency, response_latency. Approve a mapping profile; do not call this total hit latency or silently assign all three.<br>Related: l1d_miss_rate, cycles, simulated time<br>PLANNED |
-| hardware.l2_cache_kib<br>VARIABLE  /  256 / 512 / 1024<br>Baseline: 1024<br>Source: active_candidates.hardware.l2_cache_kib | CACHE: Gem5CacheAdapter.set_l2()<br>Target: shared L2 instance.size | Convert KiB to bytes using 1024; L2 is total shared capacity. Validate size/line-size/associativity geometry.<br>Related: l2_miss_rate, cycles, simulated time<br>PLANNED |
-| hardware.l2_associativity<br>VARIABLE  /  4 / 8 / 16<br>Baseline: 8<br>Source: active_candidates.hardware.l2_associativity | CACHE: Gem5CacheAdapter.set_l2()<br>Target: shared L2 instance.assoc | Apply together with capacity; record cache line size and replacement policy.<br>Related: l2_miss_rate, cycles<br>PLANNED |
-| hardware.l2_latency_cycles<br>FIXED  /  20<br>Baseline: 20<br>Source: fixed.l2_latency_cycles | CACHE: Gem5CacheAdapter.set_l2()<br>Target: shared L2 instance latency parameters | Unresolved: gem5 separates tag_latency, data_latency, response_latency. Approve a mapping profile; do not call this total hit latency or silently assign all three.<br>Related: l2_miss_rate, cycles, simulated time<br>PLANNED |
-| hardware.memory_type<br>FIXED  /  DDR3_1600_8x8<br>Baseline: DDR3_1600_8x8<br>Source: fixed.memory_type | MEM: Gem5MemoryAdapter.set_memory()<br>Target: DDR3_1600_8x8 DRAM interface and memory controller | DDR4 excluded. Contract reports DDR3 validated; pin actual gem5 version before wiring.<br>Related: simulated time, cycles<br>PLANNED |
-| hardware.memory_size_mib<br>FIXED  /  16<br>Baseline: 16<br>Source: fixed.memory_size_mib | MEM: Gem5MemoryAdapter.set_memory()<br>Target: System memory address range and controller range | 16 × 1024² bytes; includes workload data, code, stack and overhead. Not host RAM or cache capacity.<br>Related: passed; simulated time<br>PLANNED |
-| hardware.simulation_mode<br>FIXED  /  SE<br>Baseline: SE<br>Source: fixed.simulation_mode | RUN: ExperimentRunner.set_mode()<br>Target: SE workload/process setup and full_system false | SE is syscall emulation; use timing memory mode for selected CPUs. SE is not a value for mem_mode.<br>Related: passed; all simulator metrics<br>PLANNED |
+These are the ONLY eight hardware knobs CHIA may actively explore at this stage. All hardware bindings have implementation status `pending_mapping` or `pending_validation` until the gem5 adapter is implemented and verified.
+
+| Field and contract | Intended purpose | Planned binding | Constraints and evidence |
+| --- | --- | --- | --- |
+| hardware.cpu_model<br>ACTIVE: true<br>Subsystem: hardware/gem5<br>VARIABLE: RiscvTimingSimpleCPU / RiscvO3CPU<br>Baseline: RiscvO3CPU<br>Source: active_knobs.cpu_model | Simulated CPU core execution model | Target: TBD after gem5 adapter implementation<br>Status: pending_mapping | Allowlist the two schema model names; gem5 build must support RISCV64.<br>Related: cycles, IPC, simulated time |
+| hardware.cores<br>ACTIVE: true<br>Subsystem: hardware/gem5<br>VARIABLE: 1 / 2 / 4<br>Baseline: 2<br>Source: active_knobs.cores | Number of simulated CPU cores | Target: TBD after gem5 adapter implementation<br>Status: pending_mapping | Modeled cores are simulated target cores. Note: relationship with software_threads: 2 remains a future clarification.<br>Related: cycles, simulated time |
+| hardware.frequency_ghz<br>ACTIVE: true<br>Subsystem: hardware/gem5<br>VARIABLE: 1 / 2 / 3 / 4<br>Baseline: 1<br>Source: active_knobs.frequency_ghz | CPU clock frequency and clock domain in GHz | Target: TBD after gem5 adapter implementation<br>Status: pending_mapping | CPU clock domain is also frequency_ghz; no independent second clock knob. Convert GHz to gem5 clock domain ticks.<br>Related: sim_seconds, cycles |
+| hardware.issue_width<br>ACTIVE: true<br>Subsystem: hardware/gem5<br>VARIABLE: 1 / 2 / 4<br>Baseline: 2<br>Source: active_knobs.issue_width | Maximum instruction issue width | Target: TBD after gem5 adapter implementation<br>Status: pending_validation | Applicability: RiscvO3CPU. Pending validation in gem5 adapter before enforcing model-conditional rules.<br>Related: IPC, CPI, cycles |
+| hardware.l1d_cache_kib<br>ACTIVE: true<br>Subsystem: hardware/gem5<br>VARIABLE: 16 / 32 / 64<br>Baseline: 64<br>Source: active_knobs.l1d_cache_kib | Per-core L1 data cache capacity in KiB | Target: TBD after gem5 adapter implementation<br>Status: pending_mapping | Convert KiB to bytes (1024); per-core cache hierarchy.<br>Related: l1d_miss_rate, cycles, simulated time |
+| hardware.l1d_associativity<br>ACTIVE: true<br>Subsystem: hardware/gem5<br>VARIABLE: 2 / 4 / 8<br>Baseline: 4<br>Source: active_knobs.l1d_associativity | Per-core L1 data cache associativity | Target: TBD after gem5 adapter implementation<br>Status: pending_mapping | Validate geometry with cache line size (64 bytes).<br>Related: l1d_miss_rate, cycles |
+| hardware.l2_cache_kib<br>ACTIVE: true<br>Subsystem: hardware/gem5<br>VARIABLE: 256 / 512 / 1024<br>Baseline: 1024<br>Source: active_knobs.l2_cache_kib | Total shared L2 cache capacity in KiB | Target: TBD after gem5 adapter implementation<br>Status: pending_mapping | Shared L2 cache capacity across all simulated cores.<br>Related: l2_miss_rate, cycles, simulated time |
+| hardware.l2_associativity<br>ACTIVE: true<br>Subsystem: hardware/gem5<br>VARIABLE: 4 / 8 / 16<br>Baseline: 8<br>Source: active_knobs.l2_associativity | Shared L2 cache associativity | Target: TBD after gem5 adapter implementation<br>Status: pending_mapping | Validate geometry with cache line size (64 bytes).<br>Related: l2_miss_rate, cycles |
+
+### Fixed hardware parameters
+
+These are fixed parameters of the official hardware baseline and must NOT be exposed as active search knobs.
+
+| Field and contract | Intended purpose | Planned binding | Constraints and evidence |
+| --- | --- | --- | --- |
+| hardware.isa<br>ACTIVE: false<br>Subsystem: hardware/gem5<br>FIXED: RISCV64<br>Baseline: RISCV64<br>Source: fixed_parameters.isa | Canonical target architecture | Target: TBD after gem5 adapter implementation<br>Status: pending_mapping | RISC-V 64-bit canonically represented as RISCV64. |
+| hardware.l1i_cache_kib<br>ACTIVE: false<br>Subsystem: hardware/gem5<br>FIXED: 16<br>Baseline: 16<br>Source: fixed_parameters.l1i_cache_kib | Fixed L1 instruction cache size (KiB) | Target: TBD after gem5 adapter implementation<br>Status: pending_mapping | 16 KiB per core. |
+| hardware.l1i_associativity<br>ACTIVE: false<br>Subsystem: hardware/gem5<br>FIXED: 2<br>Baseline: 2<br>Source: fixed_parameters.l1i_associativity | Fixed L1 instruction cache associativity | Target: TBD after gem5 adapter implementation<br>Status: pending_mapping | 2-way set associative. |
+| hardware.l1i_latency_cycles<br>ACTIVE: false<br>Subsystem: hardware/gem5<br>FIXED: 2<br>Baseline: 2<br>Source: fixed_parameters.l1i_latency_cycles | Fixed L1 instruction cache latency (cycles) | Target: TBD after gem5 adapter implementation<br>Status: pending_mapping | Hit latency profile in cycles. |
+| hardware.l1d_latency_cycles<br>ACTIVE: false<br>Subsystem: hardware/gem5<br>FIXED: 2<br>Baseline: 2<br>Source: fixed_parameters.l1d_latency_cycles | Fixed L1 data cache latency (cycles) | Target: TBD after gem5 adapter implementation<br>Status: pending_mapping | Hit latency profile in cycles. |
+| hardware.l2_latency_cycles<br>ACTIVE: false<br>Subsystem: hardware/gem5<br>FIXED: 20<br>Baseline: 20<br>Source: fixed_parameters.l2_latency_cycles | Fixed shared L2 cache latency (cycles) | Target: TBD after gem5 adapter implementation<br>Status: pending_mapping | L2 hit latency in cycles. |
+| hardware.memory_type<br>ACTIVE: false<br>Subsystem: hardware/gem5<br>FIXED: DDR3_1600_8x8<br>Baseline: DDR3_1600_8x8<br>Source: fixed_parameters.memory_type | Fixed gem5 memory controller/DRAM model | Target: TBD after gem5 adapter implementation<br>Status: pending_mapping | Validated memory model DDR3_1600_8x8. DDR4 strictly excluded. |
+| hardware.memory_size_mib<br>ACTIVE: false<br>Subsystem: hardware/gem5<br>FIXED: 16<br>Baseline: 16<br>Source: fixed_parameters.memory_size_mib | Physical address space range in MiB | Target: TBD after gem5 adapter implementation<br>Status: pending_mapping | 16 MiB proxy physical address space. |
+| hardware.simulation_mode<br>ACTIVE: false<br>Subsystem: hardware/gem5<br>FIXED: SE<br>Baseline: SE<br>Source: fixed_parameters.simulation_mode | gem5 execution mode | Target: TBD after gem5 adapter implementation<br>Status: pending_mapping | Syscall-emulation (SE) mode. |
+| hardware.software_threads<br>ACTIVE: false<br>Subsystem: hardware/gem5<br>FIXED: 2<br>Baseline: 2<br>Source: fixed_parameters.software_threads | Simulated software threads baseline | Target: TBD after gem5 adapter implementation<br>Status: pending_mapping | Fixed at 2 for this version as specified by teammate; relationship with varying core count remains a future clarification. |
+
 
 ### Attention software
 
@@ -186,38 +198,98 @@ All following fields are declared in experiment-contracts/run-records/run-record
 
 Blocking record gap — metrics are all required and non-null even when status is failed/rejected. A failed launch or unavailable counter cannot honestly populate this schema. Proposed resolution: review a conditional schema allowing unavailable values or a separate failure-event contract. Until approved, retain an internal failure event and raw diagnostics; return an explicit non-rankable tool error. Never emit synthetic zeros or a fake schema-valid completed record.
 
-### Native Tutor boundary
+### Native Tutor boundary and software configuration architecture
 
-The separate ai-tutor-config/ai-tutor.schema.json remains part of the current contract set. It has no active attention design-space entries. Fields below are native application controls, identity, outputs or proxy references; they are not automatically added to the nine active attention knobs. All proposed handlers are PLANNED.
+The canonical CHIA co-design experiment contract is defined in `configs/schemas/chia-experiment.schema.json` as the SINGLE SOURCE OF TRUTH, with thin schemas for specific execution steps:
+- `configs/schemas/experiment.schema.json`: validates one concrete experiment candidate.
+- `configs/schemas/design-space.schema.json`: validates what CHIA is allowed to search across software and hardware.
+- `configs/schemas/run-record.schema.json`: validates the evidence and results of a completed run.
 
-| Tutor field and role | Schema domain | Planned native binding |
+The canonical configuration data files reside in:
+- `configs/hardware/`: hardware DATA (`baseline.hardware.json`, `design-space.hardware.json`).
+- `configs/software/`: software DATA (`baseline.software.json`, `design-space.software.json`).
+
+#### Official active AI Tutor software knobs
+
+These are the EXACT four software knobs CHIA may actively explore for the AI Tutor workload. Neither `answer_quality` nor `latency_ms` is a software knob; they are optimization metrics/outputs.
+
+| Field and contract | Intended purpose | Planned binding | Constraints and status |
+| --- | --- | --- | --- |
+| software.generation.temperature<br>ACTIVE: true<br>Subsystem: software/ollama<br>Unit: unitless<br>Baseline: pending_definition<br>Source: active_knobs.temperature | Sampling temperature for LLM response generation | Target: Ollama API generation options<br>Status: pending_definition | Candidate set and baseline value pending team definition. Continuous range or discrete grid TBD. |
+| software.rag.chunk_overlap<br>ACTIVE: true<br>Subsystem: software/rag<br>Unit: tokens<br>Baseline: pending_definition<br>Source: active_knobs.chunk_overlap | Token overlap between adjacent document chunks in RAG indexing | Target: RAG chunking preprocessor<br>Status: pending_definition | Unit is tokens. Candidate set and baseline value pending team definition. Must satisfy chunk_overlap < chunk_size. |
+| software.rag.similarity_metric<br>ACTIVE: true<br>Subsystem: software/rag<br>Unit: categorical<br>Baseline: pending_definition<br>Source: active_knobs.similarity_metric | Vector distance metric used for embedding retrieval | Target: Vector store retrieval index<br>Status: pending_definition | Candidate set (e.g., cosine, l2, dot_product) and baseline value pending team definition. |
+| software.quantization<br>ACTIVE: true<br>Subsystem: software/ollama<br>Unit: categorical<br>Baseline: pending_definition<br>Source: active_knobs.quantization | Weight quantization format for the 1B Ollama model artifact | Target: Ollama model tag / Modelfile<br>Status: pending_definition | Supported candidate set (e.g., q4_k_m, q8_0, etc.) and baseline pending definition for the chosen 1B model. Distinct from attention proxy KV-format. |
+
+#### Confirmed fixed software parameters
+
+These are fixed parameters of the confirmed AI Tutor architecture and must NOT be exposed as active search knobs:
+
+| Parameter | Confirmed value | Role and status |
 | --- | --- | --- |
-| schema_version<br>METADATA | 0.2.0 | CFG.manage_candidate(): schema version, identity, artifact manifest or lifecycle; service-owned. |
-| metadata.experiment_id<br>METADATA | string; length ≥ 1 | CFG.manage_candidate(): schema version, identity, artifact manifest or lifecycle; service-owned. |
-| metadata.description<br>METADATA | string; length ≥ 1 | CFG.manage_candidate(): schema version, identity, artifact manifest or lifecycle; service-owned. |
-| metadata.artifact_manifest<br>METADATA | string or null | CFG.manage_candidate(): schema version, identity, artifact manifest or lifecycle; service-owned. |
-| workload.dataset_id<br>EVALUATION CONTROL | string; length ≥ 1 | EVAL.configure_dataset(): versioned questions/corpus/protocol, sample count and seed; freeze within a comparison cohort. |
-| workload.corpus_id<br>EVALUATION CONTROL | string; length ≥ 1 | EVAL.configure_dataset(): versioned questions/corpus/protocol, sample count and seed; freeze within a comparison cohort. |
-| workload.evaluation_protocol<br>EVALUATION CONTROL | string; length ≥ 1 | EVAL.configure_dataset(): versioned questions/corpus/protocol, sample count and seed; freeze within a comparison cohort. |
-| workload.num_questions<br>EVALUATION CONTROL | integer ≥ 1 | EVAL.configure_dataset(): versioned questions/corpus/protocol, sample count and seed; freeze within a comparison cohort. |
-| workload.seed<br>EVALUATION CONTROL | integer ≥ 0 | EVAL.configure_dataset(): versioned questions/corpus/protocol, sample count and seed; freeze within a comparison cohort. |
-| software.model<br>APPLICATION CONTROL | string; length ≥ 1 | TUTOR.configure(): model/runtime, retrieval, context/generation or batching setting with a runtime capability gate. Pin assets; schema eligibility is not validated support. |
-| software.quantization<br>APPLICATION CONTROL | fp32 / fp16 / bf16 / int8 / int4 | TUTOR.configure(): model/runtime, retrieval, context/generation or batching setting with a runtime capability gate. Pin assets; schema eligibility is not validated support. |
-| software.retrieval_top_k<br>APPLICATION CONTROL | integer ≥ 1 | TUTOR.configure(): model/runtime, retrieval, context/generation or batching setting with a runtime capability gate. Pin assets; schema eligibility is not validated support. |
-| software.max_context_tokens<br>APPLICATION CONTROL | integer ≥ 1 | TUTOR.configure(): model/runtime, retrieval, context/generation or batching setting with a runtime capability gate. Pin assets; schema eligibility is not validated support. |
-| software.max_new_tokens<br>APPLICATION CONTROL | integer ≥ 1 | TUTOR.configure(): model/runtime, retrieval, context/generation or batching setting with a runtime capability gate. Pin assets; schema eligibility is not validated support. |
-| software.batch_size<br>APPLICATION CONTROL | integer ≥ 1 | TUTOR.configure(): model/runtime, retrieval, context/generation or batching setting with a runtime capability gate. Pin assets; schema eligibility is not validated support. |
-| proxy_evaluation.type<br>REFERENCE | attention_kernel | TUTOR.bind_proxy(): versioned mapping and attention candidate reference; no one-to-one model-quantization to KV-format conversion is established. |
-| proxy_evaluation.mapping_id<br>REFERENCE | string; length ≥ 1 | TUTOR.bind_proxy(): versioned mapping and attention candidate reference; no one-to-one model-quantization to KV-format conversion is established. |
-| proxy_evaluation.attention_experiment_ref<br>REFERENCE | string or null | TUTOR.bind_proxy(): versioned mapping and attention candidate reference; no one-to-one model-quantization to KV-format conversion is established. |
-| metrics.application.answer_quality<br>OUTPUT | number or null ≥ 0 | EVAL.measure(): native benchmark output. Keep null until measured; define quality rubric and memory unit convention. Never derive from gem5 proxy time. |
-| metrics.application.latency_ms<br>OUTPUT | number or null ≥ 0 | EVAL.measure(): native benchmark output. Keep null until measured; define quality rubric and memory unit convention. Never derive from gem5 proxy time. |
-| metrics.application.memory_mb<br>OUTPUT | number or null ≥ 0 | EVAL.measure(): native benchmark output. Keep null until measured; define quality rubric and memory unit convention. Never derive from gem5 proxy time. |
-| metrics.application.throughput_qps<br>OUTPUT | number or null ≥ 0 | EVAL.measure(): native benchmark output. Keep null until measured; define quality rubric and memory unit convention. Never derive from gem5 proxy time. |
-| status.state<br>METADATA | planned / validated / running / completed / failed / rejected | CFG.manage_candidate(): schema version, identity, artifact manifest or lifecycle; service-owned. |
-| status.message<br>METADATA | string or null | CFG.manage_candidate(): schema version, identity, artifact manifest or lifecycle; service-owned. |
+| runtime | ollama | Fixed inference runtime engine. |
+| parameter_count | 1B | Fixed model parameter scale. |
+| rag.enabled | true | Fixed architectural requirement: RAG pipeline is always enabled. |
+| prompt.system_prompt_file | prompts/tutor_system.txt | Fixed system prompt template path (provisional retained). |
 
-Native objectives are proposed separately: maximize answer_quality and throughput_qps; minimize latency_ms and memory_mb under a fixed protocol. Their exact aggregation, rubric and constraints are not specified by the schema. The shared run-record metrics object currently accepts only proxy counters, so it cannot store these native metrics as-is. Keep them in the Tutor metrics.application structure and a separate artifact pending an approved run-record extension.
+#### Unresolved fixed parameters (pending team definition)
+
+The following application controls are part of the software architecture but have not yet been assigned approved values:
+
+| Parameter | Status | Note |
+| --- | --- | --- |
+| software.model | pending_definition | Exact 1B Ollama model artifact (e.g. Llama 3.2 1B, Qwen 2.5 1B, etc.). |
+| software.rag.embedding_model | pending_definition | Embedding model artifact for document indexing and query encoding. |
+| software.rag.chunk_size | pending_definition | Document chunk size in tokens. |
+| software.rag.retrieval_top_k | pending_definition | Number of retrieved context passages supplied to prompt. |
+| software.generation.max_context_tokens | pending_definition | Context window token limit. |
+| software.generation.max_new_tokens | pending_definition | Maximum generated response tokens. |
+| software.generation.batch_size | pending_definition | Inference batch size. |
+| software.generation.seed | pending_definition | Generation random seed. |
+| software.rag.rag_corpus | pending_definition | Approved knowledge corpus identifier or path. |
+
+#### Core optimization metrics and objectives
+
+Optimization metrics are outputs produced by executing the Tutor software candidate:
+
+$$\text{software candidate} \longrightarrow \text{Tutor + RAG} \longrightarrow \begin{cases} \text{answer\_quality} & (\text{direction: maximize}) \\ \text{latency\_ms} & (\text{direction: minimize}) \end{cases} \longrightarrow \text{CHIA/Gemini feedback}$$
+
+The canonical metrics structure is:
+
+```yaml
+metrics:
+  application:
+    answer_quality: <number or null>  # Application quality metric (maximize)
+    latency_ms: <number or null>      # Real Tutor application latency in ms (minimize)
+```
+
+- `answer_quality` (direction: maximize): Evaluated against reference answers (OpenStax evaluation-only benchmark). Null before execution, measured value after execution.
+- `latency_ms` (direction: minimize): Real Tutor application end-to-end response latency in milliseconds. Null before execution, measured value after execution.
+- **CRITICAL DISTINCTION**: Do NOT confuse real Tutor application latency (`latency_ms`) with gem5 simulated execution time (`sim_seconds` or `sim_ticks`). `latency_ms` measures wall-clock time on the host inference runtime, whereas gem5 simulates proxy kernel cycles and ticks.
+- **Multi-objective treatment**: The objectives section expresses Pareto / multi-objective optimization: maximize `answer_quality` and minimize `latency_ms`. No arbitrary scalar weights are invented.
+
+#### Software baseline status: Draft vs Execution-Ready
+
+Unlike hardware (which has a complete, official baseline provided by the gem5 teammate), the AI Tutor software baseline does NOT yet have all concrete baseline values approved.
+- `configs/software/baseline.software.json` is a **DRAFT SOFTWARE CONFIGURATION** (`status: "draft"`, `runtime_ready: false`).
+- It is NOT claimed to be executable yet.
+- Schema integrity is preserved: we do NOT place string placeholders into numeric schema fields or weaken the execution-ready schema types.
+- Once the team approves values for the 13 unresolved items, an execution-ready baseline can be promoted (`runtime_ready: true`).
+
+#### Unresolved open questions (13 items)
+
+1. **Exact 1B Ollama model artifact**: Approved 1B model family and tag in Ollama.
+2. **Temperature baseline and legal values**: Baseline temperature and discrete grid or bounds.
+3. **Chunk overlap baseline and legal values**: Baseline overlap and candidate token counts.
+4. **Similarity metric baseline and legal values**: Baseline metric and supported distance functions.
+5. **Quantization baseline and legal values**: Baseline quantization and supported candidate formats.
+6. **Embedding model**: Approved embedding model artifact.
+7. **Chunk size**: Fixed chunk size in tokens.
+8. **Retrieval top-k**: Fixed number of retrieved context passages.
+9. **Max context tokens**: Context window limit.
+10. **Max new tokens**: Maximum generated tokens per answer.
+11. **Batch size**: Inference batch size.
+12. **Seed**: Evaluation / generation random seed.
+13. **Exact RAG corpus**: Approved RAG knowledge corpus identifier or asset path.
 
 ## Proposed Tool Interface
 

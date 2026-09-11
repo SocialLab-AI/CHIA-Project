@@ -3,8 +3,11 @@ import json
 import sys
 import yaml
 from jsonschema import Draft202012Validator, FormatChecker
+from referencing import Registry, Resource
 
 ROOT = Path(__file__).resolve().parents[1]
+CONFIGS_DIR = ROOT.parent / "configs"
+CANONICAL_SCHEMA_PATH = CONFIGS_DIR / "schemas" / "chia-experiment.schema.json"
 
 CASES = [
     (ROOT / "ai-tutor-config" / "example.ai-tutor.yaml",
@@ -29,10 +32,22 @@ def load_json(path):
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
 
-def validate_case(data_path, schema_path):
+def build_registry():
+    """Builds referencing.Registry preloaded with canonical schema definitions."""
+    chia_schema = load_json(CANONICAL_SCHEMA_PATH)
+    resource = Resource.from_contents(chia_schema)
+    canonical_id = chia_schema.get("$id", "https://example.local/chia/chia-experiment.schema.json")
+    
+    reg = Registry()
+    reg = reg.with_resource(canonical_id, resource)
+    reg = reg.with_resource("chia-experiment.schema.json", resource)
+    reg = reg.with_resource(CANONICAL_SCHEMA_PATH.as_uri(), resource)
+    return reg
+
+def validate_case(data_path, schema_path, registry):
     data = load_yaml(data_path)
     schema = load_json(schema_path)
-    validator = Draft202012Validator(schema, format_checker=FormatChecker())
+    validator = Draft202012Validator(schema, registry=registry, format_checker=FormatChecker())
     errors = sorted(validator.iter_errors(data), key=lambda e: list(e.absolute_path))
     if errors:
         print(f"FAIL {data_path.relative_to(ROOT)}")
@@ -93,8 +108,9 @@ def semantic_checks():
 
 def main():
     ok = True
+    registry = build_registry()
     for data_path, schema_path in CASES:
-        ok = validate_case(data_path, schema_path) and ok
+        ok = validate_case(data_path, schema_path, registry) and ok
     ok = semantic_checks() and ok
     sys.exit(0 if ok else 1)
 

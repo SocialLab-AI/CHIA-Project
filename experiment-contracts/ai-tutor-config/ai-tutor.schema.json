@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.local/chia/ai-tutor.schema.json",
   "title": "CHIA AI Tutor Application Config",
-  "description": "Application-level experiment contract for the offline AI Tutor. This schema intentionally excludes gem5 microarchitecture knobs, which live in the attention experiment contract.",
+  "description": "Application-level experiment contract for the offline AI Tutor. Thin compatibility schema referencing canonical software, metrics, and status definitions from chia-experiment.schema.json.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -16,32 +16,10 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "0.2.0"
+      "type": "string"
     },
     "metadata": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "experiment_id",
-        "description",
-        "artifact_manifest"
-      ],
-      "properties": {
-        "experiment_id": {
-          "type": "string",
-          "minLength": 1
-        },
-        "description": {
-          "type": "string",
-          "minLength": 1
-        },
-        "artifact_manifest": {
-          "type": [
-            "string",
-            "null"
-          ]
-        }
-      }
+      "$ref": "https://example.local/chia/chia-experiment.schema.json#/$defs/metadata"
     },
     "workload": {
       "type": "object",
@@ -77,48 +55,7 @@
       }
     },
     "software": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "model",
-        "quantization",
-        "retrieval_top_k",
-        "max_context_tokens",
-        "max_new_tokens",
-        "batch_size"
-      ],
-      "properties": {
-        "model": {
-          "type": "string",
-          "minLength": 1
-        },
-        "quantization": {
-          "type": "string",
-          "enum": [
-            "fp32",
-            "fp16",
-            "bf16",
-            "int8",
-            "int4"
-          ]
-        },
-        "retrieval_top_k": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "max_context_tokens": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "max_new_tokens": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "batch_size": {
-          "type": "integer",
-          "minimum": 1
-        }
-      }
+      "$ref": "https://example.local/chia/chia-experiment.schema.json#/$defs/software_config"
     },
     "proxy_evaluation": {
       "type": "object",
@@ -145,80 +82,10 @@
       }
     },
     "metrics": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "application"
-      ],
-      "properties": {
-        "application": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "answer_quality",
-            "latency_ms",
-            "memory_mb",
-            "throughput_qps"
-          ],
-          "properties": {
-            "answer_quality": {
-              "type": [
-                "number",
-                "null"
-              ],
-              "minimum": 0
-            },
-            "latency_ms": {
-              "type": [
-                "number",
-                "null"
-              ],
-              "minimum": 0
-            },
-            "memory_mb": {
-              "type": [
-                "number",
-                "null"
-              ],
-              "minimum": 0
-            },
-            "throughput_qps": {
-              "type": [
-                "number",
-                "null"
-              ],
-              "minimum": 0
-            }
-          }
-        }
-      }
+      "$ref": "https://example.local/chia/chia-experiment.schema.json#/$defs/metrics"
     },
     "status": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "state",
-        "message"
-      ],
-      "properties": {
-        "state": {
-          "type": "string",
-          "enum": [
-            "planned",
-            "validated",
-            "running",
-            "completed",
-            "failed",
-            "rejected"
-          ]
-        },
-        "message": {
-          "type": [
-            "string",
-            "null"
-          ]
-        }
-      }
+      "$ref": "https://example.local/chia/chia-experiment.schema.json#/$defs/status"
     }
   }
 }

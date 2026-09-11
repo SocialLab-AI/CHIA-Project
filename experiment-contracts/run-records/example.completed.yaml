@@ -17,17 +17,18 @@ execution:
   host_seconds: 750.0
 
 metrics:
-  execution_cycles: 18390211
-  instructions: 25133128
-  cpi: 0.7317
-  ipc: 1.3667
-  sim_ticks: 490394000
-  sim_seconds: 0.000490394
-  l1i_miss_rate: 0.003
-  l1d_miss_rate: 0.041
-  l2_miss_rate: 0.017
-  checksum: "example-checksum"
-  passed: true
+  hardware:
+    execution_cycles: 18390211
+    instructions: 25133128
+    cpi: 0.7317
+    ipc: 1.3667
+    sim_ticks: 490394000
+    sim_seconds: 0.000490394
+    l1i_miss_rate: 0.003
+    l1d_miss_rate: 0.041
+    l2_miss_rate: 0.017
+    checksum: "example-checksum"
+    passed: true
 
 usage:
   gemini:
