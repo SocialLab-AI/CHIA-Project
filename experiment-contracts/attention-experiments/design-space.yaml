@@ -39,14 +39,12 @@ active_candidates:
     l1d_associativity: [2, 4, 8]
     l2_cache_kib: [256, 512, 1024]
     l2_associativity: [4, 8, 16]
-  software:
-    kv_format: [FP32, Q4]
-
 evaluation_axes:
   context_tokens: [128, 256, 512]
 
 fixed:
   cores: 2
+  kv_format: Q4
   l1i_cache_kib: 16
   l1i_associativity: 2
   l1i_latency_cycles: 2
@@ -68,6 +66,7 @@ constraints:
   - "Q4 packs two signed 4-bit K/V values per byte and uses FP32 scales"
 
 future:
+  software_search: "pending team decision"
   core_count: [1, 4]  # deferred until thread/core partitioning is generalized
   kv_format: [FP16, Q8]
   memory_type: "DDR4 requires validation before activation"

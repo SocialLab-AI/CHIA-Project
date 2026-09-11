@@ -83,8 +83,8 @@ Each row includes schema limits, fixed/variable classification, exact design-spa
 | Field and contract | Planned binding | Constraints and evidence |
 | --- | --- | --- |
 | software.implementation<br>FIXED  /  AttentionKernelQuantizedKV<br>Baseline: AttentionKernelQuantizedKV<br>Source: experiment schema const; baseline.attention.yaml | ATTN: AttentionAdapter.select_implementation()<br>Target: Allowlisted attention workload build | Fixed implementation ID; resolve a versioned executable. No arbitrary binary paths.<br>Related: checksum, passed, instructions<br>PLANNED |
-| software.kv_format<br>VARIABLE  /  FP32 / Q4<br>Baseline: FP32<br>Source: active_candidates.software.kv_format | ATTN: AttentionAdapter.set_kv_format()<br>Target: K/V storage packing and matching attention/dequantization path | FP32/Q4 active; FP16/Q8 gated. CLI or build flag is not yet established. Q4 is KV representation, not Tutor model quantization.<br>Related: checksum, passed, cycles, cache misses<br>PLANNED |
-| software.threads<br>FIXED  /  integer ≥ 1<br>Baseline: 1<br>Source: fixed.threads | ATTN: AttentionAdapter.set_threads()<br>Target: Kernel worker/thread count | Campaign fixed at 1. Schema integer ≥1 is broader; require threads ≤ cores and proven parallel kernel before expansion.<br>Related: passed; simulated time<br>PLANNED |
+| software.kv_format<br>FIXED  /  Q4<br>Baseline: Q4<br>Source: fixed.kv_format | ATTN: AttentionAdapter.set_kv_format()<br>Target: K/V storage packing and matching attention/dequantization path | Q4 is fixed for the validated baseline while the team finalizes the software search space. Q4 is KV representation, not Tutor model quantization.<br>Related: checksum, passed, cycles, cache misses<br>PLANNED |
+| software.threads<br>FIXED  /  2<br>Baseline: 2<br>Source: fixed.threads | ATTN: AttentionAdapter.set_threads()<br>Target: Kernel worker/thread count | Fixed at 2 for the validated two-core baseline. Thread-count exploration is deferred until thread/core partitioning is generalized.<br>Related: passed; simulated time<br>PLANNED |
 
 ### Workload controls
 
