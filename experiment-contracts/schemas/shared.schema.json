@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/chia/shared.schema.json",
+  "title": "CHIA Shared Schema Definitions",
+  "description": "Shared primitives and definitions for CHIA experiment contracts, metadata, evaluation guardrails, and metrics.",
+  "$defs": {
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["experiment_id", "description"],
+      "properties": {
+        "experiment_id": { "type": "string", "minLength": 1 },
+        "campaign_id": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "artifact_manifest": { "type": ["string", "null"] },
+        "tags": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "created_at": { "type": "string", "format": "date-time" },
+        "author": { "type": "string" }
+      }
+    },
+    "status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "message"],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["planned", "validated", "running", "completed", "failed", "rejected"]
+        },
+        "message": { "type": ["string", "null"] }
+      }
+    },
+    "evaluation_controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference_source", "reference_visible_to_model"],
+      "properties": {
+        "dataset_id": { "type": "string" },
+        "corpus_id": { "type": "string" },
+        "evaluation_protocol": { "type": "string" },
+        "num_questions": { "type": "integer", "minimum": 1 },
+        "seed": { "type": "integer", "minimum": 0 },
+        "questions_file": { "type": "string" },
+        "references_file": { "type": "string" },
+        "reference_source": {
+          "type": "string",
+          "const": "openstax",
+          "description": "Evaluation reference answers source. Hard guardrail: held out for evaluation only."
+        },
+        "reference_visible_to_model": {
+          "type": "boolean",
+          "const": false,
+          "description": "Hard guardrail: evaluation reference answers must never be visible to the model."
+        },
+        "comparison_method": { "type": "string" },
+        "sample_limit": { "type": ["integer", "null"], "minimum": 1 }
+      }
+    },
+    "application_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["answer_quality", "latency_ms"],
+      "properties": {
+        "answer_quality": { "type": ["number", "null"], "minimum": 0 },
+        "latency_ms": { "type": ["number", "null"], "minimum": 0 },
+        "memory_mb": { "type": ["number", "null"], "minimum": 0 },
+        "throughput_qps": { "type": ["number", "null"], "minimum": 0 }
+      }
+    },
+    "nullable_nonnegative_number": {
+      "type": ["number", "null"],
+      "minimum": 0
+    },
+    "nullable_nonnegative_integer": {
+      "type": ["integer", "null"],
+      "minimum": 0
+    },
+    "nullable_number_array": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "array", "minItems": 1, "items": { "type": "number", "minimum": 0 } }
+      ]
+    },
+    "nullable_integer_array": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 0 } }
+      ]
+    }
+  }
+}

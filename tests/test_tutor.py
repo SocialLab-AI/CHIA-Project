@@ -1,97 +1,141 @@
 from pathlib import Path
 import json
 import pytest
+import yaml
 
-try:
-    import yaml
-    HAVE_YAML = True
-except ImportError:
-    HAVE_YAML = False
+from jsonschema import Draft202012Validator, FormatChecker
+from referencing import Registry, Resource
 
 ROOT = Path(__file__).resolve().parents[1]
-SOFTWARE = ROOT / "configs" / "software"
-EXAMPLES = ROOT / "configs" / "examples"
+CONTRACTS = ROOT / "experiment-contracts"
+AI_TUTOR_DIR = CONTRACTS / "ai-tutor-config"
+ATTN_DIR = CONTRACTS / "attention-experiments"
+SCHEMAS_DIR = CONTRACTS / "schemas"
 
 
-def load_json(path: Path):
+def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def test_tutor_yaml_files_exist():
-    baseline_yaml = SOFTWARE / "baseline.software.yaml"
-    ds_yaml = SOFTWARE / "design-space.software.yaml"
-    assert baseline_yaml.exists()
-    assert ds_yaml.exists()
-    assert "status: draft" in baseline_yaml.read_text(encoding="utf-8")
-    assert "active_knobs:" in ds_yaml.read_text(encoding="utf-8")
+def load_yaml(path: Path) -> dict:
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
-@pytest.mark.skipif(not HAVE_YAML, reason="PyYAML not installed in default test venv")
-def test_tutor_json_yaml_parity():
-    baseline_json = load_json(SOFTWARE / "baseline.software.json")
-    baseline_yaml = yaml.safe_load((SOFTWARE / "baseline.software.yaml").read_text(encoding="utf-8"))
-    assert baseline_json == baseline_yaml, "baseline.software.json and baseline.software.yaml must match"
-
-    ds_json = load_json(SOFTWARE / "design-space.software.json")
-    ds_yaml = yaml.safe_load((SOFTWARE / "design-space.software.yaml").read_text(encoding="utf-8"))
-    assert ds_json == ds_yaml, "design-space.software.json and design-space.software.yaml must match"
-
-
-def test_tutor_rag_pipeline_confirmed():
-    ds = load_json(SOFTWARE / "design-space.software.json")
-    assert ds["fixed_parameters"]["runtime"] == "ollama"
-    assert ds["fixed_parameters"]["parameter_count"] == "1B"
-    assert ds["fixed_parameters"]["rag_enabled"] is True
-
-
-def test_tutor_active_knobs_and_objectives():
-    ds = load_json(SOFTWARE / "design-space.software.json")
-    assert set(ds["active_knobs"].keys()) == {
-        "temperature",
-        "chunk_overlap",
-        "similarity_metric",
-        "quantization"
+@pytest.fixture(scope="module")
+def registry():
+    schema_files = {
+        "shared.schema.json": SCHEMAS_DIR / "shared.schema.json",
+        "ai-tutor.schema.json": AI_TUTOR_DIR / "ai-tutor.schema.json",
+        "ai-tutor-design-space.schema.json": AI_TUTOR_DIR / "ai-tutor-design-space.schema.json",
     }
-
-    metrics = ds["optimization_metrics"]
-    assert metrics["answer_quality"]["direction"] == "maximize"
-    assert metrics["latency_ms"]["direction"] == "minimize"
-
-
-def test_openstax_evaluation_guardrail():
-    for example_file in EXAMPLES.glob("*.json"):
-        data = load_json(example_file)
-        eval_cfg = data["evaluation"]
-        assert eval_cfg["reference_source"] == "openstax"
-        assert eval_cfg["reference_visible_to_model"] is False, "Guardrail violation: OpenStax must NOT be visible to model"
+    reg = Registry()
+    for name, path in schema_files.items():
+        schema = load_json(path)
+        res = Resource.from_contents(schema)
+        reg = reg.with_resource(name, res)
+        reg = reg.with_resource(path.as_uri(), res)
+        if "$id" in schema:
+            reg = reg.with_resource(schema["$id"], res)
+    return reg
 
 
-@pytest.mark.skipif(not HAVE_YAML, reason="PyYAML not installed in default test venv")
-def test_experiment_contracts_examples_valid():
-    from referencing import Registry, Resource
-    from jsonschema import Draft202012Validator, FormatChecker
+@pytest.fixture(scope="module")
+def tutor_validator(registry):
+    schema = load_json(AI_TUTOR_DIR / "ai-tutor.schema.json")
+    return Draft202012Validator(schema, registry=registry, format_checker=FormatChecker())
 
-    contracts = ROOT / "experiment-contracts"
-    chia_schema = load_json(ROOT / "configs" / "schemas" / "chia-experiment.schema.json")
-    res = Resource.from_contents(chia_schema)
-    reg = Registry().with_resource(chia_schema["$id"], res).with_resource("chia-experiment.schema.json", res)
 
-    cases = [
-        (contracts / "ai-tutor-config" / "example.ai-tutor.yaml",
-         contracts / "ai-tutor-config" / "ai-tutor.schema.json"),
-        (contracts / "attention-experiments" / "baseline.attention.yaml",
-         contracts / "attention-experiments" / "attention-experiment.schema.json"),
-        (contracts / "attention-experiments" / "example.candidate.yaml",
-         contracts / "attention-experiments" / "attention-experiment.schema.json"),
-        (contracts / "attention-experiments" / "design-space.yaml",
-         contracts / "attention-experiments" / "attention-design-space.schema.json"),
-        (contracts / "run-records" / "example.completed.yaml",
-         contracts / "run-records" / "run-record.schema.json"),
-    ]
-    for data_path, schema_path in cases:
-        data = yaml.safe_load(data_path.read_text(encoding="utf-8"))
-        schema = load_json(schema_path)
-        validator = Draft202012Validator(schema, registry=reg, format_checker=FormatChecker())
-        errors = list(validator.iter_errors(data))
-        assert not errors, f"{data_path.name} failed schema {schema_path.name}: {[e.message for e in errors]}"
+def test_tutor_example_validates(tutor_validator):
+    tutor_data = load_yaml(AI_TUTOR_DIR / "example.ai-tutor.yaml")
+    errors = list(tutor_validator.iter_errors(tutor_data))
+    assert not errors, f"example.ai-tutor.yaml failed validation: {[e.message for e in errors]}"
 
+
+def test_user_supplied_software_baseline_values():
+    """Verify all 13 user-supplied software baseline values and units are preserved."""
+    tutor_data = load_yaml(AI_TUTOR_DIR / "example.ai-tutor.yaml")
+    sw = tutor_data["software"]
+
+    assert sw["model"] == "Llama 3.2 1B Instruct"
+    assert sw["quantization"] == "Q4_K_M"
+    assert sw["embedding_model"] == "MiniLM-L6-dot-v1"
+    assert sw["embedding_dimension"] == 384
+    assert sw["retrieval_method"] == "Semantic similarity"
+    assert sw["top_k"] == 2
+    assert sw["chunk_size"] == 1500
+    assert sw["chunk_overlap"] == 200
+    assert sw["chunk_unit"] == "characters"
+    assert sw["temperature"] == 0.0
+    assert sw["max_output_tokens"] == 384
+    assert sw["batch_size"] == 1
+    assert sw["cpu_threads"] == 4
+    assert sw["backend"] == "llama.cpp / CPU"
+
+
+def test_chunk_size_and_overlap_character_units():
+    """Chunk size and overlap must be measured in CHARACTERS, not tokens."""
+    tutor_data = load_yaml(AI_TUTOR_DIR / "example.ai-tutor.yaml")
+    sw = tutor_data["software"]
+    assert sw["chunk_unit"] == "characters"
+    assert sw["chunk_size"] == 1500
+    assert sw["chunk_overlap"] == 200
+    assert sw["chunk_overlap"] < sw["chunk_size"]
+
+
+def test_tutor_threads_independent_of_proxy_threads():
+    """Native tutor CPU threads (4) is independent of gem5 proxy threads (2). Do not impose tutor_threads <= simulated_cores."""
+    tutor_data = load_yaml(AI_TUTOR_DIR / "example.ai-tutor.yaml")
+    attn_data = load_yaml(ATTN_DIR / "baseline.attention.yaml")
+
+    tutor_threads = tutor_data["software"]["cpu_threads"]
+    gem5_cores = attn_data["hardware"]["cores"]
+    gem5_threads = attn_data["software"]["threads"]
+
+    assert tutor_threads == 4
+    assert gem5_cores == 2
+    assert gem5_threads == 2
+    # Ensure tutor threads (4) > simulated cores (2) is allowed and not rejected
+    assert tutor_threads > gem5_cores
+
+
+def test_model_weight_q4km_vs_proxy_kv_q4():
+    """Model-weight Q4_K_M and proxy KV-cache Q4 are distinct settings."""
+    tutor_data = load_yaml(AI_TUTOR_DIR / "example.ai-tutor.yaml")
+    attn_data = load_yaml(ATTN_DIR / "baseline.attention.yaml")
+
+    assert tutor_data["software"]["quantization"] == "Q4_K_M"
+    assert attn_data["software"]["kv_format"] == "Q4"
+
+
+def test_runtime_ready_false_without_artifacts():
+    """Missing runtime artifacts do not permit execution-ready status (runtime_ready must be False)."""
+    tutor_data = load_yaml(AI_TUTOR_DIR / "example.ai-tutor.yaml")
+    assert tutor_data["software"]["runtime_ready"] is False
+    assert len(tutor_data["software"]["unresolved_fields"]) > 0
+
+
+def test_openstax_evaluation_reference_isolation():
+    """Hard guardrail: OpenStax evaluation reference answers must NEVER be visible to the model."""
+    tutor_data = load_yaml(AI_TUTOR_DIR / "example.ai-tutor.yaml")
+    eval_cfg = tutor_data["evaluation"]
+    assert eval_cfg["reference_source"] == "openstax"
+    assert eval_cfg["reference_visible_to_model"] is False
+
+
+def test_application_latency_distinct_from_simulated_latency():
+    """Verify application latency (latency_ms) is separate from simulated hardware time."""
+    tutor_data = load_yaml(AI_TUTOR_DIR / "example.ai-tutor.yaml")
+    attn_data = load_yaml(ATTN_DIR / "baseline.attention.yaml")
+
+    assert "application" in tutor_data["metrics"]
+    assert "latency_ms" in tutor_data["metrics"]["application"]
+    # Simulated metrics are in attention experiment, not tutor metrics
+    assert "sim_ticks" not in tutor_data["metrics"]["application"]
+    assert "sim_ticks" in attn_data["metrics"]
+
+
+def test_tutor_runner_skeleton():
+    """Verify src.tutor.runner raises NotImplementedError."""
+    from src.tutor.runner import run_tutor
+    with pytest.raises(NotImplementedError):
+        run_tutor({})

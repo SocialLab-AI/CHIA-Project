@@ -4,37 +4,42 @@
 
 Stores **evidence from what actually happened**, not what we intended to run.
 
-This contract delegates canonically to `configs/schemas/chia-experiment.schema.json#/$defs/run_record`.
+This contract defines the schema and format for run records under `run-record.schema.json`.
 
-## Metrics Architecture
+## Verified Metrics Currently Included
 
-Metrics are organized under a unified container (`metrics:`) strictly separating application-level metrics from gem5 hardware metrics. A completed run may contain application metrics, hardware metrics, or both:
+- execution cycles
+- instructions
+- CPI
+- IPC
+- `sim_ticks`
+- `sim_seconds`
+- host runtime / `host_seconds`
+- L1 instruction-cache miss rate (`l1i_miss_rate`)
+- L1 data-cache miss rate (`l1d_miss_rate`)
+- L2 miss rate (`l2_miss_rate`)
+- checksum
+- PASS/FAIL (`passed`)
 
-- **Application metrics** (`metrics.application`):
-  - `answer_quality` (output objective to maximize)
-  - `latency_ms` (real Tutor application end-to-end response time to minimize)
-  - `memory_mb`
-  - `throughput_qps`
+Also stores:
+- execution tier/backend (`execution`)
+- config digest (`experiment.config_digest`)
+- Gemini metering (`usage.gemini`)
+- tool/code provenance (`provenance`)
+- failure/retry state (`status`)
 
-- **Hardware metrics** (`metrics.hardware`):
-  - `execution_cycles`
-  - `instructions`
-  - `cpi`
-  - `ipc`
-  - `sim_ticks`
-  - `sim_seconds`
-  - `l1i_miss_rate`
-  - `l1d_miss_rate`
-  - `l2_miss_rate`
-  - `checksum`
-  - `passed`
+## Application vs Hardware Separation
 
-Application latency (`latency_ms`) is strictly isolated from simulated time (`sim_seconds`). Neither `answer_quality` nor `latency_ms` is a knob.
+Application metrics (such as `answer_quality` and end-to-end `latency_ms`) are strictly isolated from simulated hardware metrics (`sim_seconds`, `sim_ticks`, `execution_cycles`). Application latency is real wall-clock latency, not simulated gem5 time.
 
-## Execution, Usage, and Provenance
+## Planned Metrics Intentionally Omitted from the Required Record
 
-Also stores canonical execution records:
-- `execution`: tier (`dev`, `integration`, `pilot`, `final`), backend (`local`, `contabo`, `development_cloud`, `organizer_burst`), `worker_id`, timing, `attempt`, `host_seconds`.
-- `usage`: Gemini API telemetry (`model`, `calls`, `input_tokens`, `output_tokens`, `estimated_cost_usd`).
-- `provenance`: Git commit, CHIA version, gem5 version, kernel version, compiler, policy version, seed.
-- `status`: execution status (`state`, `failure_reason`).
+These should be added only after implementation/validation:
+- maximum absolute error
+- mean squared error
+- NaN/Infinity detection
+- memory-bandwidth utilization
+- bytes transferred
+- average memory-access latency
+
+This avoids confusing "not implemented" with "measured but missing".

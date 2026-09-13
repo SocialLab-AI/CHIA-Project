@@ -1,11 +1,11 @@
-# Application-level AI Tutor experiment configuration.
-# Conforms to the canonical software architecture: 1B quantized Ollama model with integrated RAG pipeline.
-# Currently in draft status (runtime_ready: false) awaiting definition of concrete parameter values.
+# Application-level AI Tutor baseline configuration.
+# Conforms to the user-supplied software baseline (Llama 3.2 1B Instruct, Q4_K_M, llama.cpp / CPU).
+# Schema-valid draft configuration (runtime_ready: false).
 schema_version: "0.2.0"
 
 metadata:
-  experiment_id: tutor-v02-baseline-001
-  description: "Candidate offline tutor baseline; evaluate application quality and resource trade-offs."
+  experiment_id: tutor-baseline-001
+  description: "Offline AI Tutor baseline using Llama 3.2 1B Instruct with MiniLM-L6-dot-v1 RAG pipeline."
   artifact_manifest: null
 
 workload:
@@ -16,42 +16,37 @@ workload:
   seed: 42
 
 software:
-  status: draft
+  model: "Llama 3.2 1B Instruct"
+  quantization: "Q4_K_M"
+  backend: "llama.cpp / CPU"
+  cpu_threads: 4
+  batch_size: 1
+  temperature: 0.0
+  max_output_tokens: 384
+  embedding_model: "MiniLM-L6-dot-v1"
+  embedding_dimension: 384
+  retrieval_method: "Semantic similarity"
+  top_k: 2
+  chunk_size: 1500
+  chunk_overlap: 200
+  chunk_unit: "characters"
   runtime_ready: false
-  description: "Draft AI Tutor software configuration reflecting confirmed 1B Ollama + RAG architecture pending team definition of concrete parameter values."
-  runtime: ollama
-  parameter_count: "1B"
-  rag:
-    enabled: true
-  active_knobs:
-    temperature:
-      status: pending_definition
-      unit: unitless
-      intended_purpose: "Sampling temperature for answer generation"
-    chunk_overlap:
-      status: pending_definition
-      unit: tokens
-      intended_purpose: "Token overlap between adjacent document chunks in RAG indexing"
-    similarity_metric:
-      status: pending_definition
-      intended_purpose: "Vector distance metric used for RAG embedding retrieval"
-    quantization:
-      status: pending_definition
-      intended_purpose: "Weight quantization format for 1B Ollama model"
+  status: "draft"
+  description: "User-supplied AI Tutor software baseline. Execution readiness remains false pending model artifact resolution and adapter implementation."
   unresolved_fields:
-    - "exact 1B Ollama model artifact"
-    - "temperature baseline and legal values"
-    - "chunk_overlap baseline and legal values"
-    - "similarity_metric baseline and legal values"
-    - "quantization baseline and legal values"
-    - "embedding model"
-    - "chunk size"
-    - "retrieval top-k"
-    - "max context tokens"
-    - "max new tokens"
-    - "batch size"
-    - "seed"
-    - "exact RAG corpus"
+    - "exact model/GGUF artifact path"
+    - "exact embedding artifact identifier"
+    - "exact corpus artifact path"
+    - "runtime batch size semantics (not mapped to llama.cpp n_batch)"
+    - "semantic similarity distance function implementation (cosine vs dot product unresolved)"
+
+evaluation:
+  questions_file: "data/questions/questions.json"
+  references_file: "data/references/openstax.json"
+  reference_source: "openstax"
+  reference_visible_to_model: false
+  comparison_method: "semantic_similarity"
+  sample_limit: 50
 
 proxy_evaluation:
   type: attention_kernel
@@ -62,7 +57,9 @@ metrics:
   application:
     answer_quality: null
     latency_ms: null
+    memory_mb: null
+    throughput_qps: null
 
 status:
   state: planned
-  message: "Draft 1B Ollama + RAG configuration pending team definition of concrete values."
+  message: "Software baseline draft. Replace placeholders and validate runtime adapters before execution."

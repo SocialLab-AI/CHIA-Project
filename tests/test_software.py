@@ -1,193 +1,107 @@
 from pathlib import Path
 import json
 import pytest
+import yaml
+
 from jsonschema import Draft202012Validator, FormatChecker
 from referencing import Registry, Resource
 
-
 ROOT = Path(__file__).resolve().parents[1]
-SCHEMAS = ROOT / "configs" / "schemas"
-SOFTWARE = ROOT / "configs" / "software"
-EXAMPLES = ROOT / "configs" / "examples"
+CONTRACTS = ROOT / "experiment-contracts"
+AI_TUTOR_DIR = CONTRACTS / "ai-tutor-config"
+SCHEMAS_DIR = CONTRACTS / "schemas"
+DOCS_DIR = ROOT / "docs"
 
 
-def load_json(path: Path):
+def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-@pytest.fixture
-def validators():
+def load_yaml(path: Path) -> dict:
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="module")
+def registry():
     schema_files = {
-        "chia-experiment.schema.json": load_json(SCHEMAS / "chia-experiment.schema.json"),
-        "experiment.schema.json": load_json(SCHEMAS / "experiment.schema.json"),
-        "design-space.schema.json": load_json(SCHEMAS / "design-space.schema.json"),
-        "run-record.schema.json": load_json(SCHEMAS / "run-record.schema.json"),
+        "shared.schema.json": SCHEMAS_DIR / "shared.schema.json",
+        "ai-tutor.schema.json": AI_TUTOR_DIR / "ai-tutor.schema.json",
+        "ai-tutor-design-space.schema.json": AI_TUTOR_DIR / "ai-tutor-design-space.schema.json",
     }
-    registry = Registry()
-    for name, schema in schema_files.items():
+    reg = Registry()
+    for name, path in schema_files.items():
+        schema = load_json(path)
         res = Resource.from_contents(schema)
-        registry = registry.with_resource(name, res)
+        reg = reg.with_resource(name, res)
+        reg = reg.with_resource(path.as_uri(), res)
         if "$id" in schema:
-            registry = registry.with_resource(schema["$id"], res)
-
-    sw_val = Draft202012Validator(
-        {"$ref": "chia-experiment.schema.json#/$defs/software_config"},
-        registry=registry,
-        format_checker=FormatChecker()
-    )
-    sw_ds_val = Draft202012Validator(
-        {"$ref": "chia-experiment.schema.json#/$defs/software_design_space"},
-        registry=registry,
-        format_checker=FormatChecker()
-    )
-    exp_val = Draft202012Validator(
-        schema_files["experiment.schema.json"],
-        registry=registry,
-        format_checker=FormatChecker()
-    )
-    return sw_val, sw_ds_val, exp_val
+            reg = reg.with_resource(schema["$id"], res)
+    return reg
 
 
-def test_software_design_space_valid(validators):
-    _, sw_ds_val, _ = validators
-    ds = load_json(SOFTWARE / "design-space.software.json")
-    errors = list(sw_ds_val.iter_errors(ds))
-    assert not errors, f"design-space.software.json failed validation: {[e.message for e in errors]}"
+@pytest.fixture(scope="module")
+def sw_ds_validator(registry):
+    schema = load_json(AI_TUTOR_DIR / "ai-tutor-design-space.schema.json")
+    return Draft202012Validator(schema, registry=registry, format_checker=FormatChecker())
 
 
-def test_active_knobs_exact_count_and_members():
-    ds = load_json(SOFTWARE / "design-space.software.json")
-    active_knobs = ds["active_knobs"]
-    assert len(active_knobs) == 4, f"Expected exactly 4 active software knobs, got {len(active_knobs)}"
-    assert set(active_knobs.keys()) == {"temperature", "chunk_overlap", "similarity_metric", "quantization"}
-
-    # Metrics MUST NOT be in active knobs
-    assert "answer_quality" not in active_knobs
-    assert "latency_ms" not in active_knobs
-    assert "quality" not in active_knobs
-    assert "latency" not in active_knobs
-
-    # Units
-    assert active_knobs["chunk_overlap"]["unit"] == "tokens"
-    assert active_knobs["temperature"]["unit"] == "unitless"
+def test_software_design_space_valid(sw_ds_validator):
+    ds = load_yaml(AI_TUTOR_DIR / "design-space.yaml")
+    errors = list(sw_ds_validator.iter_errors(ds))
+    assert not errors, f"design-space.yaml failed validation: {[e.message for e in errors]}"
 
 
-def test_fixed_software_parameters():
-    ds = load_json(SOFTWARE / "design-space.software.json")
-    fixed = ds["fixed_parameters"]
-    assert fixed["runtime"] == "ollama"
-    assert fixed["parameter_count"] == "1B"
-    assert fixed["rag_enabled"] is True
+def test_software_search_recorded_as_pending():
+    """Verify that software search is explicitly recorded as pending and active_candidates is empty."""
+    ds = load_yaml(AI_TUTOR_DIR / "design-space.yaml")
+    assert ds["active_candidates"] == {}
+    assert ds["pending_search_space"]["status"] == "pending_definition"
+    assert len(ds["pending_search_space"]["knobs"]) == 4
 
-
-def test_optimization_metrics_directions():
-    ds = load_json(SOFTWARE / "design-space.software.json")
+    # Optimization metrics
     metrics = ds["optimization_metrics"]
-    assert "answer_quality" in metrics
-    assert "latency_ms" in metrics
     assert metrics["answer_quality"]["direction"] == "maximize"
     assert metrics["latency_ms"]["direction"] == "minimize"
 
 
-def test_baseline_software_is_draft_not_execution_ready(validators):
-    sw_val, _, _ = validators
-    baseline = load_json(SOFTWARE / "baseline.software.json")
+def test_negative_invalid_chunk_unit(registry):
+    """Reject chunk units other than characters."""
+    schema = load_json(AI_TUTOR_DIR / "ai-tutor.schema.json")
+    val = Draft202012Validator(schema, registry=registry, format_checker=FormatChecker())
+    data = load_yaml(AI_TUTOR_DIR / "example.ai-tutor.yaml")
 
-    # Draft metadata assertions
-    assert baseline["status"] == "draft"
-    assert baseline["runtime_ready"] is False
-    assert baseline["runtime"] == "ollama"
-    assert baseline["parameter_count"] == "1B"
-    assert baseline["rag"]["enabled"] is True
-
-    # Check that it validates cleanly against master schema software_config as draft
-    errors = list(sw_val.iter_errors(baseline))
-    assert not errors, f"baseline.software.json failed validation: {[e.message for e in errors]}"
-
-    # Verify 13 unresolved fields are documented
-    unresolved = baseline["unresolved_fields"]
-    assert len(unresolved) == 13
-    assert "exact 1B Ollama model artifact" in unresolved
-    assert "temperature baseline and legal values" in unresolved
-    assert "chunk_overlap baseline and legal values" in unresolved
-    assert "similarity_metric baseline and legal values" in unresolved
-    assert "quantization baseline and legal values" in unresolved
-    assert "embedding model" in unresolved
-    assert "chunk size" in unresolved
-    assert "retrieval top-k" in unresolved
-    assert "max context tokens" in unresolved
-    assert "max new tokens" in unresolved
-    assert "batch size" in unresolved
-    assert "seed" in unresolved
-    assert "exact RAG corpus" in unresolved
+    bad_data = json.loads(json.dumps(data))
+    bad_data["software"]["chunk_unit"] = "tokens"
+    errors = list(val.iter_errors(bad_data))
+    assert len(errors) > 0, "Schema should reject chunk_unit != 'characters'"
 
 
-def test_execution_ready_schema_requires_concrete_types(validators):
-    sw_val, _, _ = validators
+def test_manifest_consistency():
+    """Verify that docs/knob-mapping.manifest.json is consistent with active fields and statuses."""
+    manifest = load_json(DOCS_DIR / "knob-mapping.manifest.json")
+    fields = manifest["fields"]
+    assert len(fields) >= 20
 
-    # A mock concrete execution-ready software configuration
-    mock_ready_candidate = {
-        "runtime": "ollama",
-        "parameter_count": "1B",
-        "model": "qwen2.5:1b-instruct",
-        "quantization": "q4_k_m",
-        "runtime_ready": True,
-        "prompt": {
-            "system_prompt_file": "prompts/tutor_system.txt"
-        },
-        "generation": {
-            "temperature": 0.7,
-            "max_context_tokens": 2048,
-            "max_new_tokens": 256,
-            "batch_size": 1,
-            "seed": 42
-        },
-        "rag": {
-            "enabled": True,
-            "embedding_model": "nomic-embed-text",
-            "chunk_size": 256,
-            "chunk_overlap": 32,
-            "retrieval_top_k": 3,
-            "similarity_metric": "cosine"
-        },
-        "metrics": {
-          "application": {
-            "answer_quality": None,
-            "latency_ms": None
-          }
-        }
-    }
-    errors = list(sw_val.iter_errors(mock_ready_candidate))
-    assert not errors, f"Valid execution-ready candidate failed: {[e.message for e in errors]}"
-
-    # Negative test: placing string into numeric temperature without draft status fails
-    invalid_candidate = json.loads(json.dumps(mock_ready_candidate))
-    invalid_candidate["generation"]["temperature"] = "pending_definition"
-    errors = list(sw_val.iter_errors(invalid_candidate))
-    assert len(errors) > 0, "Schema improperly accepted string for numeric temperature"
-
-    # Negative test: draft claiming runtime_ready=True fails
-    invalid_draft = {
-        "status": "draft",
-        "runtime_ready": True,
-        "runtime": "ollama",
-        "parameter_count": "1B",
-        "rag": {"enabled": True},
-        "unresolved_fields": ["model"]
-    }
-    errors = list(sw_val.iter_errors(invalid_draft))
-    assert len(errors) > 0, "Schema improperly accepted draft with runtime_ready=True"
+    field_map = {f["field"]: f for f in fields}
+    assert "software.model" in field_map
+    assert field_map["software.model"]["baseline"] == "Llama 3.2 1B Instruct"
+    assert field_map["software.quantization"]["baseline"] == "Q4_K_M"
+    assert field_map["software.chunk_size"]["unit"] == "characters"
+    assert field_map["software.chunk_overlap"]["unit"] == "characters"
+    assert field_map["software.cpu_threads"]["baseline"] == 4
+    assert field_map["software.runtime_ready"]["baseline"] is False
 
 
-def test_experiment_examples_with_software_and_metrics(validators):
-    _, _, exp_val = validators
-    for example_file in sorted(EXAMPLES.glob("*.json")):
-        example = load_json(example_file)
-        errors = list(exp_val.iter_errors(example))
-        assert not errors, f"{example_file.name} failed validation: {[e.message for e in errors]}"
-        assert "objectives" in example
-        assert example["objectives"]["answer_quality"] == "maximize"
-        assert example["objectives"]["latency_ms"] == "minimize"
-        assert "metrics" in example
-        assert example["metrics"]["application"]["answer_quality"] is None
-        assert example["metrics"]["application"]["latency_ms"] is None
+def test_no_stale_active_configs_references():
+    """Verify that no active configuration or test code references the deleted legacy config directory."""
+    legacy_dir_name = "configs"
+    legacy_ref = f"{legacy_dir_name}/"
+    for py_file in ROOT.glob("scripts/*.py"):
+        text = py_file.read_text(encoding="utf-8")
+        assert legacy_ref not in text and f'{legacy_dir_name}"' not in text and f"{legacy_dir_name}'" not in text, f"Stale configs reference in {py_file}"
+
+    for py_file in ROOT.glob("tests/*.py"):
+        if py_file.name == "test_software.py":
+            continue
+        text = py_file.read_text(encoding="utf-8")
+        assert legacy_ref not in text and f'{legacy_dir_name}"' not in text and f"{legacy_dir_name}'" not in text, f"Stale configs reference in {py_file}"

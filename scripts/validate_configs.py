@@ -1,208 +1,465 @@
-from pathlib import Path
-import json
+#!/usr/bin/env python3
+"""Canonical configuration and schema validator for CHIA co-design experiments.
 
+Validates all contracts, schemas, YAML configurations, semantic policies,
+and cross-document consistency under experiment-contracts/ and docs/.
+"""
+
+import json
+import sys
+from pathlib import Path
+
+import yaml
 from jsonschema import Draft202012Validator, FormatChecker
+from jsonschema.exceptions import SchemaError
 from referencing import Registry, Resource
 
-
 ROOT = Path(__file__).resolve().parents[1]
-SCHEMAS = ROOT / "configs" / "schemas"
-HARDWARE = ROOT / "configs" / "hardware"
-SOFTWARE = ROOT / "configs" / "software"
-EXAMPLES = ROOT / "configs" / "examples"
-
-ILLEGAL_HW_CASES = [
-    ("cores", 3),
-    ("l1d_cache_kib", 128),
-    ("l2_associativity", 2),
-    ("cpu_model", "SomeOtherCPU"),
-    ("isa", "X86"),
-    ("memory_type", "DDR4"),
-    ("simulation_mode", "FS"),
-    ("software_threads", 4),
-]
+CONTRACTS = ROOT / "experiment-contracts"
+SCHEMAS_DIR = CONTRACTS / "schemas"
+AI_TUTOR_DIR = CONTRACTS / "ai-tutor-config"
+ATTN_DIR = CONTRACTS / "attention-experiments"
+COMPUTE_DIR = CONTRACTS / "compute-policy"
+RUN_RECORDS_DIR = CONTRACTS / "run-records"
+DOCS_DIR = ROOT / "docs"
 
 
-def load(path: Path):
-    return json.loads(path.read_text(encoding="utf-8"))
+def load_yaml(path: Path) -> dict:
+    with path.open("r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
 
 
-def build_validators():
+def load_json(path: Path) -> dict:
+    with path.open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def build_registry() -> tuple[Registry, dict[str, dict]]:
+    """Build referencing.Registry with all contracts schemas preloaded."""
     schema_files = {
-        "chia-experiment.schema.json": load(SCHEMAS / "chia-experiment.schema.json"),
-        "experiment.schema.json": load(SCHEMAS / "experiment.schema.json"),
-        "design-space.schema.json": load(SCHEMAS / "design-space.schema.json"),
-        "run-record.schema.json": load(SCHEMAS / "run-record.schema.json"),
+        "shared.schema.json": SCHEMAS_DIR / "shared.schema.json",
+        "attention-experiment.schema.json": ATTN_DIR / "attention-experiment.schema.json",
+        "attention-design-space.schema.json": ATTN_DIR / "attention-design-space.schema.json",
+        "ai-tutor.schema.json": AI_TUTOR_DIR / "ai-tutor.schema.json",
+        "ai-tutor-design-space.schema.json": AI_TUTOR_DIR / "ai-tutor-design-space.schema.json",
+        "compute-policy.schema.json": COMPUTE_DIR / "compute-policy.schema.json",
+        "run-record.schema.json": RUN_RECORDS_DIR / "run-record.schema.json",
     }
 
-    registry = Registry()
-    for name, schema in schema_files.items():
-        res = Resource.from_contents(schema)
-        registry = registry.with_resource(name, res)
-        if "$id" in schema:
-            registry = registry.with_resource(schema["$id"], res)
+    schemas = {}
+    reg = Registry()
 
-    hw_validator = Draft202012Validator(
-        {"$ref": "chia-experiment.schema.json#/$defs/hardware_config"},
-        registry=registry,
-        format_checker=FormatChecker(),
-    )
-    hw_ds_validator = Draft202012Validator(
-        {"$ref": "chia-experiment.schema.json#/$defs/hardware_design_space"},
-        registry=registry,
-        format_checker=FormatChecker(),
-    )
-    sw_validator = Draft202012Validator(
-        {"$ref": "chia-experiment.schema.json#/$defs/software_config"},
-        registry=registry,
-        format_checker=FormatChecker(),
-    )
-    sw_ds_validator = Draft202012Validator(
-        {"$ref": "chia-experiment.schema.json#/$defs/software_design_space"},
-        registry=registry,
-        format_checker=FormatChecker(),
-    )
-    exp_validator = Draft202012Validator(
-        schema_files["experiment.schema.json"],
-        registry=registry,
-        format_checker=FormatChecker(),
-    )
-    ds_validator = Draft202012Validator(
-        schema_files["design-space.schema.json"],
-        registry=registry,
-        format_checker=FormatChecker(),
-    )
-    run_record_validator = Draft202012Validator(
-        schema_files["run-record.schema.json"],
-        registry=registry,
-        format_checker=FormatChecker(),
-    )
+    for name, path in schema_files.items():
+        if not path.exists():
+            raise FileNotFoundError(f"Missing required schema: {path}")
+        content = load_json(path)
+        try:
+            Draft202012Validator.check_schema(content)
+        except SchemaError as e:
+            raise ValueError(f"Schema {name} is structurally invalid: {e.message}") from e
 
-    return hw_validator, hw_ds_validator, sw_validator, sw_ds_validator, exp_validator, ds_validator, run_record_validator
+        schemas[name] = content
+        res = Resource.from_contents(content)
+        reg = reg.with_resource(name, res)
+        reg = reg.with_resource(path.as_uri(), res)
+        if "$id" in content:
+            reg = reg.with_resource(content["$id"], res)
+
+    return reg, schemas
 
 
-def validate_file(validator, file_path: Path) -> bool:
-    instance = load(file_path)
-    errors = sorted(validator.iter_errors(instance), key=lambda e: list(e.path))
+def validate_document(
+    data_path: Path,
+    schema_path: Path,
+    registry: Registry,
+    verbose: bool = True,
+) -> bool:
+    data = load_yaml(data_path)
+    schema = load_json(schema_path)
+    validator = Draft202012Validator(
+        schema,
+        registry=registry,
+        format_checker=FormatChecker(),
+    )
+    errors = sorted(validator.iter_errors(data), key=lambda e: list(e.absolute_path))
+
     if errors:
-        print(f"[FAIL] {file_path.relative_to(ROOT)}")
-        for error in errors:
-            location = ".".join(str(x) for x in error.path) or "<root>"
-            print(f"  {location}: {error.message}")
+        if verbose:
+            print(f"[FAIL] {data_path.relative_to(ROOT)}")
+            for e in errors:
+                loc = ".".join(str(x) for x in e.absolute_path) or "<root>"
+                print(f"       {loc}: {e.message}")
         return False
-    print(f"[OK]   {file_path.relative_to(ROOT)}")
+
+    if verbose:
+        print(f"[PASS] {data_path.relative_to(ROOT)} conforms to {schema_path.name}")
     return True
 
 
-def test_illegal_hardware_values(hw_validator) -> bool:
-    baseline = load(HARDWARE / "baseline.hardware.json")
-    all_passed = True
-    for field, illegal_val in ILLEGAL_HW_CASES:
-        candidate = dict(baseline)
-        candidate[field] = illegal_val
-        errors = list(hw_validator.iter_errors(candidate))
-        if not errors:
-            print(f"[FAIL] Illegal hardware value accepted: {field}={illegal_val}")
-            all_passed = False
+def run_semantic_checks(verbose: bool = True) -> bool:
+    ok = True
+
+    # 1. Compute Policy Checks
+    policy = load_yaml(COMPUTE_DIR / "compute-policy.yaml")
+    tiers = policy.get("tiers", {})
+    for tier_name, tier in tiers.items():
+        has_burst = "organizer_burst" in tier.get("backends", [])
+        burst_allowed = tier.get("organizer_burst_allowed", False)
+        if tier_name != "final":
+            if has_burst or burst_allowed:
+                if verbose:
+                    print(f"[FAIL] Compute policy exposes organizer burst in non-final tier '{tier_name}'")
+                ok = False
         else:
-            print(f"[OK]   Illegal hardware value rejected as expected: {field}={illegal_val}")
-    return all_passed
+            if not has_burst or not burst_allowed:
+                if verbose:
+                    print("[FAIL] Compute policy final tier must explicitly allow organizer burst")
+                ok = False
+
+    # 2. Hardware / Attention Baseline Checks
+    baseline_attn = load_yaml(ATTN_DIR / "baseline.attention.yaml")
+    hw = baseline_attn["hardware"]
+    sw = baseline_attn["software"]
+    meas = baseline_attn["measurement"]
+
+    # Q4 campaign restrictions
+    if hw["cores"] != 2:
+        if verbose:
+            print(f"[FAIL] Baseline attention simulated cores must be 2, got {hw['cores']}")
+        ok = False
+    if sw["threads"] != 2:
+        if verbose:
+            print(f"[FAIL] Baseline attention proxy threads must be 2, got {sw['threads']}")
+        ok = False
+    if sw["kv_format"] != "Q4":
+        if verbose:
+            print(f"[FAIL] Baseline attention proxy KV format must be Q4, got {sw['kv_format']}")
+        ok = False
+    if sw["threads"] > hw["cores"]:
+        if verbose:
+            print("[FAIL] Baseline attention proxy threads cannot exceed simulated cores")
+        ok = False
+    if hw["memory_type"] != "DDR3_1600_8x8":
+        if verbose:
+            print(f"[FAIL] Baseline attention memory must be DDR3_1600_8x8, got {hw['memory_type']}")
+        ok = False
+    if hw["memory_size_mib"] != 16:
+        if verbose:
+            print(f"[FAIL] Baseline attention memory size must be 16 MiB, got {hw['memory_size_mib']}")
+        ok = False
+    if hw["simulation_mode"] != "SE":
+        if verbose:
+            print(f"[FAIL] Baseline attention mode must be SE, got {hw['simulation_mode']}")
+        ok = False
+    if meas["repetitions"] != 10:
+        if verbose:
+            print(f"[FAIL] Baseline attention repetitions must be 10, got {meas['repetitions']}")
+        ok = False
+    if meas["warmup_runs"] != 0:
+        if verbose:
+            print(f"[FAIL] Baseline attention warmup runs must be 0, got {meas['warmup_runs']}")
+        ok = False
+
+    # TimingSimpleCPU requires issue_width == 1
+    if hw["cpu_model"] == "RiscvTimingSimpleCPU" and hw.get("issue_width", 1) != 1:
+        if verbose:
+            print("[FAIL] TimingSimpleCPU requires issue_width == 1")
+        ok = False
+
+    # Emitted metrics checks
+    metrics = baseline_attn.get("metrics", {})
+    required_metrics = [
+        "sim_ticks", "simulated_seconds", "latency_ms", "host_seconds",
+        "instructions", "cycles_per_core", "cpi_per_core", "ipc_per_core",
+        "aggregate_ipc", "l1i_miss_rate_per_core", "l1d_miss_rate_per_core",
+        "l2_miss_rate", "dram_bytes_read", "dram_bandwidth_bytes_per_second",
+        "average_dram_access_latency_ns"
+    ]
+    for m in required_metrics:
+        if m not in metrics:
+            if verbose:
+                print(f"[FAIL] Missing emitted hardware metric in baseline: {m}")
+            ok = False
+
+    # 3. Hardware Design Space Checks
+    ds_attn = load_yaml(ATTN_DIR / "design-space.yaml")
+    active_hw = ds_attn["active_candidates"]["hardware"]
+    if "cpu_model" not in active_hw or "frequency_ghz" not in active_hw:
+        if verbose:
+            print("[FAIL] Active hardware candidates missing required knobs")
+        ok = False
+    # Ensure active_candidates does NOT contain software (software exploration deferred in Q4 campaign)
+    if "software" in ds_attn.get("active_candidates", {}):
+        if verbose:
+            print("[FAIL] Active candidates should not contain software search in Q4 campaign")
+        ok = False
+    # Evaluation axes
+    if any(x > 512 for x in ds_attn["evaluation_axes"]["context_tokens"]):
+        if verbose:
+            print("[FAIL] Context tokens >512 exposed in evaluation_axes before runtime validation")
+        ok = False
+
+    # 4. AI Tutor Software Baseline Checks
+    tutor_cfg = load_yaml(AI_TUTOR_DIR / "example.ai-tutor.yaml")
+    tutor_sw = tutor_cfg["software"]
+    tutor_eval = tutor_cfg["evaluation"]
+
+    if tutor_sw["model"] != "Llama 3.2 1B Instruct":
+        if verbose:
+            print(f"[FAIL] Tutor model must be 'Llama 3.2 1B Instruct', got {tutor_sw['model']}")
+        ok = False
+    if tutor_sw["quantization"] != "Q4_K_M":
+        if verbose:
+            print(f"[FAIL] Tutor quantization must be 'Q4_K_M', got {tutor_sw['quantization']}")
+        ok = False
+    if tutor_sw["backend"] != "llama.cpp / CPU":
+        if verbose:
+            print(f"[FAIL] Tutor backend must be 'llama.cpp / CPU', got {tutor_sw['backend']}")
+        ok = False
+    if tutor_sw["cpu_threads"] != 4:
+        if verbose:
+            print(f"[FAIL] Tutor CPU threads must be 4, got {tutor_sw['cpu_threads']}")
+        ok = False
+    if tutor_sw["batch_size"] != 1:
+        if verbose:
+            print(f"[FAIL] Tutor batch size must be 1, got {tutor_sw['batch_size']}")
+        ok = False
+    if tutor_sw["temperature"] != 0.0:
+        if verbose:
+            print(f"[FAIL] Tutor temperature must be 0.0, got {tutor_sw['temperature']}")
+        ok = False
+    if tutor_sw["max_output_tokens"] != 384:
+        if verbose:
+            print(f"[FAIL] Tutor max_output_tokens must be 384, got {tutor_sw['max_output_tokens']}")
+        ok = False
+    if tutor_sw["embedding_model"] != "MiniLM-L6-dot-v1":
+        if verbose:
+            print(f"[FAIL] Tutor embedding model must be 'MiniLM-L6-dot-v1', got {tutor_sw['embedding_model']}")
+        ok = False
+    if tutor_sw["embedding_dimension"] != 384:
+        if verbose:
+            print(f"[FAIL] Tutor embedding dimension must be 384, got {tutor_sw['embedding_dimension']}")
+        ok = False
+    if tutor_sw["retrieval_method"] != "Semantic similarity":
+        if verbose:
+            print(f"[FAIL] Tutor retrieval method must be 'Semantic similarity', got {tutor_sw['retrieval_method']}")
+        ok = False
+    if tutor_sw["top_k"] != 2:
+        if verbose:
+            print(f"[FAIL] Tutor top_k must be 2, got {tutor_sw['top_k']}")
+        ok = False
+    if tutor_sw["chunk_size"] != 1500:
+        if verbose:
+            print(f"[FAIL] Tutor chunk_size must be 1500 characters, got {tutor_sw['chunk_size']}")
+        ok = False
+    if tutor_sw["chunk_overlap"] != 200:
+        if verbose:
+            print(f"[FAIL] Tutor chunk_overlap must be 200 characters, got {tutor_sw['chunk_overlap']}")
+        ok = False
+    if tutor_sw.get("chunk_unit") != "characters":
+        if verbose:
+            print(f"[FAIL] Tutor chunk_unit must be 'characters', got {tutor_sw.get('chunk_unit')}")
+        ok = False
+    if tutor_sw["chunk_overlap"] >= tutor_sw["chunk_size"]:
+        if verbose:
+            print("[FAIL] Chunk overlap must be strictly less than chunk size")
+        ok = False
+    if tutor_sw["runtime_ready"] is not False:
+        if verbose:
+            print("[FAIL] Tutor baseline runtime_ready must be False pending artifact resolution")
+        ok = False
+
+    # Evaluation isolation guardrail
+    if tutor_eval.get("reference_source") != "openstax":
+        if verbose:
+            print(f"[FAIL] Evaluation reference source must be 'openstax', got {tutor_eval.get('reference_source')}")
+        ok = False
+    if tutor_eval.get("reference_visible_to_model") is not False:
+        if verbose:
+            print("[FAIL] Evaluation references must NOT be visible to model (guardrail violation)")
+        ok = False
+
+    if ok and verbose:
+        print("[PASS] Semantic policy and baseline checks passed")
+
+    return ok
 
 
-def test_software_negative_cases(sw_ds_validator) -> bool:
-    ds = load(SOFTWARE / "design-space.software.json")
-    all_passed = True
+def run_negative_tests(registry: Registry, schemas: dict[str, dict], verbose: bool = True) -> bool:
+    """Verify that illegal values and invalid types are rejected."""
+    ok = True
 
-    # 1. Attempting to add quality/latency as active knobs (must be rejected)
-    for bad_knob in ["answer_quality", "latency_ms", "quality", "latency"]:
-        mutated = json.loads(json.dumps(ds))
-        mutated["active_knobs"][bad_knob] = {"status": "pending_definition"}
-        errors = list(sw_ds_validator.iter_errors(mutated))
-        if not errors:
-            print(f"[FAIL] Metric '{bad_knob}' improperly accepted as active software knob")
-            all_passed = False
-        else:
-            print(f"[OK]   Metric '{bad_knob}' rejected as active software knob as expected")
+    # 1. Reject TimingSimpleCPU with issue_width=2 in attention experiment
+    attn_schema = schemas["attention-experiment.schema.json"]
+    val = Draft202012Validator(attn_schema, registry=registry, format_checker=FormatChecker())
+    base_data = load_yaml(ATTN_DIR / "example.candidate.yaml")
 
-    # 2. Attempting non-ollama runtime
-    mutated = json.loads(json.dumps(ds))
-    mutated["fixed_parameters"]["runtime"] = "vllm"
-    errors = list(sw_ds_validator.iter_errors(mutated))
+    bad_candidate = json.loads(json.dumps(base_data))
+    bad_candidate["hardware"]["cpu_model"] = "RiscvTimingSimpleCPU"
+    bad_candidate["hardware"]["issue_width"] = 2
+    errors = list(val.iter_errors(bad_candidate))
     if not errors:
-        print("[FAIL] Illegal runtime accepted in fixed parameters")
-        all_passed = False
-    else:
-        print("[OK]   Non-ollama runtime rejected as expected")
+        if verbose:
+            print("[FAIL] Negative test: TimingSimpleCPU with issue_width=2 was improperly accepted")
+        ok = False
+    elif verbose:
+        print("[PASS] Negative test: TimingSimpleCPU with issue_width=2 was correctly rejected")
 
-    # 3. Attempting non-1B parameter count
-    mutated = json.loads(json.dumps(ds))
-    mutated["fixed_parameters"]["parameter_count"] = "8B"
-    errors = list(sw_ds_validator.iter_errors(mutated))
+    # 2. Reject illegal hardware core count (3 cores)
+    bad_candidate = json.loads(json.dumps(base_data))
+    bad_candidate["hardware"]["cores"] = 3
+    errors = list(val.iter_errors(bad_candidate))
     if not errors:
-        print("[FAIL] Illegal parameter count accepted in fixed parameters")
-        all_passed = False
-    else:
-        print("[OK]   Non-1B parameter count rejected as expected")
+        if verbose:
+            print("[FAIL] Negative test: cores=3 was improperly accepted")
+        ok = False
+    elif verbose:
+        print("[PASS] Negative test: cores=3 was correctly rejected")
 
-    return all_passed
+    # 3. Reject unknown property in attention experiment (additionalProperties: false)
+    bad_candidate = json.loads(json.dumps(base_data))
+    bad_candidate["illegal_property"] = True
+    errors = list(val.iter_errors(bad_candidate))
+    if not errors:
+        if verbose:
+            print("[FAIL] Negative test: unknown top-level property was improperly accepted")
+        ok = False
+    elif verbose:
+        print("[PASS] Negative test: unknown top-level property was correctly rejected")
+
+    # 4. Reject chunk_unit != 'characters' in ai-tutor
+    tutor_schema = schemas["ai-tutor.schema.json"]
+    tutor_val = Draft202012Validator(tutor_schema, registry=registry, format_checker=FormatChecker())
+    tutor_data = load_yaml(AI_TUTOR_DIR / "example.ai-tutor.yaml")
+
+    bad_tutor = json.loads(json.dumps(tutor_data))
+    bad_tutor["software"]["chunk_unit"] = "tokens"
+    errors = list(tutor_val.iter_errors(bad_tutor))
+    if not errors:
+        if verbose:
+            print("[FAIL] Negative test: chunk_unit='tokens' was improperly accepted")
+        ok = False
+    elif verbose:
+        print("[PASS] Negative test: chunk_unit='tokens' was correctly rejected")
+
+    # 5. Reject reference_visible_to_model=True in evaluation guardrails
+    bad_tutor = json.loads(json.dumps(tutor_data))
+    bad_tutor["evaluation"]["reference_visible_to_model"] = True
+    errors = list(tutor_val.iter_errors(bad_tutor))
+    if not errors:
+        if verbose:
+            print("[FAIL] Negative test: reference_visible_to_model=True was improperly accepted")
+        ok = False
+    elif verbose:
+        print("[PASS] Negative test: reference_visible_to_model=True was correctly rejected")
+
+    return ok
 
 
-def inspect_software_baseline(sw_validator) -> bool:
-    baseline_path = SOFTWARE / "baseline.software.json"
-    baseline = load(baseline_path)
-    errors = list(sw_validator.iter_errors(baseline))
-    if errors:
-        print(f"[FAIL] {baseline_path.relative_to(ROOT)} failed schema validation")
-        for e in errors:
-            print(f"  {e.message}")
+def run_manifest_consistency_checks(verbose: bool = True) -> bool:
+    """Verify that docs/knob-mapping.manifest.json matches active schemas and baseline."""
+    manifest_path = DOCS_DIR / "knob-mapping.manifest.json"
+    if not manifest_path.exists():
+        if verbose:
+            print(f"[FAIL] Missing manifest file: {manifest_path}")
         return False
 
-    is_runtime_ready = baseline.get("runtime_ready", False)
-    if not is_runtime_ready:
-        unresolved = baseline.get("unresolved_fields", [])
-        print(f"[OK]   {baseline_path.relative_to(ROOT)} validated as DRAFT software configuration")
-        print(f"[INFO] Software baseline runtime_ready=False. Unresolved fields ({len(unresolved)}):")
-        for field in unresolved:
-            print(f"       - {field}")
+    manifest = load_json(manifest_path)
+    fields = manifest.get("fields", [])
+    if not fields:
+        if verbose:
+            print("[FAIL] Manifest contains no fields")
+        return False
+
+    field_map = {f["field"]: f for f in fields}
+    ok = True
+
+    # Required fields in manifest
+    required_in_manifest = [
+        "hardware.cpu_model", "hardware.cores", "hardware.frequency_ghz", "hardware.issue_width",
+        "hardware.l1i_cache_kib", "hardware.l1d_cache_kib", "hardware.l2_cache_kib",
+        "hardware.memory_type", "software.implementation", "software.kv_format", "software.threads",
+        "software.model", "software.quantization", "software.backend", "software.cpu_threads",
+        "software.batch_size", "software.temperature", "software.max_output_tokens",
+        "software.embedding_model", "software.embedding_dimension", "software.retrieval_method",
+        "software.top_k", "software.chunk_size", "software.chunk_overlap", "software.runtime_ready"
+    ]
+
+    for req in required_in_manifest:
+        if req not in field_map:
+            if verbose:
+                print(f"[FAIL] Manifest missing field entry: {req}")
+            ok = False
+        else:
+            entry = field_map[req]
+            if entry.get("status") != "PLANNED":
+                if verbose:
+                    print(f"[FAIL] Manifest field '{req}' status must be 'PLANNED', got '{entry.get('status')}'")
+                ok = False
+
+    # Check units for chunk size and overlap
+    if field_map.get("software.chunk_size", {}).get("unit") != "characters":
+        if verbose:
+            print("[FAIL] Manifest software.chunk_size unit must be 'characters'")
+        ok = False
+    if field_map.get("software.chunk_overlap", {}).get("unit") != "characters":
+        if verbose:
+            print("[FAIL] Manifest software.chunk_overlap unit must be 'characters'")
+        ok = False
+
+    if ok and verbose:
+        print("[PASS] Manifest consistency checks passed")
+
+    return ok
+
+
+def main() -> None:
+    print("=" * 60)
+    print("CHIA Experiment Contracts Canonical Validator")
+    print("=" * 60)
+
+    try:
+        registry, schemas = build_registry()
+    except Exception as e:
+        print(f"[FATAL] Schema loading failed: {e}")
+        sys.exit(1)
+
+    cases = [
+        (AI_TUTOR_DIR / "example.ai-tutor.yaml", AI_TUTOR_DIR / "ai-tutor.schema.json"),
+        (AI_TUTOR_DIR / "design-space.yaml", AI_TUTOR_DIR / "ai-tutor-design-space.schema.json"),
+        (ATTN_DIR / "baseline.attention.yaml", ATTN_DIR / "attention-experiment.schema.json"),
+        (ATTN_DIR / "example.candidate.yaml", ATTN_DIR / "attention-experiment.schema.json"),
+        (ATTN_DIR / "design-space.yaml", ATTN_DIR / "attention-design-space.schema.json"),
+        (COMPUTE_DIR / "compute-policy.yaml", COMPUTE_DIR / "compute-policy.schema.json"),
+        (RUN_RECORDS_DIR / "example.completed.yaml", RUN_RECORDS_DIR / "run-record.schema.json"),
+    ]
+
+    all_passed = True
+
+    print("\n--- Structural YAML Schema Validation ---")
+    for data_path, schema_path in cases:
+        if not validate_document(data_path, schema_path, registry):
+            all_passed = False
+
+    print("\n--- Semantic & Domain Policy Checks ---")
+    if not run_semantic_checks():
+        all_passed = False
+
+    print("\n--- Negative / Rejection Tests ---")
+    if not run_negative_tests(registry, schemas):
+        all_passed = False
+
+    print("\n--- Manifest & Documentation Agreement ---")
+    if not run_manifest_consistency_checks():
+        all_passed = False
+
+    print("\n" + "=" * 60)
+    if all_passed:
+        print("[SUCCESS] All contract validations and checks passed!")
+        sys.exit(0)
     else:
-        print(f"[OK]   {baseline_path.relative_to(ROOT)} validated as EXECUTION-READY software configuration")
-    return True
-
-
-def main():
-    hw_validator, hw_ds_validator, sw_validator, sw_ds_validator, exp_validator, ds_validator, _ = build_validators()
-    failed = False
-
-    # 1. Validate baseline hardware configuration against chia-experiment.schema.json#/$defs/hardware_config
-    if not validate_file(hw_validator, HARDWARE / "baseline.hardware.json"):
-        failed = True
-
-    # 2. Validate hardware design space configuration against chia-experiment.schema.json#/$defs/hardware_design_space
-    if not validate_file(hw_ds_validator, HARDWARE / "design-space.hardware.json"):
-        failed = True
-
-    # 3. Validate software design space configuration against chia-experiment.schema.json#/$defs/software_design_space
-    if not validate_file(sw_ds_validator, SOFTWARE / "design-space.software.json"):
-        failed = True
-
-    # 4. Inspect/validate software baseline against chia-experiment.schema.json#/$defs/software_config
-    if not inspect_software_baseline(sw_validator):
-        failed = True
-
-    # 5. Validate experiment examples against configs/schemas/experiment.schema.json
-    for example_path in sorted(EXAMPLES.glob("*.json")):
-        if not validate_file(exp_validator, example_path):
-            failed = True
-
-    # 6. Verify negative test cases for illegal hardware values
-    if not test_illegal_hardware_values(hw_validator):
-        failed = True
-
-    # 7. Verify negative test cases for software design space
-    if not test_software_negative_cases(sw_ds_validator):
-        failed = True
-
-    raise SystemExit(1 if failed else 0)
+        print("[FAILURE] One or more validations failed.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

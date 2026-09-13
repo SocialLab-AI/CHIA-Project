@@ -2,51 +2,30 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.local/chia/attention-design-space.schema.json",
   "title": "CHIA Attention Design Space",
-  "description": "Declares the baseline, active CHIA candidates, controlled workload axes, fixed parameters, and future candidates for the attention/gem5 campaign. Hardware knob candidates reference the canonical master contract in chia-experiment.schema.json.",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "schema_version",
-    "baseline",
-    "active_candidates",
-    "evaluation_axes",
-    "fixed",
-    "future"
-  ],
+  "required": ["schema_version", "metrics_contract", "baseline", "active_candidates", "evaluation_axes", "fixed", "constraints", "future"],
   "properties": {
-    "schema_version": {
-      "const": "0.2.0"
-    },
-    "baseline": {
-      "type": "object"
-    },
+    "schema_version": { "const": "0.2.0" },
+    "metrics_contract": { "const": "attention-experiment.schema.json#/$defs/gem5_metrics" },
+    "baseline": { "$ref": "#/$defs/baseline" },
     "active_candidates": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "hardware",
-        "software"
-      ],
+      "required": ["hardware"],
       "properties": {
         "hardware": {
-          "$ref": "https://example.local/chia/chia-experiment.schema.json#/$defs/hardware_active_knob_candidates"
-        },
-        "software": {
           "type": "object",
           "additionalProperties": false,
+          "required": ["cpu_model", "frequency_ghz", "issue_width", "l1d_cache_kib", "l1d_associativity", "l2_cache_kib", "l2_associativity"],
           "properties": {
-            "kv_format": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": [
-                  "FP32",
-                  "Q4"
-                ]
-              },
-              "minItems": 1,
-              "uniqueItems": true
-            }
+            "cpu_model": { "$ref": "#/$defs/cpu_array" },
+            "frequency_ghz": { "$ref": "#/$defs/frequency_array" },
+            "issue_width": { "$ref": "#/$defs/issue_array" },
+            "l1d_cache_kib": { "$ref": "#/$defs/l1d_size_array" },
+            "l1d_associativity": { "$ref": "#/$defs/l1d_assoc_array" },
+            "l2_cache_kib": { "$ref": "#/$defs/l2_size_array" },
+            "l2_associativity": { "$ref": "#/$defs/l2_assoc_array" }
           }
         }
       }
@@ -54,30 +33,82 @@
     "evaluation_axes": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "context_tokens"
-      ],
+      "required": ["context_tokens"],
+      "properties": { "context_tokens": { "$ref": "#/$defs/context_array" } }
+    },
+    "fixed": { "$ref": "#/$defs/fixed" },
+    "constraints": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "future": { "type": "object" }
+  },
+  "$defs": {
+    "baseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cpu_model", "cores", "frequency_ghz", "issue_width", "l1i_cache_kib", "l1i_associativity", "l1i_latency_cycles", "l1d_cache_kib", "l1d_associativity", "l1d_latency_cycles", "l2_cache_kib", "l2_associativity", "l2_latency_cycles", "memory_type", "memory_size_mib", "simulation_mode", "context_tokens", "query_heads", "kv_heads", "head_dimension", "layers", "threads", "repetitions", "warmup_runs", "kv_format"],
       "properties": {
-        "context_tokens": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "enum": [
-              128,
-              256,
-              512
-            ]
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        }
+        "cpu_model": { "enum": ["RiscvTimingSimpleCPU", "RiscvO3CPU"] },
+        "cores": { "enum": [1, 2, 4] },
+        "frequency_ghz": { "enum": [1, 2, 3, 4] },
+        "issue_width": { "enum": [1, 2, 4] },
+        "l1i_cache_kib": { "const": 16 },
+        "l1i_associativity": { "const": 2 },
+        "l1i_latency_cycles": { "const": 2 },
+        "l1d_cache_kib": { "enum": [16, 32, 64] },
+        "l1d_associativity": { "enum": [2, 4, 8] },
+        "l1d_latency_cycles": { "const": 2 },
+        "l2_cache_kib": { "enum": [256, 512, 1024] },
+        "l2_associativity": { "enum": [4, 8, 16] },
+        "l2_latency_cycles": { "const": 20 },
+        "memory_type": { "const": "DDR3_1600_8x8" },
+        "memory_size_mib": { "const": 16 },
+        "simulation_mode": { "const": "SE" },
+        "context_tokens": { "enum": [128, 256, 512] },
+        "query_heads": { "const": 4 },
+        "kv_heads": { "const": 2 },
+        "head_dimension": { "const": 32 },
+        "layers": { "const": 1 },
+        "threads": { "enum": [1, 2, 4] },
+        "repetitions": { "type": "integer", "minimum": 1 },
+        "warmup_runs": { "type": "integer", "minimum": 0 },
+        "kv_format": { "enum": ["FP32", "Q4"] }
       }
     },
     "fixed": {
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cores", "kv_format", "l1i_cache_kib", "l1i_associativity", "l1i_latency_cycles", "l1d_latency_cycles", "l2_latency_cycles", "memory_type", "memory_size_mib", "simulation_mode", "query_heads", "kv_heads", "head_dimension", "layers", "threads", "repetitions", "warmup_runs"],
+      "properties": {
+        "cores": { "const": 2 },
+        "kv_format": { "const": "Q4" },
+        "l1i_cache_kib": { "const": 16 },
+        "l1i_associativity": { "const": 2 },
+        "l1i_latency_cycles": { "const": 2 },
+        "l1d_latency_cycles": { "const": 2 },
+        "l2_latency_cycles": { "const": 20 },
+        "memory_type": { "const": "DDR3_1600_8x8" },
+        "memory_size_mib": { "const": 16 },
+        "simulation_mode": { "const": "SE" },
+        "query_heads": { "const": 4 },
+        "kv_heads": { "const": 2 },
+        "head_dimension": { "const": 32 },
+        "layers": { "const": 1 },
+        "threads": { "const": 2 },
+        "repetitions": { "const": 10 },
+        "warmup_runs": { "const": 0 }
+      }
     },
-    "future": {
-      "type": "object"
-    }
+    "cpu_array": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["RiscvTimingSimpleCPU", "RiscvO3CPU"] } },
+    "frequency_array": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": [1, 2, 3, 4] } },
+    "issue_array": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": [1, 2, 4] } },
+    "l1d_size_array": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": [16, 32, 64] } },
+    "l1d_assoc_array": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": [2, 4, 8] } },
+    "l2_size_array": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": [256, 512, 1024] } },
+    "l2_assoc_array": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": [4, 8, 16] } },
+    "context_array": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": [128, 256, 512] } }
   }
 }

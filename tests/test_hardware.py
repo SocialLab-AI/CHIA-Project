@@ -1,58 +1,38 @@
 from pathlib import Path
 import json
 import pytest
+import yaml
 
 from jsonschema import Draft202012Validator, FormatChecker
 from referencing import Registry, Resource
 
 ROOT = Path(__file__).resolve().parents[1]
-SCHEMAS = ROOT / "configs" / "schemas"
-HARDWARE = ROOT / "configs" / "hardware"
-EXAMPLES = ROOT / "configs" / "examples"
+CONTRACTS = ROOT / "experiment-contracts"
+ATTN_DIR = CONTRACTS / "attention-experiments"
+SCHEMAS_DIR = CONTRACTS / "schemas"
 
 
-def load_json(path: Path):
+def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def load_yaml_simple(path: Path):
-    """Simple parser for simple YAML files without requiring PyYAML."""
-    data = {}
-    for line in path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        if ":" in line:
-            k, v = line.split(":", 1)
-            k = k.strip()
-            v = v.strip()
-            if v.isdigit():
-                data[k] = int(v)
-            elif (v.startswith('"') and v.endswith('"')) or (v.startswith("'") and v.endswith("'")):
-                data[k] = v[1:-1]
-            elif v in ("true", "True"):
-                data[k] = True
-            elif v in ("false", "False"):
-                data[k] = False
-            elif v == "":
-                continue
-            else:
-                data[k] = v
-    return data
+def load_yaml(path: Path) -> dict:
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
 @pytest.fixture(scope="module")
 def registry():
     schema_files = {
-        "chia-experiment.schema.json": load_json(SCHEMAS / "chia-experiment.schema.json"),
-        "experiment.schema.json": load_json(SCHEMAS / "experiment.schema.json"),
-        "design-space.schema.json": load_json(SCHEMAS / "design-space.schema.json"),
-        "run-record.schema.json": load_json(SCHEMAS / "run-record.schema.json"),
+        "shared.schema.json": SCHEMAS_DIR / "shared.schema.json",
+        "attention-experiment.schema.json": ATTN_DIR / "attention-experiment.schema.json",
+        "attention-design-space.schema.json": ATTN_DIR / "attention-design-space.schema.json",
     }
     reg = Registry()
-    for name, schema in schema_files.items():
+    for name, path in schema_files.items():
+        schema = load_json(path)
         res = Resource.from_contents(schema)
         reg = reg.with_resource(name, res)
+        reg = reg.with_resource(path.as_uri(), res)
         if "$id" in schema:
             reg = reg.with_resource(schema["$id"], res)
     return reg
@@ -60,123 +40,120 @@ def registry():
 
 @pytest.fixture(scope="module")
 def hw_validator(registry):
-    return Draft202012Validator(
-        {"$ref": "chia-experiment.schema.json#/$defs/hardware_config"},
-        registry=registry,
-        format_checker=FormatChecker()
-    )
+    schema = load_json(ATTN_DIR / "attention-experiment.schema.json")
+    return Draft202012Validator(schema, registry=registry, format_checker=FormatChecker())
 
 
 @pytest.fixture(scope="module")
 def hw_ds_validator(registry):
-    return Draft202012Validator(
-        {"$ref": "chia-experiment.schema.json#/$defs/hardware_design_space"},
-        registry=registry,
-        format_checker=FormatChecker()
-    )
-
-
-@pytest.fixture(scope="module")
-def exp_validator(registry):
-    schema = load_json(SCHEMAS / "experiment.schema.json")
+    schema = load_json(ATTN_DIR / "attention-design-space.schema.json")
     return Draft202012Validator(schema, registry=registry, format_checker=FormatChecker())
 
 
-def test_baseline_hardware_valid(hw_validator):
-    baseline = load_json(HARDWARE / "baseline.hardware.json")
+def test_baseline_attention_valid(hw_validator):
+    baseline = load_yaml(ATTN_DIR / "baseline.attention.yaml")
     errors = list(hw_validator.iter_errors(baseline))
-    assert not errors, f"Baseline hardware validation errors: {[e.message for e in errors]}"
+    assert not errors, f"Baseline attention validation errors: {[e.message for e in errors]}"
 
 
-def test_baseline_hardware_yaml_matches_json():
-    json_baseline = load_json(HARDWARE / "baseline.hardware.json")
-    try:
-        import yaml
-        yaml_baseline = yaml.safe_load((HARDWARE / "baseline.hardware.yaml").read_text(encoding="utf-8"))
-    except ImportError:
-        yaml_baseline = load_yaml_simple(HARDWARE / "baseline.hardware.yaml")
-    assert json_baseline == yaml_baseline
+def test_q4_campaign_restrictions():
+    """Preserve current main's Q4 campaign restrictions."""
+    baseline = load_yaml(ATTN_DIR / "baseline.attention.yaml")
+    hw = baseline["hardware"]
+    sw = baseline["software"]
+    meas = baseline["measurement"]
+    workload = baseline["workload"]
+
+    assert hw["cores"] == 2
+    assert sw["threads"] == 2
+    assert sw["kv_format"] == "Q4"
+    assert workload["layers"] == 1
+    assert meas["repetitions"] == 10
+    assert meas["warmup_runs"] == 0
+    assert hw["memory_type"] == "DDR3_1600_8x8"
+    assert hw["memory_size_mib"] == 16
+    assert hw["simulation_mode"] == "SE"
+    assert baseline["status"]["state"] == "completed"
 
 
-def test_design_space_hardware_valid(hw_ds_validator):
-    ds = load_json(HARDWARE / "design-space.hardware.json")
-    errors = list(hw_ds_validator.iter_errors(ds))
-    assert not errors, f"Design space hardware validation errors: {[e.message for e in errors]}"
+def test_timing_simple_cpu_issue_width_constraint(hw_validator):
+    """TimingSimpleCPU requires issue_width == 1; issue_width == 2 must be rejected."""
+    candidate = load_yaml(ATTN_DIR / "example.candidate.yaml")
+    valid_timing = dict(candidate)
+    valid_timing["hardware"]["cpu_model"] = "RiscvTimingSimpleCPU"
+    valid_timing["hardware"]["issue_width"] = 1
+    errors = list(hw_validator.iter_errors(valid_timing))
+    assert not errors, f"Expected issue_width=1 for TimingSimpleCPU to pass, got: {errors}"
 
-
-def test_official_active_knobs_count_and_members(hw_ds_validator):
-    ds = load_json(HARDWARE / "design-space.hardware.json")
-    active_knobs = ds["active_knobs"]
-    assert len(active_knobs) == 8, f"Expected exactly 8 active hardware knobs, got {len(active_knobs)}"
-    expected_knobs = {
-        "cpu_model", "cores", "frequency_ghz", "issue_width",
-        "l1d_cache_kib", "l1d_associativity", "l2_cache_kib", "l2_associativity"
-    }
-    assert set(active_knobs.keys()) == expected_knobs
-
-
-def test_official_fixed_parameters(hw_ds_validator):
-    ds = load_json(HARDWARE / "design-space.hardware.json")
-    fixed = ds["fixed_parameters"]
-    assert fixed["isa"] == "RISCV64"
-    assert fixed["l1i_cache_kib"] == 16
-    assert fixed["l1i_associativity"] == 2
-    assert fixed["l1i_latency_cycles"] == 2
-    assert fixed["l1d_latency_cycles"] == 2
-    assert fixed["l2_latency_cycles"] == 20
-    assert fixed["memory_type"] == "DDR3_1600_8x8"
-    assert fixed["memory_size_mib"] == 16
-    assert fixed["simulation_mode"] == "SE"
-    assert fixed["software_threads"] == 2
-
-
-def test_examples_valid(exp_validator):
-    for example_file in sorted(EXAMPLES.glob("*.json")):
-        example_data = load_json(example_file)
-        errors = list(exp_validator.iter_errors(example_data))
-        assert not errors, f"{example_file.name} failed validation: {[e.message for e in errors]}"
+    invalid_timing = json.loads(json.dumps(candidate))
+    invalid_timing["hardware"]["cpu_model"] = "RiscvTimingSimpleCPU"
+    invalid_timing["hardware"]["issue_width"] = 2
+    errors = list(hw_validator.iter_errors(invalid_timing))
+    assert len(errors) > 0, "Expected issue_width=2 for TimingSimpleCPU to be rejected"
 
 
 @pytest.mark.parametrize("field,illegal_val", [
     ("cores", 3),
     ("l1d_cache_kib", 128),
     ("l2_associativity", 2),
-    ("cpu_model", "SomeOtherCPU"),
-    ("isa", "X86"),
+    ("cpu_model", "InvalidCPU"),
+    ("frequency_ghz", 5),
     ("memory_type", "DDR4"),
+    ("memory_size_mib", 32),
     ("simulation_mode", "FS"),
-    ("software_threads", 4),
 ])
 def test_illegal_hardware_values_rejected(hw_validator, field, illegal_val):
-    baseline = load_json(HARDWARE / "baseline.hardware.json")
-    candidate = dict(baseline)
-    candidate[field] = illegal_val
-    errors = list(hw_validator.iter_errors(candidate))
+    candidate = load_yaml(ATTN_DIR / "example.candidate.yaml")
+    mutated = json.loads(json.dumps(candidate))
+    mutated["hardware"][field] = illegal_val
+    errors = list(hw_validator.iter_errors(mutated))
     assert len(errors) > 0, f"Expected {field}={illegal_val} to be rejected"
 
 
-def test_issue_width_conditional_metadata(hw_ds_validator):
-    ds = load_json(HARDWARE / "design-space.hardware.json")
-    iw = ds["active_knobs"]["issue_width"]
-    assert iw["values"] == [1, 2, 4]
-    assert iw["baseline"] == 2
-    assert iw["applicability"] == "RiscvO3CPU"
-    assert iw["implementation_status"] == "pending_validation"
+def test_active_hardware_knobs(hw_ds_validator):
+    """Verify the 7 active hardware search knobs in Q4 design space."""
+    ds = load_yaml(ATTN_DIR / "design-space.yaml")
+    errors = list(hw_ds_validator.iter_errors(ds))
+    assert not errors, f"Design space validation failed: {[e.message for e in errors]}"
+
+    active_hw = ds["active_candidates"]["hardware"]
+    expected_knobs = {
+        "cpu_model", "frequency_ghz", "issue_width",
+        "l1d_cache_kib", "l1d_associativity", "l2_cache_kib", "l2_associativity"
+    }
+    assert set(active_hw.keys()) == expected_knobs
+    assert ds["fixed"]["cores"] == 2
+    assert ds["fixed"]["kv_format"] == "Q4"
 
 
-def test_timing_simple_cpu_issue_width_constraint(hw_validator):
-    baseline = load_json(HARDWARE / "baseline.hardware.json")
-    # TimingSimpleCPU with issue_width=1 should pass
-    valid_simple = dict(baseline)
-    valid_simple["cpu_model"] = "RiscvTimingSimpleCPU"
-    valid_simple["issue_width"] = 1
-    errors = list(hw_validator.iter_errors(valid_simple))
-    assert not errors, f"Expected issue_width=1 for TimingSimpleCPU to pass, got: {errors}"
+def test_emitted_hardware_metrics_preserved():
+    """Verify actual emitted per-core and DRAM metrics are preserved."""
+    baseline = load_yaml(ATTN_DIR / "baseline.attention.yaml")
+    metrics = baseline["metrics"]
 
-    # TimingSimpleCPU with issue_width=2 should be rejected
-    invalid_simple = dict(baseline)
-    invalid_simple["cpu_model"] = "RiscvTimingSimpleCPU"
-    invalid_simple["issue_width"] = 2
-    errors = list(hw_validator.iter_errors(invalid_simple))
-    assert len(errors) > 0, "Expected issue_width=2 for TimingSimpleCPU to be rejected"
+    # Per-core array metrics
+    assert isinstance(metrics["cycles_per_core"], list)
+    assert len(metrics["cycles_per_core"]) == 2
+    assert isinstance(metrics["ipc_per_core"], list)
+    assert len(metrics["ipc_per_core"]) == 2
+    assert isinstance(metrics["cpi_per_core"], list)
+    assert len(metrics["cpi_per_core"]) == 2
+    assert isinstance(metrics["l1d_miss_rate_per_core"], list)
+    assert len(metrics["l1d_miss_rate_per_core"]) == 2
+    assert isinstance(metrics["l1i_miss_rate_per_core"], list)
+    assert len(metrics["l1i_miss_rate_per_core"]) == 2
 
+    # Aggregate and DRAM metrics
+    assert "aggregate_ipc" in metrics
+    assert "dram_bytes_read" in metrics
+    assert "dram_bytes_written" in metrics
+    assert "dram_bandwidth_bytes_per_second" in metrics
+    assert "dram_bandwidth_utilization_percent" in metrics
+    assert "average_dram_access_latency_ns" in metrics
+
+
+def test_hardware_runner_skeleton():
+    """Verify src.hardware.runner raises NotImplementedError."""
+    from src.hardware.runner import run_hardware
+    with pytest.raises(NotImplementedError):
+        run_hardware({})

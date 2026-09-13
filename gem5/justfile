@@ -1,0 +1,21 @@
+set shell := ["bash", "-cu"]
+
+python := "python3"
+config := "../experiment-contracts/attention-experiments/baseline.attention.yaml"
+
+test:
+    {{python}} -m py_compile extract_metrics.py run_attention_experiment.py
+
+run:
+    {{python}} run_attention_experiment.py {{config}}
+
+metrics:
+    {{python}} -m json.tool results/q4-baseline/metrics.json
+
+status:
+    git status --short
+all:
+    just test
+    just run
+    just metrics
+    just status

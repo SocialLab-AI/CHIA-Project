@@ -1,11 +1,9 @@
-# Team-provided gem5 + attention baseline.
-# These are the current reference values, not all active CHIA knobs.
 schema_version: "0.2.0"
 
 metadata:
-  experiment_id: attn-baseline-001
+  experiment_id: attn-q4-baseline-001
   campaign_id: attention-baseline-v1
-  description: "Verified baseline candidate for the attention-kernel gem5 path."
+  description: "Verified two-core Q4 KV-cache attention baseline in gem5."
 
 workload:
   context_tokens: 512
@@ -16,11 +14,10 @@ workload:
 
 software:
   implementation: AttentionKernelQuantizedKV
-  kv_format: FP32
-  threads: 1
+  kv_format: Q4
+  threads: 2
 
 hardware:
-  isa: RISCV64
   cpu_model: RiscvO3CPU
   cores: 2
   frequency_ghz: 1
@@ -37,13 +34,31 @@ hardware:
   memory_type: DDR3_1600_8x8
   memory_size_mib: 16
   simulation_mode: SE
-  software_threads: 2
 
 measurement:
-  repetitions: 4
+  repetitions: 10
   warmup_runs: 0
   max_simulation_instructions: null
 
+metrics:
+  sim_ticks: 16120761000
+  simulated_seconds: 0.016121
+  latency_ms: 16.121
+  host_seconds: 181.29
+  instructions: 31245140
+  cycles_per_core: [16109101, 7571222]
+  cpi_per_core: [0.898906, 0.568224]
+  ipc_per_core: [1.112463, 1.759869]
+  aggregate_ipc: 1.939595511878658
+  l1i_miss_rate_per_core: [0.000594, 0.000182]
+  l1d_miss_rate_per_core: [0.016808, 0.019031]
+  l2_miss_rate: 0.699803
+  dram_bytes_read: 182016
+  dram_bytes_written: 0
+  dram_bandwidth_bytes_per_second: 11290782
+  dram_bandwidth_utilization_percent: 0.088209
+  average_dram_access_latency_ns: 29.39592
+
 status:
-  state: validated
-  message: "Baseline structure reflects the teammate-supplied current configuration; implementation support still governs runnability."
+  state: completed
+  message: "Q4 execution passed and gem5 metrics were extracted from stats.txt."

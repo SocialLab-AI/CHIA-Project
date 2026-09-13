@@ -1,6 +1,14 @@
-def build_run_record(*, run_id: str, experiment_id: str, status: str, **kwargs) -> dict:
+def build_run_record(
+    *,
+    schema_version: str = "0.2.0",
+    run_id: str,
+    experiment_id: str,
+    status: str,
+    **kwargs,
+) -> dict:
+    """Build a run record using the version defined by the canonical contract."""
     record = {
-        "schema_version": "1.0",
+        "schema_version": schema_version,
         "run_id": run_id,
         "experiment_id": experiment_id,
         "status": status,
