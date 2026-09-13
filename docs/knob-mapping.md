@@ -8,6 +8,8 @@ Define the canonical interface mapping for CHIA co-design optimization:
 3. Consolidate hardware simulation parameters (gem5 proxy) and application parameters (AI Tutor workload).
 4. Preserve strict separation between application-level metrics and simulated hardware metrics.
 
+The [mapping manifest](knob-mapping.manifest.json) records planned project-adapter bindings. PLANNED in the tables describes that integration layer; the separate gem5 runner already consumes hardware fields. No new execution evidence is claimed here.
+
 ## Architecture Overview
 
 The Tutor LLM is the application being evaluated. Gemini / CHIA proposes candidates from the active design space. Deterministic validation checks legality before execution. gem5 simulates a representative Attention Kernel proxy.
@@ -90,7 +92,7 @@ Contracts reside in:
 | Field | Value | Classification | Constraints |
 | --- | --- | --- | --- |
 | `software.implementation` | `AttentionKernelQuantizedKV` | FIXED | C implementation in `gem5/attention_kv.c`. |
-| `software.kv_format` | `Q4` | FIXED | Q4 packed 4-bit KV cache. FP32 validated; FP16 and Q8 deferred. |
+| `software.kv_format` | `Q4` | FIXED | Q4 packed 4-bit KV cache for the current runner. Historical FP32 evidence is separate; FP16 and Q8 remain deferred. |
 | `software.threads` | `2` | FIXED | Workload threads for attention kernel proxy (independent of native tutor 4 threads). |
 | `workload.context_tokens` | `512` | EVALUATION AXIS | Evaluation axis (`128, 256, 512`); compare within matched conditions. |
 | `workload.query_heads` | `4` | FIXED | GQA configuration. |
@@ -145,7 +147,7 @@ The initial software baseline is **fixed for initial comparison**. Software sear
 
 ## Metrics and Optimization Objectives
 
-Reverse path: execution output -> parsing & validation -> `run-record.schema.json` -> multi-objective feedback.
+Intended reverse path: execution output -> parsing & validation -> run record -> multi-objective feedback. The complete integration remains pending; see [metric naming differences](configuration.md#metric-naming-at-the-integration-boundary).
 
 ### Metric Separation
 
@@ -153,12 +155,12 @@ Reverse path: execution output -> parsing & validation -> `run-record.schema.jso
 | --- | --- | --- |
 | Application Quality | `answer_quality` | Evaluated against held-out references; direction: **maximize**. |
 | Application Latency | `latency_ms` | Real end-to-end wall-clock latency on host; direction: **minimize**. |
-| Simulated Time | `sim_seconds`, `sim_ticks` | Simulated cycle-accurate proxy time from gem5; direction: **minimize**. |
+| Simulated Time | `simulated_seconds`, `sim_ticks` | Simulated cycle-accurate proxy time from gem5; direction: **minimize**. |
 | Microarchitectural Diagnostics | `cycles_per_core`, `ipc_per_core`, `cpi_per_core`, cache miss rates | Diagnostic profiling; explains hardware behavior. |
-| Correctness Evidence | `checksum`, `passed` | Hard gate: runs must complete with correct output. |
+| Correctness Evidence | Workload validation output | Successful execution and correctness need evidence; the metric extractor does not emit `checksum` or `passed` fields. |
 
 > [!IMPORTANT]
-> Real Tutor application latency (`latency_ms`) is distinct from simulated hardware execution time (`sim_seconds` / `sim_ticks`). Never conflate host execution time with gem5 simulated time.
+> Real Tutor application latency (`latency_ms`) is distinct from simulated hardware execution time (`simulated_seconds` / `sim_ticks`). Never conflate host execution time with gem5 simulated time.
 
 ---
 

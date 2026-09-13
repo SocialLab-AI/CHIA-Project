@@ -4,61 +4,61 @@ import pytest
 import yaml
 
 from jsonschema import Draft202012Validator, FormatChecker
-from referencing import Registry, Resource
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACTS = ROOT / "experiment-contracts"
-ATTN_DIR = CONTRACTS / "attention-experiments"
 SCHEMAS_DIR = CONTRACTS / "schemas"
+BASELINES_DIR = CONTRACTS / "baselines"
+DESIGN_SPACES_DIR = CONTRACTS / "design-spaces"
+EXAMPLES_DIR = CONTRACTS / "examples"
 
-
-def load_json(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
+MASTER_SCHEMA_PATH = SCHEMAS_DIR / "chia-experiment.schema.yaml"
 
 
 def load_yaml(path: Path) -> dict:
     return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
+def load_json(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 @pytest.fixture(scope="module")
-def registry():
-    schema_files = {
-        "shared.schema.json": SCHEMAS_DIR / "shared.schema.json",
-        "attention-experiment.schema.json": ATTN_DIR / "attention-experiment.schema.json",
-        "attention-design-space.schema.json": ATTN_DIR / "attention-design-space.schema.json",
+def master_schema():
+    assert MASTER_SCHEMA_PATH.exists(), f"Missing master schema: {MASTER_SCHEMA_PATH}"
+    schema = load_yaml(MASTER_SCHEMA_PATH)
+    Draft202012Validator.check_schema(schema)
+    return schema
+
+
+def get_validator(master_schema: dict, def_name: str) -> Draft202012Validator:
+    subschema = {
+        "$schema": master_schema.get("$schema", "https://json-schema.org/draft/2020-12/schema"),
+        "$ref": f"#/$defs/{def_name}",
+        "$defs": master_schema.get("$defs", {}),
     }
-    reg = Registry()
-    for name, path in schema_files.items():
-        schema = load_json(path)
-        res = Resource.from_contents(schema)
-        reg = reg.with_resource(name, res)
-        reg = reg.with_resource(path.as_uri(), res)
-        if "$id" in schema:
-            reg = reg.with_resource(schema["$id"], res)
-    return reg
+    return Draft202012Validator(subschema, format_checker=FormatChecker())
 
 
 @pytest.fixture(scope="module")
-def hw_validator(registry):
-    schema = load_json(ATTN_DIR / "attention-experiment.schema.json")
-    return Draft202012Validator(schema, registry=registry, format_checker=FormatChecker())
+def hw_validator(master_schema):
+    return get_validator(master_schema, "attention_experiment")
 
 
 @pytest.fixture(scope="module")
-def hw_ds_validator(registry):
-    schema = load_json(ATTN_DIR / "attention-design-space.schema.json")
-    return Draft202012Validator(schema, registry=registry, format_checker=FormatChecker())
+def hw_ds_validator(master_schema):
+    return get_validator(master_schema, "hardware_design_space")
 
 
 def test_baseline_attention_valid(hw_validator):
-    baseline = load_yaml(ATTN_DIR / "baseline.attention.yaml")
+    baseline = load_yaml(BASELINES_DIR / "attention.yaml")
     errors = list(hw_validator.iter_errors(baseline))
     assert not errors, f"Baseline attention validation errors: {[e.message for e in errors]}"
 
 
 def test_q4_campaign_restrictions():
     """Preserve current main's Q4 campaign restrictions."""
-    baseline = load_yaml(ATTN_DIR / "baseline.attention.yaml")
+    baseline = load_yaml(BASELINES_DIR / "attention.yaml")
     hw = baseline["hardware"]
     sw = baseline["software"]
     meas = baseline["measurement"]
@@ -78,7 +78,7 @@ def test_q4_campaign_restrictions():
 
 def test_timing_simple_cpu_issue_width_constraint(hw_validator):
     """TimingSimpleCPU requires issue_width == 1; issue_width == 2 must be rejected."""
-    candidate = load_yaml(ATTN_DIR / "example.candidate.yaml")
+    candidate = load_yaml(EXAMPLES_DIR / "attention-candidate.yaml")
     valid_timing = dict(candidate)
     valid_timing["hardware"]["cpu_model"] = "RiscvTimingSimpleCPU"
     valid_timing["hardware"]["issue_width"] = 1
@@ -103,7 +103,7 @@ def test_timing_simple_cpu_issue_width_constraint(hw_validator):
     ("simulation_mode", "FS"),
 ])
 def test_illegal_hardware_values_rejected(hw_validator, field, illegal_val):
-    candidate = load_yaml(ATTN_DIR / "example.candidate.yaml")
+    candidate = load_yaml(EXAMPLES_DIR / "attention-candidate.yaml")
     mutated = json.loads(json.dumps(candidate))
     mutated["hardware"][field] = illegal_val
     errors = list(hw_validator.iter_errors(mutated))
@@ -112,7 +112,7 @@ def test_illegal_hardware_values_rejected(hw_validator, field, illegal_val):
 
 def test_active_hardware_knobs(hw_ds_validator):
     """Verify the 7 active hardware search knobs in Q4 design space."""
-    ds = load_yaml(ATTN_DIR / "design-space.yaml")
+    ds = load_yaml(DESIGN_SPACES_DIR / "hardware.yaml")
     errors = list(hw_ds_validator.iter_errors(ds))
     assert not errors, f"Design space validation failed: {[e.message for e in errors]}"
 
@@ -128,7 +128,7 @@ def test_active_hardware_knobs(hw_ds_validator):
 
 def test_emitted_hardware_metrics_preserved():
     """Verify actual emitted per-core and DRAM metrics are preserved."""
-    baseline = load_yaml(ATTN_DIR / "baseline.attention.yaml")
+    baseline = load_yaml(BASELINES_DIR / "attention.yaml")
     metrics = baseline["metrics"]
 
     # Per-core array metrics

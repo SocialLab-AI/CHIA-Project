@@ -1,3 +1,4 @@
+# Schema: schemas/chia-experiment.schema.yaml#/$defs/attention_experiment
 schema_version: "0.2.0"
 
 metadata:

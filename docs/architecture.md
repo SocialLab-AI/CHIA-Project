@@ -1,73 +1,48 @@
-# Project Architecture
+# Architecture
 
-The project uses `experiment-contracts/` as the canonical configuration and schema layer.
+CHIA will coordinate native tutor evaluation and a simulated attention proxy using validated experiment configurations. The executable hardware path exists; the full integrated loop is planned.
 
 ```text
-                       CHIA orchestration
-                               |
-                     canonical experiment
-                        configuration
-                               |
-               +---------------+---------------+
-               |                               |
-               v                               v
-         Tutor Adapter                  Hardware Adapter
-          (planned)                         |
-               |                            v
-       model/runtime TBD              gem5 experiment runner
-               |                            |
-               v                            v
-        quality metrics               hardware metrics
-               |                            |
-               +---------------+------------+
-                               |
-                               v
-                          Run Record
+CHIA / candidate selection (planned integration)
+                     |
+         configuration and policy validation
+                     |
+         +-----------+------------+
+         |                        |
+ native tutor adapter       hardware adapter
+      (planned)                 (planned)
+         |                        |
+ llama.cpp + retrieval      gem5/run_attention_experiment.py
+      (planned)                   |
+         |                  attention_kv.c + attention-riscv.py
+ held-out evaluation              |
+         |                       gem5
+ application metrics              |
+         |                  extract_metrics.py
+         +------------+-----------+
+                      |
+          evidence records and scoring
+             (integration pending)
 ```
 
-## Four Contracts, Four Responsibilities
+## Implemented hardware path
 
-| Contract | Question answered |
-|---|---|
-| AI Tutor config | What application configuration are we evaluating? |
-| Attention experiment/design space | What proxy workload and simulated architecture are we evaluating? |
-| Compute policy | Where and at what scale may the real job execute? |
-| Run record | What actually happened and what evidence was produced? |
+[`run_attention_experiment.py`](../gem5/run_attention_experiment.py) loads the attention configuration, checks supported settings, builds the C workload through Docker, runs gem5, and writes extracted metrics. [`attention-riscv.py`](../gem5/attention-riscv.py) configures the simulated hardware. [`extract_metrics.py`](../gem5/extract_metrics.py) translates simulator statistics into hardware metrics.
 
-## Separation That Must Remain Explicit
+The runner output is an attention experiment with metrics; it is not automatically a complete run record containing all execution, usage and provenance fields. The [run-record contract](../experiment-contracts/run-records/run-record.schema.json) describes that separate evidence requirement.
 
-- `hardware.*` inside an attention experiment describes the **simulated target architecture** in gem5.
-- `execution.backend` inside a run record and the compute policy describes the **real host/backend** running CHIA/gem5.
-- Those are different layers and must never be conflated.
+## Project interfaces
 
-## CHIA Control and Guardrails
+[`run_experiment(config)`](../src/orchestration/experiment.py) passes the full configuration to both runners. [`run_hardware(config)`](../src/hardware/runner.py) and [`run_tutor(config)`](../src/tutor/runner.py) currently raise `NotImplementedError`. The hardware adapter does not yet delegate to the existing gem5 pipeline. The CHIA entrypoint is also planned.
 
-CHIA may propose values only from the active design space. Deterministic validation checks legality before execution.
+The [knob mapping](knob-mapping.md) records intended bindings. A planned binding is not proof that a candidate service or optimizer has been implemented.
 
-Gemini may propose candidates, but it must not:
-- authorize a higher compute tier,
-- enable organizer burst outside the final tier,
-- invent unsupported knob values,
-- bypass schema or semantic validation.
+## Boundaries
 
-## Current Implementation Status
+- Native tutor CPU threads and simulated proxy threads describe different executions.
+- Model-weight Q4_K_M and proxy KV-cache Q4 are separate representations.
+- Application latency, simulated time, and simulation host runtime are distinct measurements.
+- Retrieval content must remain separate from held-out OpenStax reference answers.
+- Gemini may propose candidates; deterministic validation and compute-policy checks must govern execution. A schema-valid configuration does not prove runtime capability.
 
-### Canonical Contracts
-Implemented under `experiment-contracts/`.
-This is the single source of truth for experiment configuration, hardware parameters, workload settings, measurement settings, and run records.
-
-### Hardware Execution
-Implemented under `gem5/`.
-The gem5 experiment runner consumes the canonical experiment contract, builds the attention workload, configures gem5, executes the simulation, and extracts hardware metrics.
-
-### `src/` Package
-The `src/` package defines stable adapter and orchestration boundaries:
-- `src.hardware.runner.run_hardware(config)` delegates to the executable gem5 pipeline.
-- `src.tutor.runner.run_tutor(config)` defines the entrypoint for the tutor application.
-- `src.orchestration.experiment.run_experiment(config)` coordinates execution of both domains.
-Some adapter modules intentionally remain skeletons while their implementations are developed.
-
-### Tutor Runtime
-The tutor runtime, model adapter, evaluator, and software-side metrics are currently planned. The baseline configuration is specified with Llama 3.2 1B Instruct and a MiniLM-L6-dot-v1 RAG pipeline, with software search space pending definition.
-
-Reference material (`data/references/openstax.json`) is strictly held out for evaluation only and is never provided to the tutor as retrieval context.
+See [configuration](configuration.md) for contracts and [running](running.md) for supported entrypoints.

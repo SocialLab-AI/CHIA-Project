@@ -150,8 +150,8 @@ def main():
         default=(
             Path(__file__).resolve().parent.parent
             / "experiment-contracts"
-            / "attention-experiments"
-            / "attention-experiment.schema.json"
+            / "schemas"
+            / "chia-experiment.schema.yaml"
         ),
     )
 
@@ -166,7 +166,15 @@ def main():
         "message": "gem5 metrics extracted successfully from stats.txt",
     }
 
-    schema = json.loads(args.schema.read_text(encoding="utf-8"))
+    raw_schema = yaml.safe_load(args.schema.read_text(encoding="utf-8"))
+    if "$defs" in raw_schema and "attention_experiment" in raw_schema["$defs"]:
+        schema = {
+            "$schema": raw_schema.get("$schema", "https://json-schema.org/draft/2020-12/schema"),
+            "$ref": "#/$defs/attention_experiment",
+            "$defs": raw_schema["$defs"],
+        }
+    else:
+        schema = raw_schema
 
     validator = Draft202012Validator(schema)
     errors = sorted(

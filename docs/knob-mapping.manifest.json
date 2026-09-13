@@ -47,7 +47,7 @@
       "target": "CPU SrcClockDomain.clock",
       "owner": "Intern 2 / gem5 stream",
       "constraints": "Convert GHz to explicit clock units; record cache/DRAM clock domains; do not silently scale every domain.",
-      "metrics": "sim_seconds; cycles interpreted with clock",
+      "metrics": "simulated_seconds; cycles interpreted with clock",
       "status": "PLANNED"
     },
     {

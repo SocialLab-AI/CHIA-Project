@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Canonical configuration and schema validator for CHIA co-design experiments.
 
-Validates all contracts, schemas, YAML configurations, semantic policies,
-and cross-document consistency under experiment-contracts/ and docs/.
+Validates all contracts against the master YAML schema (Draft 2020-12)
+under experiment-contracts/ and verifies semantic policies and cross-document
+consistency with docs/.
 """
 
 import json
@@ -12,16 +13,17 @@ from pathlib import Path
 import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema.exceptions import SchemaError
-from referencing import Registry, Resource
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACTS = ROOT / "experiment-contracts"
 SCHEMAS_DIR = CONTRACTS / "schemas"
-AI_TUTOR_DIR = CONTRACTS / "ai-tutor-config"
-ATTN_DIR = CONTRACTS / "attention-experiments"
-COMPUTE_DIR = CONTRACTS / "compute-policy"
-RUN_RECORDS_DIR = CONTRACTS / "run-records"
+BASELINES_DIR = CONTRACTS / "baselines"
+DESIGN_SPACES_DIR = CONTRACTS / "design-spaces"
+POLICIES_DIR = CONTRACTS / "policies"
+EXAMPLES_DIR = CONTRACTS / "examples"
 DOCS_DIR = ROOT / "docs"
+
+MASTER_SCHEMA_PATH = SCHEMAS_DIR / "chia-experiment.schema.yaml"
 
 
 def load_yaml(path: Path) -> dict:
@@ -34,65 +36,53 @@ def load_json(path: Path) -> dict:
         return json.load(f)
 
 
-def build_registry() -> tuple[Registry, dict[str, dict]]:
-    """Build referencing.Registry with all contracts schemas preloaded."""
-    schema_files = {
-        "shared.schema.json": SCHEMAS_DIR / "shared.schema.json",
-        "attention-experiment.schema.json": ATTN_DIR / "attention-experiment.schema.json",
-        "attention-design-space.schema.json": ATTN_DIR / "attention-design-space.schema.json",
-        "ai-tutor.schema.json": AI_TUTOR_DIR / "ai-tutor.schema.json",
-        "ai-tutor-design-space.schema.json": AI_TUTOR_DIR / "ai-tutor-design-space.schema.json",
-        "compute-policy.schema.json": COMPUTE_DIR / "compute-policy.schema.json",
-        "run-record.schema.json": RUN_RECORDS_DIR / "run-record.schema.json",
+def load_master_schema() -> dict:
+    """Load and verify the authoritative JSON Schema Draft 2020-12 YAML master schema."""
+    if not MASTER_SCHEMA_PATH.exists():
+        raise FileNotFoundError(f"Missing master schema: {MASTER_SCHEMA_PATH}")
+
+    schema = load_yaml(MASTER_SCHEMA_PATH)
+    try:
+        Draft202012Validator.check_schema(schema)
+    except SchemaError as e:
+        raise ValueError(f"Master schema is structurally invalid: {e.message}") from e
+
+    return schema
+
+
+def get_validator_for_definition(master_schema: dict, def_name: str) -> Draft202012Validator:
+    """Create a validator for a specific $defs subschema with fully resolved local references."""
+    if def_name not in master_schema.get("$defs", {}):
+        raise KeyError(f"Definition '#/$defs/{def_name}' not found in master schema")
+
+    subschema = {
+        "$schema": master_schema.get("$schema", "https://json-schema.org/draft/2020-12/schema"),
+        "$ref": f"#/$defs/{def_name}",
+        "$defs": master_schema.get("$defs", {}),
     }
-
-    schemas = {}
-    reg = Registry()
-
-    for name, path in schema_files.items():
-        if not path.exists():
-            raise FileNotFoundError(f"Missing required schema: {path}")
-        content = load_json(path)
-        try:
-            Draft202012Validator.check_schema(content)
-        except SchemaError as e:
-            raise ValueError(f"Schema {name} is structurally invalid: {e.message}") from e
-
-        schemas[name] = content
-        res = Resource.from_contents(content)
-        reg = reg.with_resource(name, res)
-        reg = reg.with_resource(path.as_uri(), res)
-        if "$id" in content:
-            reg = reg.with_resource(content["$id"], res)
-
-    return reg, schemas
+    return Draft202012Validator(subschema, format_checker=FormatChecker())
 
 
 def validate_document(
     data_path: Path,
-    schema_path: Path,
-    registry: Registry,
+    def_name: str,
+    master_schema: dict,
     verbose: bool = True,
 ) -> bool:
     data = load_yaml(data_path)
-    schema = load_json(schema_path)
-    validator = Draft202012Validator(
-        schema,
-        registry=registry,
-        format_checker=FormatChecker(),
-    )
+    validator = get_validator_for_definition(master_schema, def_name)
     errors = sorted(validator.iter_errors(data), key=lambda e: list(e.absolute_path))
 
     if errors:
         if verbose:
-            print(f"[FAIL] {data_path.relative_to(ROOT)}")
+            print(f"[FAIL] {data_path.relative_to(ROOT)} (validating against #/$defs/{def_name})")
             for e in errors:
                 loc = ".".join(str(x) for x in e.absolute_path) or "<root>"
                 print(f"       {loc}: {e.message}")
         return False
 
     if verbose:
-        print(f"[PASS] {data_path.relative_to(ROOT)} conforms to {schema_path.name}")
+        print(f"[PASS] {data_path.relative_to(ROOT)} conforms to #/$defs/{def_name}")
     return True
 
 
@@ -100,7 +90,7 @@ def run_semantic_checks(verbose: bool = True) -> bool:
     ok = True
 
     # 1. Compute Policy Checks
-    policy = load_yaml(COMPUTE_DIR / "compute-policy.yaml")
+    policy = load_yaml(POLICIES_DIR / "compute-policy.yaml")
     tiers = policy.get("tiers", {})
     for tier_name, tier in tiers.items():
         has_burst = "organizer_burst" in tier.get("backends", [])
@@ -117,7 +107,7 @@ def run_semantic_checks(verbose: bool = True) -> bool:
                 ok = False
 
     # 2. Hardware / Attention Baseline Checks
-    baseline_attn = load_yaml(ATTN_DIR / "baseline.attention.yaml")
+    baseline_attn = load_yaml(BASELINES_DIR / "attention.yaml")
     hw = baseline_attn["hardware"]
     sw = baseline_attn["software"]
     meas = baseline_attn["measurement"]
@@ -182,7 +172,7 @@ def run_semantic_checks(verbose: bool = True) -> bool:
             ok = False
 
     # 3. Hardware Design Space Checks
-    ds_attn = load_yaml(ATTN_DIR / "design-space.yaml")
+    ds_attn = load_yaml(DESIGN_SPACES_DIR / "hardware.yaml")
     active_hw = ds_attn["active_candidates"]["hardware"]
     if "cpu_model" not in active_hw or "frequency_ghz" not in active_hw:
         if verbose:
@@ -200,7 +190,7 @@ def run_semantic_checks(verbose: bool = True) -> bool:
         ok = False
 
     # 4. AI Tutor Software Baseline Checks
-    tutor_cfg = load_yaml(AI_TUTOR_DIR / "example.ai-tutor.yaml")
+    tutor_cfg = load_yaml(BASELINES_DIR / "tutor.yaml")
     tutor_sw = tutor_cfg["software"]
     tutor_eval = tutor_cfg["evaluation"]
 
@@ -285,19 +275,18 @@ def run_semantic_checks(verbose: bool = True) -> bool:
     return ok
 
 
-def run_negative_tests(registry: Registry, schemas: dict[str, dict], verbose: bool = True) -> bool:
-    """Verify that illegal values and invalid types are rejected."""
+def run_negative_tests(master_schema: dict, verbose: bool = True) -> bool:
+    """Verify that illegal values and invalid types are rejected by the master schema definitions."""
     ok = True
 
     # 1. Reject TimingSimpleCPU with issue_width=2 in attention experiment
-    attn_schema = schemas["attention-experiment.schema.json"]
-    val = Draft202012Validator(attn_schema, registry=registry, format_checker=FormatChecker())
-    base_data = load_yaml(ATTN_DIR / "example.candidate.yaml")
+    val_attn = get_validator_for_definition(master_schema, "attention_experiment")
+    base_attn = load_yaml(EXAMPLES_DIR / "attention-candidate.yaml")
 
-    bad_candidate = json.loads(json.dumps(base_data))
+    bad_candidate = json.loads(json.dumps(base_attn))
     bad_candidate["hardware"]["cpu_model"] = "RiscvTimingSimpleCPU"
     bad_candidate["hardware"]["issue_width"] = 2
-    errors = list(val.iter_errors(bad_candidate))
+    errors = list(val_attn.iter_errors(bad_candidate))
     if not errors:
         if verbose:
             print("[FAIL] Negative test: TimingSimpleCPU with issue_width=2 was improperly accepted")
@@ -306,9 +295,9 @@ def run_negative_tests(registry: Registry, schemas: dict[str, dict], verbose: bo
         print("[PASS] Negative test: TimingSimpleCPU with issue_width=2 was correctly rejected")
 
     # 2. Reject illegal hardware core count (3 cores)
-    bad_candidate = json.loads(json.dumps(base_data))
+    bad_candidate = json.loads(json.dumps(base_attn))
     bad_candidate["hardware"]["cores"] = 3
-    errors = list(val.iter_errors(bad_candidate))
+    errors = list(val_attn.iter_errors(bad_candidate))
     if not errors:
         if verbose:
             print("[FAIL] Negative test: cores=3 was improperly accepted")
@@ -317,9 +306,9 @@ def run_negative_tests(registry: Registry, schemas: dict[str, dict], verbose: bo
         print("[PASS] Negative test: cores=3 was correctly rejected")
 
     # 3. Reject unknown property in attention experiment (additionalProperties: false)
-    bad_candidate = json.loads(json.dumps(base_data))
+    bad_candidate = json.loads(json.dumps(base_attn))
     bad_candidate["illegal_property"] = True
-    errors = list(val.iter_errors(bad_candidate))
+    errors = list(val_attn.iter_errors(bad_candidate))
     if not errors:
         if verbose:
             print("[FAIL] Negative test: unknown top-level property was improperly accepted")
@@ -327,14 +316,13 @@ def run_negative_tests(registry: Registry, schemas: dict[str, dict], verbose: bo
     elif verbose:
         print("[PASS] Negative test: unknown top-level property was correctly rejected")
 
-    # 4. Reject chunk_unit != 'characters' in ai-tutor
-    tutor_schema = schemas["ai-tutor.schema.json"]
-    tutor_val = Draft202012Validator(tutor_schema, registry=registry, format_checker=FormatChecker())
-    tutor_data = load_yaml(AI_TUTOR_DIR / "example.ai-tutor.yaml")
+    # 4. Reject chunk_unit != 'characters' in tutor_config
+    val_tutor = get_validator_for_definition(master_schema, "tutor_config")
+    tutor_data = load_yaml(BASELINES_DIR / "tutor.yaml")
 
     bad_tutor = json.loads(json.dumps(tutor_data))
     bad_tutor["software"]["chunk_unit"] = "tokens"
-    errors = list(tutor_val.iter_errors(bad_tutor))
+    errors = list(val_tutor.iter_errors(bad_tutor))
     if not errors:
         if verbose:
             print("[FAIL] Negative test: chunk_unit='tokens' was improperly accepted")
@@ -345,7 +333,7 @@ def run_negative_tests(registry: Registry, schemas: dict[str, dict], verbose: bo
     # 5. Reject reference_visible_to_model=True in evaluation guardrails
     bad_tutor = json.loads(json.dumps(tutor_data))
     bad_tutor["evaluation"]["reference_visible_to_model"] = True
-    errors = list(tutor_val.iter_errors(bad_tutor))
+    errors = list(val_tutor.iter_errors(bad_tutor))
     if not errors:
         if verbose:
             print("[FAIL] Negative test: reference_visible_to_model=True was improperly accepted")
@@ -374,7 +362,6 @@ def run_manifest_consistency_checks(verbose: bool = True) -> bool:
     field_map = {f["field"]: f for f in fields}
     ok = True
 
-    # Required fields in manifest
     required_in_manifest = [
         "hardware.cpu_model", "hardware.cores", "hardware.frequency_ghz", "hardware.issue_width",
         "hardware.l1i_cache_kib", "hardware.l1d_cache_kib", "hardware.l2_cache_kib",
@@ -419,26 +406,26 @@ def main() -> None:
     print("=" * 60)
 
     try:
-        registry, schemas = build_registry()
+        master_schema = load_master_schema()
     except Exception as e:
-        print(f"[FATAL] Schema loading failed: {e}")
+        print(f"[FATAL] Master schema loading failed: {e}")
         sys.exit(1)
 
     cases = [
-        (AI_TUTOR_DIR / "example.ai-tutor.yaml", AI_TUTOR_DIR / "ai-tutor.schema.json"),
-        (AI_TUTOR_DIR / "design-space.yaml", AI_TUTOR_DIR / "ai-tutor-design-space.schema.json"),
-        (ATTN_DIR / "baseline.attention.yaml", ATTN_DIR / "attention-experiment.schema.json"),
-        (ATTN_DIR / "example.candidate.yaml", ATTN_DIR / "attention-experiment.schema.json"),
-        (ATTN_DIR / "design-space.yaml", ATTN_DIR / "attention-design-space.schema.json"),
-        (COMPUTE_DIR / "compute-policy.yaml", COMPUTE_DIR / "compute-policy.schema.json"),
-        (RUN_RECORDS_DIR / "example.completed.yaml", RUN_RECORDS_DIR / "run-record.schema.json"),
+        (BASELINES_DIR / "tutor.yaml", "tutor_config"),
+        (BASELINES_DIR / "attention.yaml", "attention_experiment"),
+        (DESIGN_SPACES_DIR / "software.yaml", "software_design_space"),
+        (DESIGN_SPACES_DIR / "hardware.yaml", "hardware_design_space"),
+        (POLICIES_DIR / "compute-policy.yaml", "compute_policy"),
+        (EXAMPLES_DIR / "attention-candidate.yaml", "attention_experiment"),
+        (EXAMPLES_DIR / "completed-run.yaml", "run_record"),
     ]
 
     all_passed = True
 
     print("\n--- Structural YAML Schema Validation ---")
-    for data_path, schema_path in cases:
-        if not validate_document(data_path, schema_path, registry):
+    for data_path, def_name in cases:
+        if not validate_document(data_path, def_name, master_schema):
             all_passed = False
 
     print("\n--- Semantic & Domain Policy Checks ---")
@@ -446,7 +433,7 @@ def main() -> None:
         all_passed = False
 
     print("\n--- Negative / Rejection Tests ---")
-    if not run_negative_tests(registry, schemas):
+    if not run_negative_tests(master_schema):
         all_passed = False
 
     print("\n--- Manifest & Documentation Agreement ---")

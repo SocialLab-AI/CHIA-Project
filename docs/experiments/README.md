@@ -1,29 +1,12 @@
-# Experiment Evidence
+# Experiment evidence
 
-This directory tracks measured experiment evidence separately from architecture and design documents.
+| Evidence | Role |
+|---|---|
+| [Q4 attention baseline](../../gem5/baseline-results.md) | Current repository baseline report; maintained beside the hardware implementation |
+| [FP32 attention baseline](fp32-baseline.md) | Historical measured run, preserved unchanged |
 
-## Current baseline evidence
+Reports describe the execution recorded in them. They are not proof that later commits, other configurations or the complete tutor loop were executed successfully.
 
-- [`baselines/fp32-attention-kv-cache.md`](baselines/fp32-attention-kv-cache.md) — baseline attention/gem5 execution evidence.
+For a new run, preserve its configuration or digest, code/tool revisions, real execution backend, correctness result, metrics with units, usage/cost where applicable, failure state and conclusion. Use the [run-record contract](../../experiment-contracts/run-records/run-record.schema.json).
 
-## Folder meaning
-
-- `baselines/` — initial reference runs used to prove correctness and establish comparison points.
-- `pilots/` — medium-scale validated campaigns used to measure runtime, cost, failure rate, and methodology.
-- `final/` — frozen final experiment campaign used for submission evidence.
-
-## Required information for new experiment records
-
-Each record should contain:
-
-- experiment/run ID
-- exact config or config digest
-- code/tool provenance
-- execution backend/tier
-- correctness result
-- verified gem5 metrics
-- Gemini usage/cost, if applicable
-- failure/retry state
-- short conclusion
-
-Do not rewrite historical experiment reports to match newer expectations. If the implementation changes materially, create a new run record.
+Store generated outputs in the configured results location and link concise reports to their evidence. Add pilot/final subfolders when actual campaigns need them; do not create empty folders in advance. Never rewrite earlier measurements to match newer configurations.
