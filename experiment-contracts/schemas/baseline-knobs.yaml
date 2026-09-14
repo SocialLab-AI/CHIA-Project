@@ -3,10 +3,11 @@
 software:
   model: "Llama 3.2 1B Instruct"
   quantization: "Q4_K_M"
-  embedding_model: "MiniLM-L6-dot-v1"
+  embedding_model: "sentence-transformers/multi-qa-MiniLM-L6-dot-v1"
   embedding_dimension: 384
-  retrieval_method: "Semantic similarity"
-  top_k: 2
+  retrieval_method: "semantic_similarity"
+  similarity_metric: "dot_product"
+  top_k: 3
   chunk_size: 1500
   chunk_overlap: 200
   chunk_unit: "characters"

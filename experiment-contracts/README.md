@@ -48,16 +48,18 @@ All definitions compose via local JSON pointers (`#/$defs/...`) and resolve comp
 - **Batch size**: `1` (runtime mapping pending; not automatically mapped to llama.cpp `n_batch`)
 - **Sampling temperature**: `0.0`
 - **Maximum output tokens**: `384`
-- **Embedding model**: `MiniLM-L6-dot-v1` (exact repository identifier unresolved)
+- **Embedding model**: `sentence-transformers/multi-qa-MiniLM-L6-dot-v1`
 - **Embedding dimension**: `384`
-- **Retrieval method**: `Semantic similarity` (specific distance function unresolved)
-- **Top-k**: `2`
+- **Retrieval method**: `semantic_similarity`
+- **Similarity metric**: `dot_product`
+- **Top-k**: `3`
 - **Chunk size**: `1500` characters (measured in **CHARACTERS**, not tokens)
 - **Chunk overlap**: `200` characters (measured in **CHARACTERS**, not tokens; must be `< chunk_size`)
 - **Runtime readiness**: `runtime_ready: false` (execution readiness deferred until model artifacts and runtime adapters are implemented)
+- **Baseline status**: `baseline_resolved` (software baseline knob values are resolved and authoritative)
 - **Evaluation guardrail**: Held-out OpenStax evaluation reference answers (`data/references/openstax.json`) are strictly isolated (`reference_source: "openstax"`, `reference_visible_to_model: false`) and must never be visible to the model or ingested into the RAG corpus.
 
-Software search space (`design-spaces/software.yaml`) is recorded as `status: "PLANNED"`; the initial software baseline is fixed for comparison.
+Software search space (`design-spaces/software.yaml`) records baseline knob values as `status: "baseline_resolved"` and search space exploration as `status: "pending_definition"`; the initial software baseline is fixed for comparison while optimization ranges are not yet defined.
 
 ## Hardware Baseline & Active Campaign (`baselines/attention.yaml`)
 

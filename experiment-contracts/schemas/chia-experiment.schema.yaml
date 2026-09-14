@@ -270,6 +270,7 @@ $defs:
       - embedding_model
       - embedding_dimension
       - retrieval_method
+      - similarity_metric
       - top_k
       - chunk_size
       - chunk_overlap
@@ -300,12 +301,18 @@ $defs:
       embedding_model:
         type: string
         minLength: 1
+        description: "Authoritative embedding model identifier (canonical: sentence-transformers/multi-qa-MiniLM-L6-dot-v1)."
       embedding_dimension:
         type: integer
         minimum: 1
       retrieval_method:
         type: string
         minLength: 1
+        description: "Canonical machine-readable retrieval method (semantic_similarity)."
+      similarity_metric:
+        type: string
+        minLength: 1
+        description: "Authoritative vector similarity metric (canonical: dot_product)."
       top_k:
         type: integer
         minimum: 1
@@ -637,6 +644,7 @@ $defs:
           - embedding_model
           - embedding_dimension
           - retrieval_method
+          - similarity_metric
           - top_k
           - chunk_size
           - chunk_overlap
@@ -654,6 +662,7 @@ $defs:
           embedding_model: { type: string }
           embedding_dimension: { type: integer, minimum: 1 }
           retrieval_method: { type: string }
+          similarity_metric: { type: string }
           top_k: { type: integer, minimum: 1 }
           chunk_size: { type: integer, minimum: 1 }
           chunk_overlap: { type: integer, minimum: 0 }
@@ -674,6 +683,7 @@ $defs:
           - embedding_model
           - embedding_dimension
           - retrieval_method
+          - similarity_metric
           - top_k
           - chunk_size
           - chunk_overlap
@@ -689,6 +699,7 @@ $defs:
           embedding_model: { type: string }
           embedding_dimension: { type: integer, minimum: 1 }
           retrieval_method: { type: string }
+          similarity_metric: { type: string }
           top_k: { type: integer, minimum: 1 }
           chunk_size: { type: integer, minimum: 1 }
           chunk_overlap: { type: integer, minimum: 0 }
@@ -712,6 +723,7 @@ $defs:
               required: ["name", "status", "intended_purpose"]
               properties:
                 name: { type: string }
+                baseline_value: {}
                 unit: { type: string }
                 status: { type: string }
                 intended_purpose: { type: string }
@@ -1229,6 +1241,9 @@ $defs:
         description: "Hard guardrail: evaluation reference answers must never be visible to the model."
       comparison_method:
         type: string
+      similarity_metric:
+        type: string
+        description: "Similarity metric for reference comparison (canonical: dot_product)."
       sample_limit:
         type: integer
         minimum: 1
