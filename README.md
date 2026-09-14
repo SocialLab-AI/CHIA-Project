@@ -20,7 +20,7 @@ Everyone owns a primary area but nobody works in isolation — every issue has a
 
 ## Two decisions that shape everything (Phase 1)
 
-1. **gem5 runs a proxy, not the real model.** Full LLM inference inside gem5 is infeasible in a hackathon window — cycle-level simulation is far too slow. We simulate a *representative proxy* (kernels / a small benchmark / sampled regions) that stands in for the tutor's compute profile. Deciding this proxy is a P0 blocker; the gem5 and tutor work depend on it.
+1. **gem5 runs a proxy, not the real model.** Full LLM inference inside gem5 is infeasible in a hackathon window — cycle-level simulation is far too slow. We simulate a *representative proxy* (kernels / a small benchmark / sampled regions) that stands in for the tutor's compute profile. The current proxy is the packed Q4 KV-cache attention kernel; its relationship to tutor behavior still needs an explicit mapping.
 2. **The config schema is the contract.** One shared schema describes every HW knob, every SW knob, and every metric. All three streams build against it from day one — this is what stops us shipping three good components that don't connect. Defined in Phase 1, before the foundations.
 
 ## Compute rule
@@ -67,9 +67,14 @@ data/                   # tutor questions and evaluation references
 prompts/                # tutor prompts
 infra/                  # CHIA and infrastructure configuration
 results/                # generated experiment outputs
-docs/                   # decisions, architecture, and experiment evidence
+docs/                   # project guides and experiment evidence
+```
 
 experiment-contracts/ is the configuration source of truth. The executable
 hardware path lives under gem5/. The src/ package defines the modular
 integration boundaries; some tutor and orchestration components intentionally
 remain skeletons while their implementation is finalized.
+
+## Documentation
+
+Start with the [documentation index](docs/README.md), then the [project overview](docs/overview.md) and [running guide](docs/running.md).

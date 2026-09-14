@@ -1,4 +1,5 @@
-chema_version: "0.2.0"
+# Schema: schemas/chia-experiment.schema.yaml#/$defs/attention_experiment
+schema_version: "0.2.0"
 
 metadata:
   experiment_id: attn-candidate-l1d32-l2512-001

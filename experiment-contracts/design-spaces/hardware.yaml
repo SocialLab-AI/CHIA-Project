@@ -1,7 +1,8 @@
+# Schema: schemas/chia-experiment.schema.yaml#/$defs/hardware_design_space
 # CHIA may vary active_candidates. Evaluation axes are compared separately.
 # Fixed and future values are not active optimization knobs.
 schema_version: "0.2.0"
-metrics_contract: "attention-experiment.schema.json#/$defs/gem5_metrics"
+metrics_contract: "schemas/chia-experiment.schema.yaml#/$defs/gem5_metrics"
 
 baseline:
   cpu_model: RiscvO3CPU
@@ -39,6 +40,7 @@ active_candidates:
     l1d_associativity: [2, 4, 8]
     l2_cache_kib: [256, 512, 1024]
     l2_associativity: [4, 8, 16]
+
 evaluation_axes:
   context_tokens: [128, 256, 512]
 
@@ -62,16 +64,13 @@ fixed:
   warmup_runs: 0
 
 constraints:
-  - "RiscvTimingSimpleCPU requires issue_width == 1"
-  - "Q4 packs two signed 4-bit K/V values per byte and uses FP32 scales"
+  - "Simulation mode is SE only; Full System mode is unsupported."
+  - "RiscvTimingSimpleCPU requires issue_width = 1."
+  - "Software threads must not exceed hardware cores."
+  - "Memory bus and controller frequencies are fixed with DDR3_1600_8x8."
+  - "Total cores in initial campaign are restricted to 2."
 
 future:
-  software_search: "pending team decision"
-  core_count: [1, 4]  # deferred until thread/core partitioning is generalized
-  kv_format: [FP16, Q8]
-  memory_type: "DDR4 requires validation before activation"
-  attention_block_size: "not implemented"
-  memory_latency: "requires mapping to valid gem5 DRAM parameters"
-  memory_bandwidth: "depends on the selected gem5 memory model"
-  context_tokens_extended: [1024, 2048, 4096]
-  threads_extended: "thread counts beyond 2 require generalized workload partitioning"
+  core_exploration: [1, 4]
+  quantization: [FP16, Q8]
+  memory_types: [LPDDR4_3200_2x16, DDR4_2400_8x8]

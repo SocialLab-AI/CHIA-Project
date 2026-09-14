@@ -1,7 +1,7 @@
 # FP32 Attention KV Cache gem5 Run Report
 
-**Proxy candidate:** Single-token FP32 attention with a KV cache  
-**ISA:** RISC-V  
+**Proxy candidate:** Single-token FP32 attention with a KV cache
+**ISA:** RISC-V
 **Status:** Successfully executed in gem5
 
 > Evidence record: preserve the measured values and original execution details. If the implementation changes materially, create a new run record instead of rewriting this one.

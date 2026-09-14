@@ -1,3 +1,4 @@
+# Schema: schemas/chia-experiment.schema.yaml#/$defs/compute_policy
 # Small operational policy. The long reasoning belongs in README.md, not in this YAML.
 policy_version: "0.2.0"
 

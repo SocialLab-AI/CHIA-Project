@@ -1,0 +1,87 @@
+schema_version: "0.2.0"
+
+metadata:
+  experiment_id: "tutor-baseline-001"
+  description: >
+    Offline AI Tutor baseline using Llama 3.2 1B Instruct
+    with a sentence-transformers/multi-qa-MiniLM-L6-dot-v1
+    RAG pipeline.
+  artifact_manifest: null
+
+workload:
+  dataset_id: "placeholder:tutor-science-questions-v1"
+  corpus_id: "placeholder:science-textbook-index-v1"
+  evaluation_protocol: "placeholder:tutor-evaluation-v1"
+  num_questions: 20
+  seed: 42
+
+software:
+  model: "Llama 3.2 1B Instruct"
+  quantization: "Q4_K_M"
+  backend: "llama.cpp / CPU"
+
+  cpu_threads: 4
+  batch_size: 1
+
+  temperature: 0.0
+  max_output_tokens: 384
+
+  embedding_model: "sentence-transformers/multi-qa-MiniLM-L6-dot-v1"
+  embedding_dimension: 384
+
+  retrieval_method: "semantic_similarity"
+  similarity_metric: "dot_product"
+
+  top_k: 3
+
+  chunk_size: 1500
+  chunk_overlap: 200
+  chunk_unit: "characters"
+
+  runtime_ready: false
+  status: "baseline_resolved"
+
+  description: >
+    Resolved AI Tutor software baseline.
+    Software knob values are fixed for the initial co-design experiments.
+    Execution readiness remains false until model, dataset, corpus,
+    and runtime adapter bindings are completed.
+
+  unresolved_fields:
+    - "exact Llama 3.2 1B Instruct GGUF artifact path"
+    - "exact local/cache location of the sentence-transformers/multi-qa-MiniLM-L6-dot-v1 weights"
+    - "exact corpus artifact/index path"
+    - "exact OpenStax evaluation dataset artifact"
+    - "runtime batch size mapping to llama.cpp invocation semantics"
+
+evaluation:
+  questions_file: "data/questions/questions.json"
+  references_file: "data/references/openstax.json"
+
+  reference_source: "openstax"
+  reference_visible_to_model: false
+
+  comparison_method: "semantic_similarity"
+  similarity_metric: "dot_product"
+
+  sample_limit: 50
+
+proxy_evaluation:
+  type: "attention_kernel"
+  mapping_id: "placeholder:tutor-to-attention-v1"
+  attention_experiment_ref: null
+
+metrics:
+  application:
+    answer_quality: null
+    latency_ms: null
+    memory_mb: null
+    throughput_qps: null
+
+status:
+  state: "planned"
+  message: >
+    Software baseline values are resolved.
+    Runtime execution remains pending exact artifact paths,
+    OpenStax evaluation data, corpus/index resolution,
+    and llama.cpp adapter wiring.

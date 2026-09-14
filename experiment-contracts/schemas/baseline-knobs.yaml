@@ -1,0 +1,51 @@
+# Baseline values only; not a validation schema or a runnable experiment contract.
+# Fixed settings are included; software search ranges are not yet defined.
+software:
+  model: "Llama 3.2 1B Instruct"
+  quantization: "Q4_K_M"
+  embedding_model: "sentence-transformers/multi-qa-MiniLM-L6-dot-v1"
+  embedding_dimension: 384
+  retrieval_method: "semantic_similarity"
+  similarity_metric: "dot_product"
+  top_k: 3
+  chunk_size: 1500
+  chunk_overlap: 200
+  chunk_unit: "characters"
+  temperature: 0.0
+  max_output_tokens: 384
+  batch_size: 1
+  cpu_threads: 4
+  backend: "llama.cpp / CPU"
+
+hardware:
+  isa: RISCV64
+  cpu_model: RiscvO3CPU
+  cores: 2
+  frequency_ghz: 1
+  issue_width: 2
+  l1i_cache_kib: 16
+  l1i_associativity: 2
+  l1i_latency_cycles: 2
+  l1d_cache_kib: 64
+  l1d_associativity: 4
+  l1d_latency_cycles: 2
+  l2_cache_kib: 1024
+  l2_associativity: 8
+  l2_latency_cycles: 20
+  memory_type: DDR3_1600_8x8
+  memory_size_mib: 16
+  simulation_mode: SE
+
+attention_proxy:
+  context_tokens: 512
+  query_heads: 4
+  kv_heads: 2
+  head_dimension: 32
+  layers: 1
+  kv_format: Q4
+  threads: 2
+
+measurement:
+  repetitions: 10
+  warmup_runs: 0
+  max_simulation_instructions: null

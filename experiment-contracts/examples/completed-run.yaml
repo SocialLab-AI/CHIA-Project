@@ -1,3 +1,4 @@
+# Schema: schemas/chia-experiment.schema.yaml#/$defs/run_record
 schema_version: "0.2.0"
 
 run_id: run-attn-baseline-001-attempt1

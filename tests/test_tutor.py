@@ -1,2 +1,127 @@
-def test_tutor_placeholder():
-    assert True
+from pathlib import Path
+import json
+import pytest
+import yaml
+
+from jsonschema import Draft202012Validator, FormatChecker
+
+ROOT = Path(__file__).resolve().parents[1]
+CONTRACTS = ROOT / "experiment-contracts"
+SCHEMAS_DIR = CONTRACTS / "schemas"
+BASELINES_DIR = CONTRACTS / "baselines"
+
+MASTER_SCHEMA_PATH = SCHEMAS_DIR / "chia-experiment.schema.yaml"
+
+
+def load_yaml(path: Path) -> dict:
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+
+def load_json(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="module")
+def master_schema():
+    assert MASTER_SCHEMA_PATH.exists(), f"Missing master schema: {MASTER_SCHEMA_PATH}"
+    schema = load_yaml(MASTER_SCHEMA_PATH)
+    Draft202012Validator.check_schema(schema)
+    return schema
+
+
+def get_validator(master_schema: dict, def_name: str) -> Draft202012Validator:
+    subschema = {
+        "$schema": master_schema.get("$schema", "https://json-schema.org/draft/2020-12/schema"),
+        "$ref": f"#/$defs/{def_name}",
+        "$defs": master_schema.get("$defs", {}),
+    }
+    return Draft202012Validator(subschema, format_checker=FormatChecker())
+
+
+@pytest.fixture(scope="module")
+def tutor_validator(master_schema):
+    return get_validator(master_schema, "tutor_config")
+
+
+def test_tutor_example_validates(tutor_validator):
+    tutor_data = load_yaml(BASELINES_DIR / "tutor.yaml")
+    errors = list(tutor_validator.iter_errors(tutor_data))
+    assert not errors, f"baselines/tutor.yaml failed validation: {[e.message for e in errors]}"
+
+
+def test_user_supplied_software_baseline_values():
+    """Verify all user-supplied software baseline values and units are preserved."""
+    tutor_data = load_yaml(BASELINES_DIR / "tutor.yaml")
+    sw = tutor_data["software"]
+
+    assert sw["model"] == "Llama 3.2 1B Instruct"
+    assert sw["quantization"] == "Q4_K_M"
+    assert sw["embedding_model"] == "MiniLM-L6-dot-v1"
+    assert sw["embedding_dimension"] == 384
+    assert sw["retrieval_method"] == "Semantic similarity"
+    assert sw["top_k"] == 2
+    assert sw["chunk_size"] == 1500
+    assert sw["chunk_overlap"] == 200
+    assert sw["chunk_unit"] == "characters"
+    assert sw["temperature"] == 0.0
+    assert sw["max_output_tokens"] == 384
+    assert sw["batch_size"] == 1
+    assert sw["cpu_threads"] == 4
+    assert sw["backend"] == "llama.cpp / CPU"
+
+
+def test_chunk_size_and_overlap_character_units():
+    """Chunk size and overlap must be measured in CHARACTERS, not tokens."""
+    tutor_data = load_yaml(BASELINES_DIR / "tutor.yaml")
+    sw = tutor_data["software"]
+    assert sw["chunk_unit"] == "characters"
+    assert sw["chunk_size"] == 1500
+    assert sw["chunk_overlap"] == 200
+    assert sw["chunk_overlap"] < sw["chunk_size"]
+
+
+def test_tutor_threads_independent_of_proxy_threads():
+    """Native tutor CPU threads (4) is independent of gem5 proxy threads (2). Do not impose tutor_threads <= simulated_cores."""
+    tutor_data = load_yaml(BASELINES_DIR / "tutor.yaml")
+    attn_data = load_yaml(BASELINES_DIR / "attention.yaml")
+
+    tutor_threads = tutor_data["software"]["cpu_threads"]
+    gem5_cores = attn_data["hardware"]["cores"]
+    gem5_threads = attn_data["software"]["threads"]
+
+    assert tutor_threads == 4
+    assert gem5_cores == 2
+    assert gem5_threads == 2
+    # Ensure tutor threads (4) > simulated cores (2) is allowed and not rejected
+    assert tutor_threads > gem5_cores
+
+
+def test_model_weight_q4km_vs_proxy_kv_q4():
+    """Model-weight Q4_K_M and proxy KV-cache Q4 are distinct settings."""
+    tutor_data = load_yaml(BASELINES_DIR / "tutor.yaml")
+    attn_data = load_yaml(BASELINES_DIR / "attention.yaml")
+
+    assert tutor_data["software"]["quantization"] == "Q4_K_M"
+    assert attn_data["software"]["kv_format"] == "Q4"
+
+
+def test_runtime_ready_false_without_artifacts():
+    """A baseline can be schema-valid while runtime_ready remains false."""
+    tutor_data = load_yaml(BASELINES_DIR / "tutor.yaml")
+    assert tutor_data["software"]["runtime_ready"] is False
+    assert len(tutor_data["software"]["unresolved_fields"]) > 0
+
+
+def test_evaluation_reference_isolation_guardrail():
+    """Hard guardrail: held-out evaluation references must NEVER be visible to the model."""
+    tutor_data = load_yaml(BASELINES_DIR / "tutor.yaml")
+    eval_cfg = tutor_data["evaluation"]
+    assert eval_cfg["reference_source"] == "openstax"
+    assert eval_cfg["reference_visible_to_model"] is False
+
+
+def test_tutor_runner_skeleton():
+    """Verify src.tutor.runner raises NotImplementedError."""
+    from src.tutor.runner import run_tutor
+    with pytest.raises(NotImplementedError):
+        run_tutor({})

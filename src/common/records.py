@@ -1,6 +1,6 @@
 def build_run_record(
     *,
-    schema_version: str,
+    schema_version: str = "0.2.0",
     run_id: str,
     experiment_id: str,
     status: str,

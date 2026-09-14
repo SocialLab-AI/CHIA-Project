@@ -1,0 +1,1309 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://chia.org/schemas/chia-experiment.schema.yaml"
+title: "CHIA Master Experiment Schema"
+description: >
+  Authoritative JSON Schema Draft 2020-12 document for the CHIA project.
+  Owns definitions for full experiment configurations, tutor configurations,
+  attention kernel experiments, hardware, software, workloads, metrics,
+  objectives, design spaces, compute policy, and execution run records.
+
+type: object
+additionalProperties: false
+required:
+  - schema_version
+  - metadata
+  - workload
+  - software
+  - hardware
+  - measurement
+  - metrics
+  - status
+properties:
+  schema_version:
+    const: "0.2.0"
+  metadata:
+    $ref: "#/$defs/metadata"
+  workload:
+    $ref: "#/$defs/workload"
+  software:
+    $ref: "#/$defs/software"
+  hardware:
+    $ref: "#/$defs/hardware"
+  measurement:
+    $ref: "#/$defs/measurement"
+  evaluation:
+    $ref: "#/$defs/evaluation_controls"
+  objectives:
+    $ref: "#/$defs/objectives"
+  metrics:
+    $ref: "#/$defs/metrics"
+  status:
+    $ref: "#/$defs/status"
+
+$defs:
+  # ===========================================================================
+  # 1. Experiment Configurations
+  # ===========================================================================
+  experiment_config:
+    type: object
+    description: "Complete joint HW/SW co-design experiment configuration contract."
+    additionalProperties: false
+    required:
+      - schema_version
+      - metadata
+      - workload
+      - software
+      - hardware
+      - measurement
+      - metrics
+      - status
+    properties:
+      schema_version:
+        const: "0.2.0"
+      metadata:
+        $ref: "#/$defs/metadata"
+      workload:
+        $ref: "#/$defs/workload"
+      software:
+        $ref: "#/$defs/software"
+      hardware:
+        $ref: "#/$defs/hardware"
+      measurement:
+        $ref: "#/$defs/measurement"
+      evaluation:
+        $ref: "#/$defs/evaluation_controls"
+      objectives:
+        $ref: "#/$defs/objectives"
+      metrics:
+        $ref: "#/$defs/metrics"
+      status:
+        $ref: "#/$defs/status"
+
+  tutor_config:
+    type: object
+    description: "Application-level experiment contract for the offline AI Tutor workload and evaluation controls."
+    additionalProperties: false
+    required:
+      - schema_version
+      - metadata
+      - workload
+      - software
+      - evaluation
+      - proxy_evaluation
+      - metrics
+      - status
+    properties:
+      schema_version:
+        const: "0.2.0"
+      metadata:
+        $ref: "#/$defs/metadata"
+      workload:
+        $ref: "#/$defs/tutor_workload"
+      software:
+        $ref: "#/$defs/tutor_software"
+      evaluation:
+        $ref: "#/$defs/evaluation_controls"
+      proxy_evaluation:
+        $ref: "#/$defs/proxy_evaluation"
+      metrics:
+        $ref: "#/$defs/tutor_metrics"
+      status:
+        $ref: "#/$defs/status"
+
+  attention_experiment:
+    type: object
+    description: "One concrete attention-kernel and gem5 experiment contract."
+    additionalProperties: false
+    required:
+      - schema_version
+      - metadata
+      - workload
+      - software
+      - hardware
+      - measurement
+      - metrics
+      - status
+    properties:
+      schema_version:
+        const: "0.2.0"
+      metadata:
+        $ref: "#/$defs/metadata"
+      workload:
+        $ref: "#/$defs/attention_workload"
+      software:
+        $ref: "#/$defs/attention_software"
+      hardware:
+        $ref: "#/$defs/hardware"
+      measurement:
+        $ref: "#/$defs/measurement"
+      metrics:
+        $ref: "#/$defs/gem5_metrics"
+      status:
+        $ref: "#/$defs/status"
+    allOf:
+      - if:
+          properties:
+            hardware:
+              properties:
+                cpu_model:
+                  const: "RiscvTimingSimpleCPU"
+              required:
+                - cpu_model
+        then:
+          properties:
+            hardware:
+              properties:
+                issue_width:
+                  const: 1
+
+  # ===========================================================================
+  # 2. Hardware Specification
+  # ===========================================================================
+  hardware:
+    type: object
+    description: "gem5 simulated hardware target specification."
+    additionalProperties: false
+    required:
+      - cpu_model
+      - cores
+      - frequency_ghz
+      - issue_width
+      - l1i_cache_kib
+      - l1i_associativity
+      - l1i_latency_cycles
+      - l1d_cache_kib
+      - l1d_associativity
+      - l1d_latency_cycles
+      - l2_cache_kib
+      - l2_associativity
+      - l2_latency_cycles
+      - memory_type
+      - memory_size_mib
+      - simulation_mode
+    properties:
+      isa:
+        type: string
+        enum: ["RISCV64", "RISCV"]
+        description: "Target ISA architecture."
+      cpu_model:
+        type: string
+        enum: ["RiscvTimingSimpleCPU", "RiscvO3CPU"]
+        default: "RiscvO3CPU"
+      cores:
+        type: integer
+        enum: [1, 2, 4]
+        default: 2
+      frequency_ghz:
+        type: integer
+        enum: [1, 2, 3, 4]
+        default: 1
+      issue_width:
+        type: integer
+        enum: [1, 2, 4]
+        default: 2
+        description: "RiscvTimingSimpleCPU is constrained to issue width 1."
+      l1i_cache_kib:
+        const: 16
+      l1i_associativity:
+        const: 2
+      l1i_latency_cycles:
+        const: 2
+      l1d_cache_kib:
+        type: integer
+        enum: [16, 32, 64]
+        default: 64
+      l1d_associativity:
+        type: integer
+        enum: [2, 4, 8]
+        default: 4
+      l1d_latency_cycles:
+        const: 2
+      l2_cache_kib:
+        type: integer
+        enum: [256, 512, 1024]
+        default: 1024
+      l2_associativity:
+        type: integer
+        enum: [4, 8, 16]
+        default: 8
+      l2_latency_cycles:
+        const: 20
+      memory_type:
+        const: "DDR3_1600_8x8"
+      memory_size_mib:
+        const: 16
+      simulation_mode:
+        const: "SE"
+    allOf:
+      - if:
+          properties:
+            cpu_model:
+              const: "RiscvTimingSimpleCPU"
+          required:
+            - cpu_model
+        then:
+          properties:
+            issue_width:
+              const: 1
+
+  # ===========================================================================
+  # 3. Software Specification
+  # ===========================================================================
+  software:
+    description: "Authoritative software configuration (tutor software or proxy attention software)."
+    oneOf:
+      - $ref: "#/$defs/tutor_software"
+      - $ref: "#/$defs/attention_software"
+
+  tutor_software:
+    type: object
+    description: "Native AI tutor software configuration and parameters."
+    additionalProperties: false
+    required:
+      - model
+      - quantization
+      - backend
+      - cpu_threads
+      - batch_size
+      - temperature
+      - max_output_tokens
+      - embedding_model
+      - embedding_dimension
+      - retrieval_method
+      - similarity_metric
+      - top_k
+      - chunk_size
+      - chunk_overlap
+      - chunk_unit
+      - runtime_ready
+    properties:
+      model:
+        type: string
+        minLength: 1
+      quantization:
+        type: string
+        minLength: 1
+      backend:
+        type: string
+        minLength: 1
+      cpu_threads:
+        type: integer
+        minimum: 1
+      batch_size:
+        type: integer
+        minimum: 1
+      temperature:
+        type: number
+        minimum: 0
+      max_output_tokens:
+        type: integer
+        minimum: 1
+      embedding_model:
+        type: string
+        minLength: 1
+        description: "Authoritative embedding model identifier (canonical: sentence-transformers/multi-qa-MiniLM-L6-dot-v1)."
+      embedding_dimension:
+        type: integer
+        minimum: 1
+      retrieval_method:
+        type: string
+        minLength: 1
+        description: "Canonical machine-readable retrieval method (semantic_similarity)."
+      similarity_metric:
+        type: string
+        minLength: 1
+        description: "Authoritative vector similarity metric (canonical: dot_product)."
+      top_k:
+        type: integer
+        minimum: 1
+      chunk_size:
+        type: integer
+        minimum: 1
+      chunk_overlap:
+        type: integer
+        minimum: 0
+      chunk_unit:
+        type: string
+        enum: ["characters"]
+      runtime_ready:
+        type: boolean
+      status:
+        type: string
+      description:
+        type: string
+      unresolved_fields:
+        type: array
+        items:
+          type: string
+
+  attention_software:
+    type: object
+    description: "Software parameters for gem5 attention proxy kernel execution."
+    additionalProperties: false
+    required:
+      - implementation
+      - kv_format
+      - threads
+    properties:
+      implementation:
+        const: "AttentionKernelQuantizedKV"
+      kv_format:
+        type: string
+        enum: ["FP32", "Q4"]
+        description: "Validated KV-cache formats. FP16 and Q8 remain future candidates."
+      threads:
+        type: integer
+        enum: [1, 2, 4]
+        description: "Software threads. Must not exceed hardware.cores."
+
+  # ===========================================================================
+  # 4. Workloads
+  # ===========================================================================
+  workload:
+    description: "Authoritative workload configuration (tutor QA workload or attention proxy kernel workload)."
+    oneOf:
+      - $ref: "#/$defs/tutor_workload"
+      - $ref: "#/$defs/attention_workload"
+
+  tutor_workload:
+    type: object
+    description: "Offline AI Tutor evaluation dataset and corpus workload parameters."
+    additionalProperties: false
+    required:
+      - dataset_id
+      - corpus_id
+      - evaluation_protocol
+      - num_questions
+      - seed
+    properties:
+      dataset_id:
+        type: string
+        minLength: 1
+      corpus_id:
+        type: string
+        minLength: 1
+      evaluation_protocol:
+        type: string
+        minLength: 1
+      num_questions:
+        type: integer
+        minimum: 1
+      seed:
+        type: integer
+        minimum: 0
+
+  attention_workload:
+    type: object
+    description: "Attention proxy kernel problem dimension."
+    additionalProperties: false
+    required:
+      - context_tokens
+      - query_heads
+      - kv_heads
+      - head_dimension
+      - layers
+    properties:
+      context_tokens:
+        type: integer
+        enum: [128, 256, 512, 1024, 2048, 4096]
+      query_heads:
+        type: integer
+        minimum: 1
+      kv_heads:
+        type: integer
+        minimum: 1
+      head_dimension:
+        type: integer
+        minimum: 1
+      layers:
+        type: integer
+        minimum: 1
+        maximum: 2
+
+  # ===========================================================================
+  # 5. Metrics
+  # ===========================================================================
+  metrics:
+    description: "Authoritative metrics definition (application metrics, gem5 hardware metrics, or run metrics)."
+    oneOf:
+      - $ref: "#/$defs/gem5_metrics"
+      - $ref: "#/$defs/tutor_metrics"
+      - $ref: "#/$defs/run_metrics"
+
+  application_metrics:
+    type: object
+    description: "Application-level performance and quality metrics."
+    additionalProperties: false
+    required:
+      - answer_quality
+      - latency_ms
+      - memory_mb
+      - throughput_qps
+    properties:
+      answer_quality:
+        $ref: "#/$defs/nullable_nonnegative_number"
+      latency_ms:
+        $ref: "#/$defs/nullable_nonnegative_number"
+      memory_mb:
+        $ref: "#/$defs/nullable_nonnegative_number"
+      throughput_qps:
+        $ref: "#/$defs/nullable_nonnegative_number"
+
+  tutor_metrics:
+    type: object
+    description: "Metrics envelope emitted by the AI Tutor pipeline."
+    additionalProperties: false
+    required:
+      - application
+    properties:
+      application:
+        $ref: "#/$defs/application_metrics"
+
+  gem5_metrics:
+    type: object
+    description: "Full per-core and DRAM metrics emitted by the gem5 attention experiment pipeline."
+    additionalProperties: false
+    required:
+      - sim_ticks
+      - simulated_seconds
+      - latency_ms
+      - host_seconds
+      - instructions
+      - cycles_per_core
+      - cpi_per_core
+      - ipc_per_core
+      - aggregate_ipc
+      - l1i_miss_rate_per_core
+      - l1d_miss_rate_per_core
+      - l2_miss_rate
+      - dram_bytes_read
+      - dram_bytes_written
+      - dram_bandwidth_bytes_per_second
+      - dram_bandwidth_utilization_percent
+      - average_dram_access_latency_ns
+    properties:
+      sim_ticks:
+        $ref: "#/$defs/nullable_nonnegative_integer"
+      simulated_seconds:
+        $ref: "#/$defs/nullable_nonnegative_number"
+      latency_ms:
+        $ref: "#/$defs/nullable_nonnegative_number"
+      host_seconds:
+        $ref: "#/$defs/nullable_nonnegative_number"
+      instructions:
+        $ref: "#/$defs/nullable_nonnegative_integer"
+      cycles_per_core:
+        $ref: "#/$defs/nullable_integer_array"
+      cpi_per_core:
+        $ref: "#/$defs/nullable_number_array"
+      ipc_per_core:
+        $ref: "#/$defs/nullable_number_array"
+      aggregate_ipc:
+        $ref: "#/$defs/nullable_nonnegative_number"
+      l1i_miss_rate_per_core:
+        $ref: "#/$defs/nullable_number_array"
+      l1d_miss_rate_per_core:
+        $ref: "#/$defs/nullable_number_array"
+      l2_miss_rate:
+        $ref: "#/$defs/nullable_nonnegative_number"
+      dram_bytes_read:
+        $ref: "#/$defs/nullable_nonnegative_integer"
+      dram_bytes_written:
+        $ref: "#/$defs/nullable_nonnegative_integer"
+      dram_bandwidth_bytes_per_second:
+        $ref: "#/$defs/nullable_nonnegative_number"
+      dram_bandwidth_utilization_percent:
+        $ref: "#/$defs/nullable_nonnegative_number"
+      average_dram_access_latency_ns:
+        $ref: "#/$defs/nullable_nonnegative_number"
+
+  run_metrics:
+    type: object
+    description: "Execution metrics captured in a completed run record."
+    additionalProperties: false
+    required:
+      - execution_cycles
+      - instructions
+      - cpi
+      - ipc
+      - sim_ticks
+      - sim_seconds
+      - l1i_miss_rate
+      - l1d_miss_rate
+      - l2_miss_rate
+      - checksum
+      - passed
+    properties:
+      execution_cycles:
+        type: number
+        minimum: 0
+      instructions:
+        type: number
+        minimum: 0
+      cpi:
+        type: number
+        minimum: 0
+      ipc:
+        type: number
+        minimum: 0
+      sim_ticks:
+        type: number
+        minimum: 0
+      sim_seconds:
+        type: number
+        minimum: 0
+      l1i_miss_rate:
+        type: number
+        minimum: 0
+        maximum: 1
+      l1d_miss_rate:
+        type: number
+        minimum: 0
+        maximum: 1
+      l2_miss_rate:
+        type: number
+        minimum: 0
+        maximum: 1
+      checksum:
+        type: string
+        minLength: 1
+      passed:
+        type: boolean
+
+  # ===========================================================================
+  # 6. Objectives
+  # ===========================================================================
+  objectives:
+    type: object
+    description: "Multi-objective optimization definitions for Pareto co-design exploration."
+    additionalProperties: false
+    properties:
+      answer_quality:
+        type: object
+        required: ["direction"]
+        properties:
+          direction:
+            const: "maximize"
+          intended_purpose:
+            type: string
+      latency_ms:
+        type: object
+        required: ["direction"]
+        properties:
+          direction:
+            const: "minimize"
+          intended_purpose:
+            type: string
+      energy_uj:
+        type: object
+        required: ["direction"]
+        properties:
+          direction:
+            const: "minimize"
+          intended_purpose:
+            type: string
+
+  # ===========================================================================
+  # 7. Design Spaces
+  # ===========================================================================
+  design_spaces:
+    description: "Authoritative design space definition (software or hardware)."
+    oneOf:
+      - $ref: "#/$defs/software_design_space"
+      - $ref: "#/$defs/hardware_design_space"
+
+  software_design_space:
+    type: object
+    description: "AI Tutor software design space recording fixed baseline and pending search space."
+    additionalProperties: false
+    required:
+      - schema_version
+      - description
+      - baseline
+      - fixed
+      - active_candidates
+      - pending_search_space
+      - optimization_metrics
+      - unresolved_runtime_items
+    properties:
+      schema_version:
+        const: "0.2.0"
+      description:
+        type: string
+      baseline:
+        type: object
+        additionalProperties: false
+        required:
+          - model
+          - quantization
+          - backend
+          - cpu_threads
+          - batch_size
+          - temperature
+          - max_output_tokens
+          - embedding_model
+          - embedding_dimension
+          - retrieval_method
+          - similarity_metric
+          - top_k
+          - chunk_size
+          - chunk_overlap
+          - chunk_unit
+          - runtime_ready
+          - status
+        properties:
+          model: { type: string }
+          quantization: { type: string }
+          backend: { type: string }
+          cpu_threads: { type: integer, minimum: 1 }
+          batch_size: { type: integer, minimum: 1 }
+          temperature: { type: number, minimum: 0 }
+          max_output_tokens: { type: integer, minimum: 1 }
+          embedding_model: { type: string }
+          embedding_dimension: { type: integer, minimum: 1 }
+          retrieval_method: { type: string }
+          similarity_metric: { type: string }
+          top_k: { type: integer, minimum: 1 }
+          chunk_size: { type: integer, minimum: 1 }
+          chunk_overlap: { type: integer, minimum: 0 }
+          chunk_unit: { type: string, enum: ["characters"] }
+          runtime_ready: { type: boolean }
+          status: { type: string }
+      fixed:
+        type: object
+        additionalProperties: false
+        required:
+          - model
+          - quantization
+          - backend
+          - cpu_threads
+          - batch_size
+          - temperature
+          - max_output_tokens
+          - embedding_model
+          - embedding_dimension
+          - retrieval_method
+          - similarity_metric
+          - top_k
+          - chunk_size
+          - chunk_overlap
+          - chunk_unit
+        properties:
+          model: { type: string }
+          quantization: { type: string }
+          backend: { type: string }
+          cpu_threads: { type: integer, minimum: 1 }
+          batch_size: { type: integer, minimum: 1 }
+          temperature: { type: number, minimum: 0 }
+          max_output_tokens: { type: integer, minimum: 1 }
+          embedding_model: { type: string }
+          embedding_dimension: { type: integer, minimum: 1 }
+          retrieval_method: { type: string }
+          similarity_metric: { type: string }
+          top_k: { type: integer, minimum: 1 }
+          chunk_size: { type: integer, minimum: 1 }
+          chunk_overlap: { type: integer, minimum: 0 }
+          chunk_unit: { type: string, enum: ["characters"] }
+      active_candidates:
+        type: object
+      pending_search_space:
+        type: object
+        additionalProperties: false
+        required:
+          - status
+          - description
+          - knobs
+        properties:
+          status: { type: string }
+          description: { type: string }
+          knobs:
+            type: array
+            items:
+              type: object
+              required: ["name", "status", "intended_purpose"]
+              properties:
+                name: { type: string }
+                baseline_value: {}
+                unit: { type: string }
+                status: { type: string }
+                intended_purpose: { type: string }
+      optimization_metrics:
+        $ref: "#/$defs/objectives"
+      unresolved_runtime_items:
+        type: array
+        items:
+          type: string
+
+  hardware_design_space:
+    type: object
+    description: "Attention kernel and hardware architecture design space contract."
+    additionalProperties: false
+    required:
+      - schema_version
+      - metrics_contract
+      - baseline
+      - active_candidates
+      - evaluation_axes
+      - fixed
+      - constraints
+      - future
+    properties:
+      schema_version:
+        const: "0.2.0"
+      metrics_contract:
+        type: string
+        description: "Reference to the metrics contract definition."
+      baseline:
+        $ref: "#/$defs/hardware_baseline_summary"
+      active_candidates:
+        type: object
+        additionalProperties: false
+        required: ["hardware"]
+        properties:
+          hardware:
+            type: object
+            additionalProperties: false
+            required:
+              - cpu_model
+              - frequency_ghz
+              - issue_width
+              - l1d_cache_kib
+              - l1d_associativity
+              - l2_cache_kib
+              - l2_associativity
+            properties:
+              cpu_model:
+                type: array
+                minItems: 1
+                uniqueItems: true
+                items:
+                  enum: ["RiscvTimingSimpleCPU", "RiscvO3CPU"]
+              frequency_ghz:
+                type: array
+                minItems: 1
+                uniqueItems: true
+                items:
+                  enum: [1, 2, 3, 4]
+              issue_width:
+                type: array
+                minItems: 1
+                uniqueItems: true
+                items:
+                  enum: [1, 2, 4]
+              l1d_cache_kib:
+                type: array
+                minItems: 1
+                uniqueItems: true
+                items:
+                  enum: [16, 32, 64]
+              l1d_associativity:
+                type: array
+                minItems: 1
+                uniqueItems: true
+                items:
+                  enum: [2, 4, 8]
+              l2_cache_kib:
+                type: array
+                minItems: 1
+                uniqueItems: true
+                items:
+                  enum: [256, 512, 1024]
+              l2_associativity:
+                type: array
+                minItems: 1
+                uniqueItems: true
+                items:
+                  enum: [4, 8, 16]
+      evaluation_axes:
+        type: object
+        additionalProperties: false
+        required: ["context_tokens"]
+        properties:
+          context_tokens:
+            type: array
+            minItems: 1
+            uniqueItems: true
+            items:
+              enum: [128, 256, 512]
+      fixed:
+        $ref: "#/$defs/hardware_fixed_summary"
+      constraints:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          type: string
+          minLength: 1
+      future:
+        type: object
+
+  hardware_baseline_summary:
+    type: object
+    additionalProperties: false
+    required:
+      - cpu_model
+      - cores
+      - frequency_ghz
+      - issue_width
+      - l1i_cache_kib
+      - l1i_associativity
+      - l1i_latency_cycles
+      - l1d_cache_kib
+      - l1d_associativity
+      - l1d_latency_cycles
+      - l2_cache_kib
+      - l2_associativity
+      - l2_latency_cycles
+      - memory_type
+      - memory_size_mib
+      - simulation_mode
+      - context_tokens
+      - query_heads
+      - kv_heads
+      - head_dimension
+      - layers
+      - threads
+      - repetitions
+      - warmup_runs
+      - kv_format
+    properties:
+      cpu_model: { enum: ["RiscvTimingSimpleCPU", "RiscvO3CPU"] }
+      cores: { enum: [1, 2, 4] }
+      frequency_ghz: { enum: [1, 2, 3, 4] }
+      issue_width: { enum: [1, 2, 4] }
+      l1i_cache_kib: { const: 16 }
+      l1i_associativity: { const: 2 }
+      l1i_latency_cycles: { const: 2 }
+      l1d_cache_kib: { enum: [16, 32, 64] }
+      l1d_associativity: { enum: [2, 4, 8] }
+      l1d_latency_cycles: { const: 2 }
+      l2_cache_kib: { enum: [256, 512, 1024] }
+      l2_associativity: { enum: [4, 8, 16] }
+      l2_latency_cycles: { const: 20 }
+      memory_type: { const: "DDR3_1600_8x8" }
+      memory_size_mib: { const: 16 }
+      simulation_mode: { const: "SE" }
+      context_tokens: { enum: [128, 256, 512] }
+      query_heads: { const: 4 }
+      kv_heads: { const: 2 }
+      head_dimension: { const: 32 }
+      layers: { const: 1 }
+      threads: { enum: [1, 2, 4] }
+      repetitions: { type: integer, minimum: 1 }
+      warmup_runs: { type: integer, minimum: 0 }
+      kv_format: { enum: ["FP32", "Q4"] }
+
+  hardware_fixed_summary:
+    type: object
+    additionalProperties: false
+    required:
+      - cores
+      - kv_format
+      - l1i_cache_kib
+      - l1i_associativity
+      - l1i_latency_cycles
+      - l1d_latency_cycles
+      - l2_latency_cycles
+      - memory_type
+      - memory_size_mib
+      - simulation_mode
+      - query_heads
+      - kv_heads
+      - head_dimension
+      - layers
+      - threads
+      - repetitions
+      - warmup_runs
+    properties:
+      cores: { const: 2 }
+      kv_format: { const: "Q4" }
+      l1i_cache_kib: { const: 16 }
+      l1i_associativity: { const: 2 }
+      l1i_latency_cycles: { const: 2 }
+      l1d_latency_cycles: { const: 2 }
+      l2_latency_cycles: { const: 20 }
+      memory_type: { const: "DDR3_1600_8x8" }
+      memory_size_mib: { const: 16 }
+      simulation_mode: { const: "SE" }
+      query_heads: { const: 4 }
+      kv_heads: { const: 2 }
+      head_dimension: { const: 32 }
+      layers: { const: 1 }
+      threads: { const: 2 }
+      repetitions: { const: 10 }
+      warmup_runs: { const: 0 }
+
+  # ===========================================================================
+  # 8. Compute Policy
+  # ===========================================================================
+  compute_policy:
+    type: object
+    description: "Operational compute budget and environment access tier policy."
+    additionalProperties: false
+    required:
+      - policy_version
+      - gemini
+      - tiers
+    properties:
+      policy_version:
+        const: "0.2.0"
+      gemini:
+        type: object
+        additionalProperties: false
+        required:
+          - budget_usd
+          - metering_required
+        properties:
+          budget_usd:
+            type: number
+            minimum: 0
+          metering_required:
+            type: boolean
+      tiers:
+        type: object
+        additionalProperties: false
+        required:
+          - dev
+          - integration
+          - pilot
+          - final
+        properties:
+          dev:
+            $ref: "#/$defs/compute_policy_tier"
+          integration:
+            $ref: "#/$defs/compute_policy_tier"
+          pilot:
+            $ref: "#/$defs/compute_policy_tier"
+          final:
+            $ref: "#/$defs/compute_policy_tier"
+
+  compute_policy_tier:
+    type: object
+    additionalProperties: false
+    required:
+      - backends
+      - max_parallel_jobs
+      - gemini_allowed
+      - organizer_burst_allowed
+    properties:
+      backends:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          type: string
+          enum: ["local", "contabo", "development_cloud", "organizer_burst"]
+      max_parallel_jobs:
+        type: integer
+        minimum: 1
+      gemini_allowed:
+        type: boolean
+      organizer_burst_allowed:
+        type: boolean
+
+  # ===========================================================================
+  # 9. Run Records
+  # ===========================================================================
+  run_record:
+    type: object
+    description: "Evidence record capturing verified execution results, usage, provenance, and status."
+    additionalProperties: false
+    required:
+      - schema_version
+      - run_id
+      - experiment
+      - execution
+      - metrics
+      - usage
+      - provenance
+      - status
+    properties:
+      schema_version:
+        const: "0.2.0"
+      run_id:
+        type: string
+        minLength: 1
+      experiment:
+        type: object
+        additionalProperties: false
+        required:
+          - type
+          - experiment_id
+          - config_digest
+        properties:
+          type:
+            type: string
+            enum: ["ai_tutor", "attention_kernel"]
+          experiment_id:
+            type: string
+            minLength: 1
+          config_digest:
+            type: string
+            pattern: "^sha256:[0-9a-fA-F]{64}$"
+      execution:
+        $ref: "#/$defs/run_execution"
+      metrics:
+        $ref: "#/$defs/run_metrics"
+      usage:
+        $ref: "#/$defs/run_usage"
+      provenance:
+        $ref: "#/$defs/run_provenance"
+      status:
+        $ref: "#/$defs/run_status"
+
+  run_execution:
+    type: object
+    additionalProperties: false
+    required:
+      - tier
+      - backend
+      - worker_id
+      - started_at
+      - finished_at
+      - attempt
+      - host_seconds
+    properties:
+      tier:
+        type: string
+        enum: ["dev", "integration", "pilot", "final"]
+      backend:
+        type: string
+        enum: ["local", "contabo", "development_cloud", "organizer_burst"]
+      worker_id:
+        type: string
+        minLength: 1
+      started_at:
+        type: string
+        format: "date-time"
+      finished_at:
+        type: string
+        format: "date-time"
+      attempt:
+        type: integer
+        minimum: 1
+      host_seconds:
+        type: number
+        minimum: 0
+
+  run_usage:
+    type: object
+    additionalProperties: false
+    required:
+      - gemini
+    properties:
+      gemini:
+        type: object
+        additionalProperties: false
+        required:
+          - model
+          - calls
+          - input_tokens
+          - output_tokens
+          - estimated_cost_usd
+        properties:
+          model:
+            type: ["string", "null"]
+          calls:
+            type: integer
+            minimum: 0
+          input_tokens:
+            type: integer
+            minimum: 0
+          output_tokens:
+            type: integer
+            minimum: 0
+          estimated_cost_usd:
+            type: number
+            minimum: 0
+
+  run_provenance:
+    type: object
+    additionalProperties: false
+    required:
+      - git_commit
+      - chia_version
+      - gem5_version
+      - kernel_version
+      - compiler
+      - policy_version
+      - seed
+    properties:
+      git_commit:
+        type: string
+        minLength: 7
+      chia_version:
+        type: string
+        minLength: 1
+      gem5_version:
+        type: string
+        minLength: 1
+      kernel_version:
+        type: string
+        minLength: 1
+      compiler:
+        type: string
+        minLength: 1
+      policy_version:
+        type: string
+        minLength: 1
+      seed:
+        type: integer
+        minimum: 0
+
+  run_status:
+    type: object
+    additionalProperties: false
+    required:
+      - state
+      - failure_reason
+    properties:
+      state:
+        type: string
+        enum: ["completed", "failed", "rejected"]
+      failure_reason:
+        type: ["string", "null"]
+
+  # ===========================================================================
+  # 10. Shared Definitions & Primitives
+  # ===========================================================================
+  metadata:
+    type: object
+    additionalProperties: false
+    required:
+      - experiment_id
+      - description
+    properties:
+      experiment_id:
+        type: string
+        minLength: 1
+      campaign_id:
+        type: string
+        minLength: 1
+      description:
+        type: string
+        minLength: 1
+      artifact_manifest:
+        type: ["string", "null"]
+      tags:
+        type: array
+        items:
+          type: string
+        uniqueItems: true
+      created_at:
+        type: string
+        format: "date-time"
+      author:
+        type: string
+
+  status:
+    type: object
+    additionalProperties: false
+    required:
+      - state
+      - message
+    properties:
+      state:
+        type: string
+        enum: ["planned", "validated", "running", "completed", "failed", "rejected"]
+      message:
+        type: ["string", "null"]
+
+  evaluation_controls:
+    type: object
+    additionalProperties: false
+    required:
+      - reference_source
+      - reference_visible_to_model
+    properties:
+      dataset_id:
+        type: string
+      corpus_id:
+        type: string
+      evaluation_protocol:
+        type: string
+      num_questions:
+        type: integer
+        minimum: 1
+      seed:
+        type: integer
+        minimum: 0
+      questions_file:
+        type: string
+      references_file:
+        type: string
+      reference_source:
+        type: string
+        const: "openstax"
+        description: "Hard guardrail: held out for evaluation only."
+      reference_visible_to_model:
+        type: boolean
+        const: false
+        description: "Hard guardrail: evaluation reference answers must never be visible to the model."
+      comparison_method:
+        type: string
+      similarity_metric:
+        type: string
+        description: "Similarity metric for reference comparison (canonical: dot_product)."
+      sample_limit:
+        type: integer
+        minimum: 1
+
+  proxy_evaluation:
+    type: object
+    additionalProperties: false
+    required:
+      - type
+      - mapping_id
+      - attention_experiment_ref
+    properties:
+      type:
+        const: "attention_kernel"
+      mapping_id:
+        type: string
+        minLength: 1
+      attention_experiment_ref:
+        type: ["string", "null"]
+
+  measurement:
+    type: object
+    additionalProperties: false
+    required:
+      - repetitions
+      - warmup_runs
+      - max_simulation_instructions
+    properties:
+      repetitions:
+        type: integer
+        minimum: 1
+      warmup_runs:
+        type: integer
+        minimum: 0
+      max_simulation_instructions:
+        type: ["integer", "null"]
+        minimum: 1
+
+  nullable_nonnegative_number:
+    type: ["number", "null"]
+    minimum: 0
+
+  nullable_nonnegative_integer:
+    type: ["integer", "null"]
+    minimum: 0
+
+  nullable_number_array:
+    oneOf:
+      - type: "null"
+      - type: "array"
+        minItems: 1
+        items:
+          type: "number"
+          minimum: 0
+
+  nullable_integer_array:
+    oneOf:
+      - type: "null"
+      - type: "array"
+        minItems: 1
+        items:
+          type: "integer"
+          minimum: 0

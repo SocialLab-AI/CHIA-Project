@@ -1,0 +1,110 @@
+schema_version: "0.2.0"
+
+description: >
+  AI Tutor software design space.
+  The initial software configuration is fixed for baseline
+  co-design experiments. Optimization search ranges may be
+  introduced separately later.
+
+baseline:
+  model: "Llama 3.2 1B Instruct"
+  quantization: "Q4_K_M"
+  backend: "llama.cpp / CPU"
+
+  cpu_threads: 4
+  batch_size: 1
+
+  temperature: 0.0
+  max_output_tokens: 384
+
+  embedding_model: "sentence-transformers/multi-qa-MiniLM-L6-dot-v1"
+  embedding_dimension: 384
+
+  retrieval_method: "semantic_similarity"
+  similarity_metric: "dot_product"
+
+  top_k: 3
+
+  chunk_size: 1500
+  chunk_overlap: 200
+  chunk_unit: "characters"
+
+  runtime_ready: false
+  status: "baseline_resolved"
+
+
+fixed:
+  model: "Llama 3.2 1B Instruct"
+  quantization: "Q4_K_M"
+  backend: "llama.cpp / CPU"
+
+  cpu_threads: 4
+  batch_size: 1
+
+  temperature: 0.0
+  max_output_tokens: 384
+
+  embedding_model: "sentence-transformers/multi-qa-MiniLM-L6-dot-v1"
+  embedding_dimension: 384
+
+  retrieval_method: "semantic_similarity"
+  similarity_metric: "dot_product"
+
+  top_k: 3
+
+  chunk_size: 1500
+  chunk_overlap: 200
+  chunk_unit: "characters"
+
+
+active_candidates: {}
+
+
+pending_search_space:
+  status: "pending_definition"
+  description: >
+    Software optimization search ranges have not yet been defined.
+    Initial experiments use the resolved fixed baseline.
+
+  knobs:
+    - name: "temperature"
+      baseline_value: 0.0
+      unit: "unitless"
+      status: "baseline_resolved"
+      intended_purpose: "Sampling temperature for answer generation"
+
+    - name: "chunk_overlap"
+      baseline_value: 200
+      unit: "characters"
+      status: "baseline_resolved"
+      intended_purpose: >
+        Character overlap between adjacent chunks in RAG indexing
+
+    - name: "similarity_metric"
+      baseline_value: "dot_product"
+      status: "baseline_resolved"
+      intended_purpose: >
+        Vector similarity scoring operation for RAG retrieval
+
+    - name: "quantization"
+      baseline_value: "Q4_K_M"
+      status: "baseline_resolved"
+      intended_purpose: "Model weight quantization"
+
+
+optimization_metrics:
+  answer_quality:
+    direction: "maximize"
+    intended_purpose: "Native OpenStax QA accuracy / reviewer score"
+
+  latency_ms:
+    direction: "minimize"
+    intended_purpose: "Application response latency"
+
+
+unresolved_runtime_items:
+  - "exact Llama 3.2 1B Instruct GGUF artifact path"
+  - "exact local/cache location of the sentence-transformers/multi-qa-MiniLM-L6-dot-v1 weights"
+  - "exact OpenStax evaluation dataset/subset/artifact"
+  - "exact corpus artifact/index path"
+  - "llama.cpp batch-size runtime mapping semantics / adapter mapping"
