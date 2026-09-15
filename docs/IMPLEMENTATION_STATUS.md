@@ -10,7 +10,7 @@ IMPLEMENTED means code exists with the evidence below. PARTIAL means acceptance 
 |---|---|---|
 | 1. Inspect and preserve structure | IMPLEMENTED | Existing runtimes, contracts, scripts, infrastructure and tests inspected; no repository redesign. |
 | 2–3. Real graph and nodes (B) | IMPLEMENTED | Validation → mapping → SW/HW → verification → record, using real ChiaFunction bindings. |
-| 4. Candidate-driven runners (A) | IMPLEMENTED | Actual Docker/Ollama adapters; installed-service execution still unverified. |
+| 4. Candidate-driven runners (A) | IMPLEMENTED | Actual Ollama and Docker/gem5 adapters executed successfully on the Adam/YSF cluster for a validated candidate. |
 | 5. Knob system (A) | IMPLEMENTED | Immutable candidate, strict schema, fixed/search separation and cross-knob checks. |
 | 6. Runtime mappings (A/E) | PARTIAL | gem5 CLI/resolved config and Ollama fields wired; final llama.cpp inference mapper awaits runtime activation. |
 | 7. Adam head / YSF worker (B) | IMPLEMENTED | Remote placement and synchronized project imports verified: control/software on Adam and hardware on YSF. |
@@ -21,7 +21,7 @@ IMPLEMENTED means code exists with the evidence below. PARTIAL means acceptance 
 | 12. Security (C) | PARTIAL | No shell execution, strict paths/JSON, safe logs and isolated containers/CLI settings; deployment permissions need environment checks. |
 | 13. Practical containers (C) | IMPLEMENTED | gem5/toolchain Docker; Ollama local service. |
 | 14. Local test ladder (B/C) | IMPLEMENTED | Unit, mocked integration, deterministic campaign and actual local CHIA scheduling with runtime fixtures. |
-| 15. Combined deterministic execution (B) | PARTIAL | Full local graph passes with fixtures; real services/model/image and approved numerical tolerance required for live run. |
+| 15. Combined deterministic execution (B) | IMPLEMENTED | One real candidate completed across Adam/YSF with validation, SW/HW execution, numerical and resolved-config verification, evaluation, Pareto output and durable records. |
 | 16. Gemini CLI without MCP (D) | PARTIAL | Strict CLI boundary exists; mandatory cost-metering policy blocks live activation until metering is implemented. |
 | 17. Search controls (D) | PARTIAL | Iteration/wall limits, duplicates, malformed-output fallback, repeated-failure stop and diagnostic Pareto; quality-aware evaluation remains. |
 | 18–19. Checklist and explanation | IMPLEMENTED | This checklist and FULL_LOOP.md document ownership, boundaries and evidence. |
@@ -35,7 +35,8 @@ IMPLEMENTED means code exists with the evidence below. PARTIAL means acceptance 
 - After the inference-only change: **87 tests passed** in 24.35 seconds, including both local CHIA/Ray scheduling tests. One upstream Ray FutureWarning; no failed tests. Three obsolete indexing/chunking tests were removed along with their implementation.
 - All seven contract files, semantic checks, five rejection checks, manifest agreement and three deterministic candidate validations passed after the change.
 - Local Ollama was unavailable. No real gem5 simulation or remote Adam/YSF job was executed in this session.
-- Server acceptance evidence: CHIA brought up one head and one gem5 worker; resource placement and project imports passed on both hosts. Both Ollama script invocation styles completed; the warm run reached about 33.35 generated tokens/s and 2.19 seconds total latency. YSF found Docker and the preinstalled `ghcr.io/gem5/devcontainer:v25-1` image. A real simulator execution remains pending.
+- Server acceptance evidence: CHIA brought up one head and one gem5 worker; resource placement and project imports passed on both hosts. Both Ollama script invocation styles completed; the warm run reached about 33.35 generated tokens/s and 2.19 seconds total latency. YSF found Docker and the preinstalled `ghcr.io/gem5/devcontainer:v25-1` image.
+- Full-loop server acceptance: campaign `adam-ysf-acceptance-20260915-04`, candidate `36decb...d054`, completed in 167.48 seconds. Software completed on Adam in 5.46 seconds; hardware completed on YSF in 164.99 seconds; evaluation completed and the candidate entered the diagnostic Pareto frontier.
 
 ## Active and legacy paths
 
@@ -57,3 +58,4 @@ IMPLEMENTED means code exists with the evidence below. PARTIAL means acceptance 
 - 2026-09-15: the first combined server attempt validated and ran software successfully, but YSF's hardware subprocess exited with code 2 before simulation completed. Failure records now identify the controlled hardware stage and retain only byte-count/hash summaries; raw tool output remains local and omitted.
 - 2026-09-15: the stage probe proved the installed `v25-1` gem5 executable rejects `--version` while its image, path, user and entrypoint are valid. Removed that incompatible command; provenance now parses and validates the version banner emitted by the simulator execution that generated the metrics.
 - 2026-09-15: the next server attempt compiled and completed gem5, passed its completion, version, shape and numerical checks, then exposed canonical-versus-serialized CPU naming. The verifier now maps `RiscvO3CPU` to gem5's observed `BaseO3CPU` / `gem5::o3::CPU` identity and retains an exact pair for each supported model.
+- 2026-09-15: campaign `adam-ysf-acceptance-20260915-04` completed the first real distributed deterministic candidate end to end. The next gate is record/provenance review and model-digest pinning before the three-candidate campaign.
