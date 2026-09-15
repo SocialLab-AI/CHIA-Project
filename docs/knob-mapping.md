@@ -45,7 +45,7 @@ flowchart TD
 | --- | --- | --- |
 | gem5 simulation | Intern 2 (`yahyafl`) | `src/hardware/runner.py`, `gem5/run_attention_experiment.py` |
 | Attention proxy workload | Intern 2 (`yahyafl`) | `gem5/attention_kv.c`, `gem5/extract_metrics.py` |
-| AI Tutor workload & RAG | Intern 3 (`sara-alsayyah`) | `src/tutor/runner.py` |
+| AI Tutor workload | Intern 3 (`sara-alsayyah`) | `src/tutor/runner.py` |
 | Evaluation & benchmark | Intern 3 (`sara-alsayyah`) | Held-out OpenStax benchmark (`data/references/openstax.json`) |
 | CHIA co-design orchestration | Intern 1 (`admatieh`) | `src/orchestration/experiment.py`, `scripts/run_experiment.py` |
 | Architecture & contracts | Lynn (`lynn511`) | `experiment-contracts/` |
@@ -124,12 +124,6 @@ Contracts reside in:
 | `software.batch_size` | `1` | - | PLANNED | Intern 3 | Runtime mapping pending; not automatically mapped to llama.cpp `n_batch`. |
 | `software.temperature` | `0.0` | unitless | PLANNED | Intern 3 | Sampling temperature for answer generation. Search space pending. |
 | `software.max_output_tokens` | `384` | tokens | PLANNED | Intern 3 | Response token generation limit. |
-| `software.embedding_model` | `MiniLM-L6-dot-v1` | - | PLANNED | Intern 3 | Exact repository identifier unresolved. |
-| `software.embedding_dimension` | `384` | dimensions | PLANNED | Intern 3 | Embedding vector dimensionality. |
-| `software.retrieval_method` | `Semantic similarity` | - | PLANNED | Intern 3 | Specific distance metric (cosine vs dot product) unresolved. |
-| `software.top_k` | `2` | passages | PLANNED | Intern 3 | Number of retrieved context chunks. |
-| `software.chunk_size` | `1500` | characters | PLANNED | Intern 3 | Measured in **CHARACTERS**, not tokens. |
-| `software.chunk_overlap` | `200` | characters | PLANNED | Intern 3 | Measured in **CHARACTERS**, not tokens. Must be `< chunk_size`. |
 | `software.runtime_ready` | `false` | boolean | PLANNED | Intern 3 | Schema-valid while execution readiness remains false pending artifacts. |
 
 ### Software Search Space Status
@@ -141,7 +135,7 @@ The initial software baseline is **fixed for initial comparison**. Software sear
 - Reference answers from OpenStax (`data/references/openstax.json`) are used solely for offline answer evaluation.
 - `evaluation.reference_source: "openstax"`
 - `evaluation.reference_visible_to_model: false`
-- Reference answers must NEVER be provided as model input or ingested into the RAG corpus.
+- Reference answers must NEVER be provided as model input.
 
 ---
 

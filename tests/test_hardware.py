@@ -33,7 +33,9 @@ def master_schema():
 
 def get_validator(master_schema: dict, def_name: str) -> Draft202012Validator:
     subschema = {
-        "$schema": master_schema.get("$schema", "https://json-schema.org/draft/2020-12/schema"),
+        "$schema": master_schema.get(
+            "$schema", "https://json-schema.org/draft/2020-12/schema"
+        ),
         "$ref": f"#/$defs/{def_name}",
         "$defs": master_schema.get("$defs", {}),
     }
@@ -53,7 +55,9 @@ def hw_ds_validator(master_schema):
 def test_baseline_attention_valid(hw_validator):
     baseline = load_yaml(BASELINES_DIR / "attention.yaml")
     errors = list(hw_validator.iter_errors(baseline))
-    assert not errors, f"Baseline attention validation errors: {[e.message for e in errors]}"
+    assert not errors, (
+        f"Baseline attention validation errors: {[e.message for e in errors]}"
+    )
 
 
 def test_q4_campaign_restrictions():
@@ -83,7 +87,9 @@ def test_timing_simple_cpu_issue_width_constraint(hw_validator):
     valid_timing["hardware"]["cpu_model"] = "RiscvTimingSimpleCPU"
     valid_timing["hardware"]["issue_width"] = 1
     errors = list(hw_validator.iter_errors(valid_timing))
-    assert not errors, f"Expected issue_width=1 for TimingSimpleCPU to pass, got: {errors}"
+    assert not errors, (
+        f"Expected issue_width=1 for TimingSimpleCPU to pass, got: {errors}"
+    )
 
     invalid_timing = json.loads(json.dumps(candidate))
     invalid_timing["hardware"]["cpu_model"] = "RiscvTimingSimpleCPU"
@@ -92,16 +98,19 @@ def test_timing_simple_cpu_issue_width_constraint(hw_validator):
     assert len(errors) > 0, "Expected issue_width=2 for TimingSimpleCPU to be rejected"
 
 
-@pytest.mark.parametrize("field,illegal_val", [
-    ("cores", 3),
-    ("l1d_cache_kib", 128),
-    ("l2_associativity", 2),
-    ("cpu_model", "InvalidCPU"),
-    ("frequency_ghz", 5),
-    ("memory_type", "DDR4"),
-    ("memory_size_mib", 32),
-    ("simulation_mode", "FS"),
-])
+@pytest.mark.parametrize(
+    "field,illegal_val",
+    [
+        ("cores", 3),
+        ("l1d_cache_kib", 128),
+        ("l2_associativity", 2),
+        ("cpu_model", "InvalidCPU"),
+        ("frequency_ghz", 5),
+        ("memory_type", "DDR4"),
+        ("memory_size_mib", 32),
+        ("simulation_mode", "FS"),
+    ],
+)
 def test_illegal_hardware_values_rejected(hw_validator, field, illegal_val):
     candidate = load_yaml(EXAMPLES_DIR / "attention-candidate.yaml")
     mutated = json.loads(json.dumps(candidate))
@@ -118,8 +127,13 @@ def test_active_hardware_knobs(hw_ds_validator):
 
     active_hw = ds["active_candidates"]["hardware"]
     expected_knobs = {
-        "cpu_model", "frequency_ghz", "issue_width",
-        "l1d_cache_kib", "l1d_associativity", "l2_cache_kib", "l2_associativity"
+        "cpu_model",
+        "frequency_ghz",
+        "issue_width",
+        "l1d_cache_kib",
+        "l1d_associativity",
+        "l2_cache_kib",
+        "l2_associativity",
     }
     assert set(active_hw.keys()) == expected_knobs
     assert ds["fixed"]["cores"] == 2
@@ -152,8 +166,9 @@ def test_emitted_hardware_metrics_preserved():
     assert "average_dram_access_latency_ns" in metrics
 
 
-def test_hardware_runner_skeleton():
-    """Verify src.hardware.runner raises NotImplementedError."""
+def test_hardware_runner_rejects_invalid_candidate():
+    """Invalid candidates must fail before runtime access."""
     from src.hardware.runner import run_hardware
-    with pytest.raises(NotImplementedError):
+
+    with pytest.raises(ValueError):
         run_hardware({})

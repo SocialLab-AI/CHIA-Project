@@ -1,5 +1,7 @@
 # chia-hackathon
 
+Local implementation: [full-loop guide](docs/FULL_LOOP.md) · [visible checklist](docs/IMPLEMENTATION_STATUS.md). The software workload is inference-only. Local runtime-fixture tests pass; real server execution remains a separate acceptance step.
+
 Our entry for the **A³ workshop hackathon @ MICRO 2026 (Athens)**, built on the CHIA framework.
 
 **What we're building:** an agentic HW/SW co-design loop for an **edge AI tutor**. A CHIA loop drives an optimizer over both software knobs (the tutor workload) and hardware knobs (a gem5 model), evaluates each candidate, and iterates toward configurations that trade off answer quality against on-device compute cost.

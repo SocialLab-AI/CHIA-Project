@@ -1,0 +1,84 @@
+"""CHIA graph scheduling boundary; orchestration owns lazy real ChiaFunction bindings."""
+
+from src.common.errors import PreflightError, ExecutionTimeout
+from src.orchestration.nodes.validation import validation_node, mapping_node
+from src.orchestration.nodes.hardware import hardware_node
+from src.orchestration.nodes.software import software_node
+from src.orchestration.nodes.evaluation import evaluation_node
+from src.orchestration.nodes.records import record_node
+
+FUNCTIONS = {
+    "validation": validation_node,
+    "mapping": mapping_node,
+    "software": software_node,
+    "hardware": hardware_node,
+    "evaluation": evaluation_node,
+    "record": record_node,
+}
+RESOURCES = {
+    "validation": {"control": 0.01},
+    "mapping": {"control": 0.01},
+    "evaluation": {"control": 0.01},
+    "record": {"control": 0.01},
+    "software": {"ollama": 1},
+    "hardware": {"gem5": 1},
+}
+
+
+class LocalDispatcher:
+    """Explicit local execution of the same nodes; never claims Ray scheduling."""
+
+    def submit(self, name, *args):
+        return FUNCTIONS[name](*args)
+
+    def get(self, reference, timeout=None):
+        return reference
+
+    def cancel(self, reference):
+        return None
+
+
+class ChiaDispatcher:
+    def __init__(self, address="auto"):
+        try:
+            import ray
+            from chia.base.ChiaFunction import ChiaFunction
+        except ImportError as exc:
+            raise PreflightError(
+                "Install the cluster extra before selecting CHIA execution."
+            ) from exc
+        self.ray = ray
+        if not ray.is_initialized():
+            ray.init(address=address)
+        available = ray.cluster_resources()
+        for resource in ("control", "ollama", "gem5"):
+            if available.get(resource, 0) < 1:
+                raise PreflightError(f"Cluster lacks required {resource} resource.")
+        self.nodes = {
+            name: ChiaFunction(
+                resources=RESOURCES[name],
+                num_cpus=4 if name == "software" else 1,
+                max_retries=0,
+                retry_exceptions=False,
+            )(function)
+            for name, function in FUNCTIONS.items()
+        }
+
+    def submit(self, name, *args):
+        return self.nodes[name].chia_remote(*args)
+
+    def get(self, reference, timeout=None):
+        try:
+            return self.ray.get(reference, timeout=timeout)
+        except self.ray.exceptions.GetTimeoutError as exc:
+            raise ExecutionTimeout(
+                "CHIA task did not finish before the campaign deadline."
+            ) from exc
+
+    def cancel(self, reference):
+        try:
+            from chia.base.ChiaFunction import chia_cancel
+
+            chia_cancel(reference, force=True)
+        except ImportError:
+            self.ray.cancel(reference, force=True)

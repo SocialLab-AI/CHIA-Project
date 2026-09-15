@@ -10,12 +10,9 @@ This is a full-stack **Domain-Specific Architecture co-design** entry: we don't 
 
 ## What the system is
 
-A small **retrieval-augmented question-answering (RAG) pipeline**:
+An offline, inference-only AI Tutor. The finalized model baseline is Llama 3.2 1B Instruct, Q4_K_M, on native CPU with llama.cpp. A separate Qwen2.5-0.5B/Ollama profile tests loop integration.
 
-- A **sub-1B language model** (candidate: Qwen2.5-0.5B) generates answers.
-- An **embedding model** retrieves relevant reference text to ground those answers.
-
-Both run on a simulated CPU edge target — no GPU, no cloud at inference time.
+The native software measurement and simulated attention-kernel proxy are separate executions. See [current implementation](docs/FULL_LOOP.md) and [status](docs/IMPLEMENTATION_STATUS.md) for evidence and remaining gates.
 
 ## The loop
 
@@ -25,7 +22,6 @@ Using CHIA, we run one optimization loop that repeats: **propose a joint SW+HW c
 
 **Software knobs**
 - Model quantization level
-- Retrieval top-k (how many passages we pull)
 - Batch size
 
 **Hardware knobs (gem5)**
@@ -58,7 +54,7 @@ An **optimized Pareto frontier** mapping answer quality against latency, energy,
 
 - **admatieh** — the CHIA loop: nodes, edges, the agent that proposes configs.
 - **yahyafl** — gem5: the proxy model, the HW knobs, latency/memory/energy extraction (incl. Accelergy/McPAT).
-- **sara-alsayyah** — the tutor workload: RAG pipeline, OpenStax QA eval, the reviewer-model scorer.
+- **sara-alsayyah** — the tutor workload: inference runtime, OpenStax QA eval, the reviewer-model scorer.
 - **Lynn** — architecture, the config schema, how the two metric paths fuse, integration, submission.
 
 Nobody's boxed in — every issue has a reviewer from another stream, and the point is that all of us understand the whole loop.

@@ -10,6 +10,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+cluster = ["chialoops==1.0.1", "ray[default]==2.54.0"]
 dev = [
     "pytest>=8,<9",
 ]
@@ -17,6 +18,7 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+markers = ["scheduling: opt-in actual local CHIA/Ray scheduling"]
 
 [dependency-groups]
 dev = [

@@ -1,11 +1,8 @@
-"""Gemini optimizer for proposing hardware configurations."""
+"""Legacy SDK proposer retained for reference; orchestration owns it, full loop does not call it."""
 
 import json
 import os
 from typing import Any
-
-from google import genai
-from google.genai import types
 
 
 from src.hardware.knobs import (
@@ -68,20 +65,19 @@ def propose_hardware_candidate(
         raise RuntimeError("GEMINI_API_KEY is not configured")
 
     selected_model = (
-        model
-        or os.getenv("CHIA_OPTIMIZER_MODEL")
-        or "gemini-3.1-flash-lite"
+        model or os.getenv("CHIA_OPTIMIZER_MODEL") or "gemini-3.1-flash-lite"
     )
 
     request = {
-        "active_hardware_knobs": (
-            design_space["active_candidates"]["hardware"]
-        ),
+        "active_hardware_knobs": (design_space["active_candidates"]["hardware"]),
         "fixed_values": design_space["fixed"],
         "constraints": design_space.get("constraints", []),
         "previous_experiments": history or [],
         "instruction": "Return the next hardware candidate as JSON.",
     }
+
+    from google import genai
+    from google.genai import types
 
     client = genai.Client(api_key=api_key)
 
@@ -101,9 +97,7 @@ def propose_hardware_candidate(
 
     for knob in design_space["active_candidates"]["hardware"]:
         if knob not in proposed_active:
-            raise ValueError(
-                f"Gemini response is missing hardware knob: {knob}"
-            )
+            raise ValueError(f"Gemini response is missing hardware knob: {knob}")
 
         candidate[knob] = proposed_active[knob]
 

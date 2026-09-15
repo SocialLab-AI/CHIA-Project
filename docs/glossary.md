@@ -8,8 +8,7 @@
 | Baseline | Reference configuration used for comparison. |
 | Design space | Active candidate values, fixed settings, evaluation axes and deferred options. |
 | Knob | A configurable setting; only an active search knob may be varied in the current campaign. |
-| Tutor | Native Llama 3.2 1B application with retrieval, currently specified but not fully implemented. |
-| RAG | Retrieval of supporting content for generation; held-out evaluation answers must remain separate. |
+| Tutor | Native Llama 3.2 1B application, currently specified but not fully implemented. |
 | Attention proxy | Packed Q4 KV-cache attention kernel executed in gem5, representing a limited part of inference computation. |
 | Model quantization | Representation of tutor model weights, currently Q4_K_M in the supplied baseline. |
 | KV-cache format | Representation of cached attention keys/values; Q4 in the current proxy. |

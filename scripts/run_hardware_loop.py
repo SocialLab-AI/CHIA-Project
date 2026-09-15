@@ -1,30 +1,16 @@
-from pprint import pprint
+"""Hardware diagnostic only; integration owns the supported combined run_experiment CLI."""
 
-from chia.base.ChiaFunction import get
+from pathlib import Path
+import sys
 
-from src.orchestration.nodes.hardware import run_gem5_baseline
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from src.common.errors import PreflightError
 
 
 def main():
-    print("Submitting real gem5 experiment to CHIA...")
-
-    result_ref = run_gem5_baseline.chia_remote()
-
-    print("Experiment scheduled.")
-    print("Waiting for gem5 simulation on hardware worker...")
-
-    result = get(result_ref)
-
-    print("\nCHIA hardware experiment completed.")
-    print(f"Worker: {result['worker_hostname']}")
-    print(f"Run ID: {result['run_id']}")
-    print(f"Status: {result['status']['state']}")
-
-    print("\nHardware configuration:")
-    pprint(result["hardware"])
-
-    print("\nMeasured gem5 metrics:")
-    pprint(result["metrics"])
+    raise PreflightError(
+        "Use scripts/run_experiment.py with an explicit hardware runtime/tolerance; the old unbounded baseline launcher is retired."
+    )
 
 
 if __name__ == "__main__":

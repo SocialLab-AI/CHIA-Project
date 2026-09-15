@@ -50,13 +50,17 @@ def load_master_schema() -> dict:
     return schema
 
 
-def get_validator_for_definition(master_schema: dict, def_name: str) -> Draft202012Validator:
+def get_validator_for_definition(
+    master_schema: dict, def_name: str
+) -> Draft202012Validator:
     """Create a validator for a specific $defs subschema with fully resolved local references."""
     if def_name not in master_schema.get("$defs", {}):
         raise KeyError(f"Definition '#/$defs/{def_name}' not found in master schema")
 
     subschema = {
-        "$schema": master_schema.get("$schema", "https://json-schema.org/draft/2020-12/schema"),
+        "$schema": master_schema.get(
+            "$schema", "https://json-schema.org/draft/2020-12/schema"
+        ),
         "$ref": f"#/$defs/{def_name}",
         "$defs": master_schema.get("$defs", {}),
     }
@@ -75,7 +79,9 @@ def validate_document(
 
     if errors:
         if verbose:
-            print(f"[FAIL] {data_path.relative_to(ROOT)} (validating against #/$defs/{def_name})")
+            print(
+                f"[FAIL] {data_path.relative_to(ROOT)} (validating against #/$defs/{def_name})"
+            )
             for e in errors:
                 loc = ".".join(str(x) for x in e.absolute_path) or "<root>"
                 print(f"       {loc}: {e.message}")
@@ -98,12 +104,16 @@ def run_semantic_checks(verbose: bool = True) -> bool:
         if tier_name != "final":
             if has_burst or burst_allowed:
                 if verbose:
-                    print(f"[FAIL] Compute policy exposes organizer burst in non-final tier '{tier_name}'")
+                    print(
+                        f"[FAIL] Compute policy exposes organizer burst in non-final tier '{tier_name}'"
+                    )
                 ok = False
         else:
             if not has_burst or not burst_allowed:
                 if verbose:
-                    print("[FAIL] Compute policy final tier must explicitly allow organizer burst")
+                    print(
+                        "[FAIL] Compute policy final tier must explicitly allow organizer burst"
+                    )
                 ok = False
 
     # 2. Hardware / Attention Baseline Checks
@@ -115,39 +125,57 @@ def run_semantic_checks(verbose: bool = True) -> bool:
     # Q4 campaign restrictions
     if hw["cores"] != 2:
         if verbose:
-            print(f"[FAIL] Baseline attention simulated cores must be 2, got {hw['cores']}")
+            print(
+                f"[FAIL] Baseline attention simulated cores must be 2, got {hw['cores']}"
+            )
         ok = False
     if sw["threads"] != 2:
         if verbose:
-            print(f"[FAIL] Baseline attention proxy threads must be 2, got {sw['threads']}")
+            print(
+                f"[FAIL] Baseline attention proxy threads must be 2, got {sw['threads']}"
+            )
         ok = False
     if sw["kv_format"] != "Q4":
         if verbose:
-            print(f"[FAIL] Baseline attention proxy KV format must be Q4, got {sw['kv_format']}")
+            print(
+                f"[FAIL] Baseline attention proxy KV format must be Q4, got {sw['kv_format']}"
+            )
         ok = False
     if sw["threads"] > hw["cores"]:
         if verbose:
-            print("[FAIL] Baseline attention proxy threads cannot exceed simulated cores")
+            print(
+                "[FAIL] Baseline attention proxy threads cannot exceed simulated cores"
+            )
         ok = False
     if hw["memory_type"] != "DDR3_1600_8x8":
         if verbose:
-            print(f"[FAIL] Baseline attention memory must be DDR3_1600_8x8, got {hw['memory_type']}")
+            print(
+                f"[FAIL] Baseline attention memory must be DDR3_1600_8x8, got {hw['memory_type']}"
+            )
         ok = False
     if hw["memory_size_mib"] != 16:
         if verbose:
-            print(f"[FAIL] Baseline attention memory size must be 16 MiB, got {hw['memory_size_mib']}")
+            print(
+                f"[FAIL] Baseline attention memory size must be 16 MiB, got {hw['memory_size_mib']}"
+            )
         ok = False
     if hw["simulation_mode"] != "SE":
         if verbose:
-            print(f"[FAIL] Baseline attention mode must be SE, got {hw['simulation_mode']}")
+            print(
+                f"[FAIL] Baseline attention mode must be SE, got {hw['simulation_mode']}"
+            )
         ok = False
     if meas["repetitions"] != 10:
         if verbose:
-            print(f"[FAIL] Baseline attention repetitions must be 10, got {meas['repetitions']}")
+            print(
+                f"[FAIL] Baseline attention repetitions must be 10, got {meas['repetitions']}"
+            )
         ok = False
     if meas["warmup_runs"] != 0:
         if verbose:
-            print(f"[FAIL] Baseline attention warmup runs must be 0, got {meas['warmup_runs']}")
+            print(
+                f"[FAIL] Baseline attention warmup runs must be 0, got {meas['warmup_runs']}"
+            )
         ok = False
 
     # TimingSimpleCPU requires issue_width == 1
@@ -159,11 +187,21 @@ def run_semantic_checks(verbose: bool = True) -> bool:
     # Emitted metrics checks
     metrics = baseline_attn.get("metrics", {})
     required_metrics = [
-        "sim_ticks", "simulated_seconds", "latency_ms", "host_seconds",
-        "instructions", "cycles_per_core", "cpi_per_core", "ipc_per_core",
-        "aggregate_ipc", "l1i_miss_rate_per_core", "l1d_miss_rate_per_core",
-        "l2_miss_rate", "dram_bytes_read", "dram_bandwidth_bytes_per_second",
-        "average_dram_access_latency_ns"
+        "sim_ticks",
+        "simulated_seconds",
+        "latency_ms",
+        "host_seconds",
+        "instructions",
+        "cycles_per_core",
+        "cpi_per_core",
+        "ipc_per_core",
+        "aggregate_ipc",
+        "l1i_miss_rate_per_core",
+        "l1d_miss_rate_per_core",
+        "l2_miss_rate",
+        "dram_bytes_read",
+        "dram_bandwidth_bytes_per_second",
+        "average_dram_access_latency_ns",
     ]
     for m in required_metrics:
         if m not in metrics:
@@ -181,12 +219,16 @@ def run_semantic_checks(verbose: bool = True) -> bool:
     # Ensure active_candidates does NOT contain software (software exploration deferred in Q4 campaign)
     if "software" in ds_attn.get("active_candidates", {}):
         if verbose:
-            print("[FAIL] Active candidates should not contain software search in Q4 campaign")
+            print(
+                "[FAIL] Active candidates should not contain software search in Q4 campaign"
+            )
         ok = False
     # Evaluation axes
     if any(x > 512 for x in ds_attn["evaluation_axes"]["context_tokens"]):
         if verbose:
-            print("[FAIL] Context tokens >512 exposed in evaluation_axes before runtime validation")
+            print(
+                "[FAIL] Context tokens >512 exposed in evaluation_axes before runtime validation"
+            )
         ok = False
 
     # 4. AI Tutor Software Baseline Checks
@@ -196,15 +238,21 @@ def run_semantic_checks(verbose: bool = True) -> bool:
 
     if tutor_sw["model"] != "Llama 3.2 1B Instruct":
         if verbose:
-            print(f"[FAIL] Tutor model must be 'Llama 3.2 1B Instruct', got {tutor_sw['model']}")
+            print(
+                f"[FAIL] Tutor model must be 'Llama 3.2 1B Instruct', got {tutor_sw['model']}"
+            )
         ok = False
     if tutor_sw["quantization"] != "Q4_K_M":
         if verbose:
-            print(f"[FAIL] Tutor quantization must be 'Q4_K_M', got {tutor_sw['quantization']}")
+            print(
+                f"[FAIL] Tutor quantization must be 'Q4_K_M', got {tutor_sw['quantization']}"
+            )
         ok = False
     if tutor_sw["backend"] != "llama.cpp / CPU":
         if verbose:
-            print(f"[FAIL] Tutor backend must be 'llama.cpp / CPU', got {tutor_sw['backend']}")
+            print(
+                f"[FAIL] Tutor backend must be 'llama.cpp / CPU', got {tutor_sw['backend']}"
+            )
         ok = False
     if tutor_sw["cpu_threads"] != 4:
         if verbose:
@@ -216,57 +264,35 @@ def run_semantic_checks(verbose: bool = True) -> bool:
         ok = False
     if tutor_sw["temperature"] != 0.0:
         if verbose:
-            print(f"[FAIL] Tutor temperature must be 0.0, got {tutor_sw['temperature']}")
+            print(
+                f"[FAIL] Tutor temperature must be 0.0, got {tutor_sw['temperature']}"
+            )
         ok = False
     if tutor_sw["max_output_tokens"] != 384:
         if verbose:
-            print(f"[FAIL] Tutor max_output_tokens must be 384, got {tutor_sw['max_output_tokens']}")
-        ok = False
-    if tutor_sw["embedding_model"] != "MiniLM-L6-dot-v1":
-        if verbose:
-            print(f"[FAIL] Tutor embedding model must be 'MiniLM-L6-dot-v1', got {tutor_sw['embedding_model']}")
-        ok = False
-    if tutor_sw["embedding_dimension"] != 384:
-        if verbose:
-            print(f"[FAIL] Tutor embedding dimension must be 384, got {tutor_sw['embedding_dimension']}")
-        ok = False
-    if tutor_sw["retrieval_method"] != "Semantic similarity":
-        if verbose:
-            print(f"[FAIL] Tutor retrieval method must be 'Semantic similarity', got {tutor_sw['retrieval_method']}")
-        ok = False
-    if tutor_sw["top_k"] != 2:
-        if verbose:
-            print(f"[FAIL] Tutor top_k must be 2, got {tutor_sw['top_k']}")
-        ok = False
-    if tutor_sw["chunk_size"] != 1500:
-        if verbose:
-            print(f"[FAIL] Tutor chunk_size must be 1500 characters, got {tutor_sw['chunk_size']}")
-        ok = False
-    if tutor_sw["chunk_overlap"] != 200:
-        if verbose:
-            print(f"[FAIL] Tutor chunk_overlap must be 200 characters, got {tutor_sw['chunk_overlap']}")
-        ok = False
-    if tutor_sw.get("chunk_unit") != "characters":
-        if verbose:
-            print(f"[FAIL] Tutor chunk_unit must be 'characters', got {tutor_sw.get('chunk_unit')}")
-        ok = False
-    if tutor_sw["chunk_overlap"] >= tutor_sw["chunk_size"]:
-        if verbose:
-            print("[FAIL] Chunk overlap must be strictly less than chunk size")
+            print(
+                f"[FAIL] Tutor max_output_tokens must be 384, got {tutor_sw['max_output_tokens']}"
+            )
         ok = False
     if tutor_sw["runtime_ready"] is not False:
         if verbose:
-            print("[FAIL] Tutor baseline runtime_ready must be False pending artifact resolution")
+            print(
+                "[FAIL] Tutor baseline runtime_ready must be False pending artifact resolution"
+            )
         ok = False
 
     # Evaluation isolation guardrail
     if tutor_eval.get("reference_source") != "openstax":
         if verbose:
-            print(f"[FAIL] Evaluation reference source must be 'openstax', got {tutor_eval.get('reference_source')}")
+            print(
+                f"[FAIL] Evaluation reference source must be 'openstax', got {tutor_eval.get('reference_source')}"
+            )
         ok = False
     if tutor_eval.get("reference_visible_to_model") is not False:
         if verbose:
-            print("[FAIL] Evaluation references must NOT be visible to model (guardrail violation)")
+            print(
+                "[FAIL] Evaluation references must NOT be visible to model (guardrail violation)"
+            )
         ok = False
 
     if ok and verbose:
@@ -289,10 +315,14 @@ def run_negative_tests(master_schema: dict, verbose: bool = True) -> bool:
     errors = list(val_attn.iter_errors(bad_candidate))
     if not errors:
         if verbose:
-            print("[FAIL] Negative test: TimingSimpleCPU with issue_width=2 was improperly accepted")
+            print(
+                "[FAIL] Negative test: TimingSimpleCPU with issue_width=2 was improperly accepted"
+            )
         ok = False
     elif verbose:
-        print("[PASS] Negative test: TimingSimpleCPU with issue_width=2 was correctly rejected")
+        print(
+            "[PASS] Negative test: TimingSimpleCPU with issue_width=2 was correctly rejected"
+        )
 
     # 2. Reject illegal hardware core count (3 cores)
     bad_candidate = json.loads(json.dumps(base_attn))
@@ -311,12 +341,14 @@ def run_negative_tests(master_schema: dict, verbose: bool = True) -> bool:
     errors = list(val_attn.iter_errors(bad_candidate))
     if not errors:
         if verbose:
-            print("[FAIL] Negative test: unknown top-level property was improperly accepted")
+            print(
+                "[FAIL] Negative test: unknown top-level property was improperly accepted"
+            )
         ok = False
     elif verbose:
         print("[PASS] Negative test: unknown top-level property was correctly rejected")
 
-    # 4. Reject chunk_unit != 'characters' in tutor_config
+    # 4. Reject retired retrieval field in tutor_config
     val_tutor = get_validator_for_definition(master_schema, "tutor_config")
     tutor_data = load_yaml(BASELINES_DIR / "tutor.yaml")
 
@@ -325,10 +357,12 @@ def run_negative_tests(master_schema: dict, verbose: bool = True) -> bool:
     errors = list(val_tutor.iter_errors(bad_tutor))
     if not errors:
         if verbose:
-            print("[FAIL] Negative test: chunk_unit='tokens' was improperly accepted")
+            print(
+                "[FAIL] Negative test: retired software field was improperly accepted"
+            )
         ok = False
     elif verbose:
-        print("[PASS] Negative test: chunk_unit='tokens' was correctly rejected")
+        print("[PASS] Negative test: retired software field was correctly rejected")
 
     # 5. Reject reference_visible_to_model=True in evaluation guardrails
     bad_tutor = json.loads(json.dumps(tutor_data))
@@ -336,10 +370,14 @@ def run_negative_tests(master_schema: dict, verbose: bool = True) -> bool:
     errors = list(val_tutor.iter_errors(bad_tutor))
     if not errors:
         if verbose:
-            print("[FAIL] Negative test: reference_visible_to_model=True was improperly accepted")
+            print(
+                "[FAIL] Negative test: reference_visible_to_model=True was improperly accepted"
+            )
         ok = False
     elif verbose:
-        print("[PASS] Negative test: reference_visible_to_model=True was correctly rejected")
+        print(
+            "[PASS] Negative test: reference_visible_to_model=True was correctly rejected"
+        )
 
     return ok
 
@@ -363,13 +401,25 @@ def run_manifest_consistency_checks(verbose: bool = True) -> bool:
     ok = True
 
     required_in_manifest = [
-        "hardware.cpu_model", "hardware.cores", "hardware.frequency_ghz", "hardware.issue_width",
-        "hardware.l1i_cache_kib", "hardware.l1d_cache_kib", "hardware.l2_cache_kib",
-        "hardware.memory_type", "software.implementation", "software.kv_format", "software.threads",
-        "software.model", "software.quantization", "software.backend", "software.cpu_threads",
-        "software.batch_size", "software.temperature", "software.max_output_tokens",
-        "software.embedding_model", "software.embedding_dimension", "software.retrieval_method",
-        "software.top_k", "software.chunk_size", "software.chunk_overlap", "software.runtime_ready"
+        "hardware.cpu_model",
+        "hardware.cores",
+        "hardware.frequency_ghz",
+        "hardware.issue_width",
+        "hardware.l1i_cache_kib",
+        "hardware.l1d_cache_kib",
+        "hardware.l2_cache_kib",
+        "hardware.memory_type",
+        "software.implementation",
+        "software.kv_format",
+        "software.threads",
+        "software.model",
+        "software.quantization",
+        "software.backend",
+        "software.cpu_threads",
+        "software.batch_size",
+        "software.temperature",
+        "software.max_output_tokens",
+        "software.runtime_ready",
     ]
 
     for req in required_in_manifest:
@@ -381,18 +431,10 @@ def run_manifest_consistency_checks(verbose: bool = True) -> bool:
             entry = field_map[req]
             if entry.get("status") != "PLANNED":
                 if verbose:
-                    print(f"[FAIL] Manifest field '{req}' status must be 'PLANNED', got '{entry.get('status')}'")
+                    print(
+                        f"[FAIL] Manifest field '{req}' status must be 'PLANNED', got '{entry.get('status')}'"
+                    )
                 ok = False
-
-    # Check units for chunk size and overlap
-    if field_map.get("software.chunk_size", {}).get("unit") != "characters":
-        if verbose:
-            print("[FAIL] Manifest software.chunk_size unit must be 'characters'")
-        ok = False
-    if field_map.get("software.chunk_overlap", {}).get("unit") != "characters":
-        if verbose:
-            print("[FAIL] Manifest software.chunk_overlap unit must be 'characters'")
-        ok = False
 
     if ok and verbose:
         print("[PASS] Manifest consistency checks passed")

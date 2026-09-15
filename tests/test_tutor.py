@@ -31,7 +31,9 @@ def master_schema():
 
 def get_validator(master_schema: dict, def_name: str) -> Draft202012Validator:
     subschema = {
-        "$schema": master_schema.get("$schema", "https://json-schema.org/draft/2020-12/schema"),
+        "$schema": master_schema.get(
+            "$schema", "https://json-schema.org/draft/2020-12/schema"
+        ),
         "$ref": f"#/$defs/{def_name}",
         "$defs": master_schema.get("$defs", {}),
     }
@@ -46,7 +48,9 @@ def tutor_validator(master_schema):
 def test_tutor_example_validates(tutor_validator):
     tutor_data = load_yaml(BASELINES_DIR / "tutor.yaml")
     errors = list(tutor_validator.iter_errors(tutor_data))
-    assert not errors, f"baselines/tutor.yaml failed validation: {[e.message for e in errors]}"
+    assert not errors, (
+        f"baselines/tutor.yaml failed validation: {[e.message for e in errors]}"
+    )
 
 
 def test_user_supplied_software_baseline_values():
@@ -56,31 +60,11 @@ def test_user_supplied_software_baseline_values():
 
     assert sw["model"] == "Llama 3.2 1B Instruct"
     assert sw["quantization"] == "Q4_K_M"
-    assert (
-    sw["embedding_model"]
-    == "sentence-transformers/multi-qa-MiniLM-L6-dot-v1"
-    )
-    assert sw["embedding_dimension"] == 384
-    assert sw["retrieval_method"] == "semantic_similarity"
-    assert sw["top_k"] == 3
-    assert sw["chunk_size"] == 1500
-    assert sw["chunk_overlap"] == 200
-    assert sw["chunk_unit"] == "characters"
     assert sw["temperature"] == 0.0
     assert sw["max_output_tokens"] == 384
     assert sw["batch_size"] == 1
     assert sw["cpu_threads"] == 4
     assert sw["backend"] == "llama.cpp / CPU"
-
-
-def test_chunk_size_and_overlap_character_units():
-    """Chunk size and overlap must be measured in CHARACTERS, not tokens."""
-    tutor_data = load_yaml(BASELINES_DIR / "tutor.yaml")
-    sw = tutor_data["software"]
-    assert sw["chunk_unit"] == "characters"
-    assert sw["chunk_size"] == 1500
-    assert sw["chunk_overlap"] == 200
-    assert sw["chunk_overlap"] < sw["chunk_size"]
 
 
 def test_tutor_threads_independent_of_proxy_threads():
@@ -123,8 +107,9 @@ def test_evaluation_reference_isolation_guardrail():
     assert eval_cfg["reference_visible_to_model"] is False
 
 
-def test_tutor_runner_skeleton():
-    """Verify src.tutor.runner raises NotImplementedError."""
+def test_tutor_runner_rejects_invalid_candidate():
+    """Invalid candidates must fail before runtime access."""
     from src.tutor.runner import run_tutor
-    with pytest.raises(NotImplementedError):
+
+    with pytest.raises(ValueError):
         run_tutor({})

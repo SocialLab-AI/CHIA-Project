@@ -1,213 +1,215 @@
-"""CHIA hardware-only LLM optimization loop."""
+"""Canonical bounded campaign controller on Adam; deterministic policy is the default."""
 
-import json
-import re
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
-
-import ray
-
-
-def get(reference):
-    """Ray Client-compatible result retrieval."""
-    return ray.get(reference)
-
-from src.hardware.knobs import load_design_space
-from src.orchestration.nodes.hardware import run_gem5_candidate
-from src.orchestration.nodes.optimizer import (
-    propose_hardware_candidate,
-)
+import time
+import yaml
+from src.common.candidate import ROOT, Candidate
+from src.common.errors import ConfigError, failure
+from src.common.security import safe_id, finite_number
+from src.common.records import atomic_json
+from src.orchestration.dispatch import LocalDispatcher, ChiaDispatcher
+from src.orchestration.experiment import run_experiment
+from src.orchestration.policies import deterministic_candidates, pareto
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_RESULTS_ROOT = (
-    PROJECT_ROOT / "results" / "hardware-optimization"
-)
-
-
-def _safe_campaign_id(value: str) -> str:
-    """Validate a campaign identifier before using it as a directory."""
-    if not re.fullmatch(r"[A-Za-z0-9._-]+", value):
-        raise ValueError(
-            "campaign_id may contain only letters, numbers, "
-            "periods, underscores, and hyphens"
-        )
-
-    return value
-
-
-def _write_json(path: Path, value: dict[str, Any]) -> None:
-    """Write JSON atomically so interrupted writes do not corrupt results."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-
-    temporary_path = path.with_suffix(path.suffix + ".tmp")
-    temporary_path.write_text(
-        json.dumps(value, indent=2) + "\n",
-        encoding="utf-8",
-    )
-    temporary_path.replace(path)
-
-
-def _utc_timestamp() -> str:
-    return datetime.now(timezone.utc).isoformat()
-
-
-def _save_summary(
-    campaign_directory: Path,
-    campaign_id: str,
-    state: str,
-    requested_iterations: int,
-    history: list[dict[str, Any]],
-) -> None:
-    """Save the complete optimization history after every iteration."""
-    _write_json(
-        campaign_directory / "summary.json",
-        {
-            "campaign_id": campaign_id,
-            "mode": "hardware_only",
-            "state": state,
-            "requested_iterations": requested_iterations,
-            "completed_iterations": len(
-                [
-                    record
-                    for record in history
-                    if record.get("status") == "completed"
-                ]
-            ),
-            "updated_at": _utc_timestamp(),
-            "experiments": history,
-        },
-    )
-
-
-def chia_entrypoint(
-    config: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """
-    Run Gemini-guided hardware optimization and persist every result.
-
-    Gemini proposes hardware knobs locally. CHIA schedules gem5 on
-    the worker advertising the custom `gem5` resource.
-    """
-
+def chia_entrypoint(config=None, *, dispatcher=None):
     config = config or {}
-
-    design_space = config.get("design_space") or load_design_space()
-    iterations = int(config.get("iterations", 1))
-    optimizer_model = config.get("optimizer_model")
-    history = list(config.get("history", []))
-
-    if iterations < 1:
-        raise ValueError("iterations must be at least 1")
-
-    default_campaign_id = datetime.now(timezone.utc).strftime(
-        "hardware-%Y%m%dT%H%M%SZ"
+    campaign_id = safe_id(config.get("campaign_id", "deterministic-local"))
+    iterations = config.get("iterations", 3)
+    if (
+        isinstance(iterations, bool)
+        or not isinstance(iterations, int)
+        or not 1 <= iterations <= 100
+    ):
+        raise ConfigError("iterations must be at least 1 and no more than 100.")
+    budget = finite_number(
+        config.get("wall_budget_seconds", 1800), "wall_budget_seconds", positive=True
     )
-    campaign_id = _safe_campaign_id(
-        str(config.get("campaign_id", default_campaign_id))
+    runtime = config.get("runtime", {})
+    policy = yaml.safe_load(
+        (ROOT / "experiment-contracts/policies/compute-policy.yaml").read_text()
     )
-
+    tier = config.get("tier", "dev")
+    backend = config.get("backend", "local")
+    if tier not in policy["tiers"] or backend not in policy["tiers"][tier]["backends"]:
+        raise ConfigError("Execution backend is not allowed in this compute tier.")
+    # Local runs are serial; CHIA fans out two runtime nodes.
+    mode = config.get("mode", "local")
+    if mode not in {"local", "chia"}:
+        raise ConfigError("Unknown execution mode.")
+    if mode == "chia" and policy["tiers"][tier]["max_parallel_jobs"] < 2:
+        raise ConfigError("This tier does not allow both runtime nodes concurrently.")
+    for name, default in (("software", 120), ("hardware", 600)):
+        runtime.setdefault(name, {})
+        runtime[name].setdefault("timeout_seconds", default)
+        runtime[name].setdefault("retries", 0)
+        finite_number(
+            runtime[name]["timeout_seconds"], name + " timeout", positive=True
+        )
+        if (
+            type(runtime[name]["retries"]) is not int
+            or not 0 <= runtime[name]["retries"] <= 2
+        ):
+            raise ConfigError(
+                "Transient retries must be an integer between zero and two."
+            )
     results_root = Path(
-        config.get("results_root", DEFAULT_RESULTS_ROOT)
-    ).expanduser().resolve()
-
-    campaign_directory = results_root / campaign_id
-    campaign_directory.mkdir(parents=True, exist_ok=True)
-
-    experiments = []
-
-    _save_summary(
-        campaign_directory=campaign_directory,
-        campaign_id=campaign_id,
-        state="running",
-        requested_iterations=iterations,
-        history=history,
+        config.get("results_root", ROOT / "results/full-loop")
+    ).resolve()
+    directory = results_root / campaign_id
+    directory.mkdir(parents=True, exist_ok=False)
+    dispatcher = dispatcher or (
+        ChiaDispatcher(config.get("ray_address", "auto"))
+        if mode == "chia"
+        else LocalDispatcher()
     )
-
-    for iteration in range(iterations):
-        candidate = None
-
-        try:
-            candidate = propose_hardware_candidate(
-                design_space=design_space,
-                history=history,
-                model=optimizer_model,
+    history = []
+    seen = set()
+    skipped = []
+    start = time.monotonic()
+    reason = "candidate_list_exhausted"
+    candidates = config.get("candidates", deterministic_candidates())
+    optimizer_config = config.get("optimizer", {})
+    optimizer = None
+    if optimizer_config.get("enabled", False):
+        if not policy["tiers"][tier]["gemini_allowed"]:
+            raise ConfigError("This compute tier forbids Gemini calls.")
+        if (
+            optimizer_config.get("policy") != "gemini_cli"
+            or optimizer_config.get("reviewed_cli_safety") is not True
+        ):
+            raise ConfigError(
+                "Gemini CLI requires explicit policy and reviewed tool-isolation settings."
             )
-
-            result_reference = (
-                run_gem5_candidate.chia_remote(candidate)
+        cap = optimizer_config.get("max_calls")
+        if type(cap) is not int or not 1 <= cap <= iterations:
+            raise ConfigError("Optimizer max_calls must be bounded by iteration count.")
+        if policy["gemini"].get("metering_required", False):
+            raise ConfigError(
+                "Gemini CLI activation is blocked by the current mandatory dollar-metering policy. Implement reviewed CLI usage pricing before activation; do not weaken compute policy."
             )
-            hardware_result = get(result_reference)
+        from src.orchestration.gemini_cli import GeminiCLIOptimizer
 
-            record = {
-                "iteration": iteration + 1,
-                "timestamp": _utc_timestamp(),
-                "status": "completed",
-                "candidate": candidate,
-                "hardware_result": hardware_result,
-            }
-
-        except Exception as error:
-            record = {
-                "iteration": iteration + 1,
-                "timestamp": _utc_timestamp(),
-                "status": "failed",
-                "candidate": candidate,
-                "error": {
-                    "type": type(error).__name__,
-                    "message": str(error),
-                },
-            }
-
-            history.append(record)
-            experiments.append(record)
-
-            _write_json(
-                campaign_directory
-                / f"iteration-{iteration + 1:03d}.json",
-                record,
-            )
-            _save_summary(
-                campaign_directory=campaign_directory,
-                campaign_id=campaign_id,
-                state="failed",
-                requested_iterations=iterations,
-                history=history,
-            )
-
-            raise
-
-        history.append(record)
-        experiments.append(record)
-
-        _write_json(
-            campaign_directory
-            / f"iteration-{iteration + 1:03d}.json",
-            record,
+        optimizer = GeminiCLIOptimizer(
+            executable=optimizer_config["executable"],
+            model=optimizer_config["model"],
+            expected_version=optimizer_config["expected_version"],
+            timeout_seconds=optimizer_config.get("timeout_seconds", 60),
         )
-        _save_summary(
-            campaign_directory=campaign_directory,
-            campaign_id=campaign_id,
-            state="running",
-            requested_iterations=iterations,
-            history=history,
-        )
-
-    _save_summary(
-        campaign_directory=campaign_directory,
-        campaign_id=campaign_id,
-        state="completed",
-        requested_iterations=iterations,
-        history=history,
-    )
-
-    return {
-        "status": "completed",
-        "mode": "hardware_only",
+    summary = {
         "campaign_id": campaign_id,
-        "iterations": iterations,
-        "experiments": experiments,
-        "history": history,
-        "results_directory": str(campaign_directory),
+        "mode": mode,
+        "state": "running",
+        "records": [],
+        "skipped": skipped,
     }
+    atomic_json(directory / "summary.json", summary)
+    iterator = iter(candidates)
+    optimizer_calls = 0
+
+    def next_fallback():
+        for value in iterator:
+            try:
+                key = Candidate.from_dict(value).candidate_id
+            except Exception:
+                return value
+            if key not in seen:
+                return value
+            skipped.append({"reason": "duplicate_candidate", "candidate_id": key})
+        return None
+
+    for index in range(iterations):
+        if len(history) >= iterations:
+            reason = "iteration_limit"
+            break
+        remaining = budget - (time.monotonic() - start)
+        if remaining <= 0:
+            reason = "wall_budget"
+            break
+        proposal_metadata = {}
+        selected_policy = "deterministic"
+        candidate = None
+        if optimizer is not None and optimizer_calls < optimizer_config["max_calls"]:
+            optimizer_calls += 1
+            optimizer.timeout = min(optimizer.timeout, remaining)
+            try:
+                candidate, proposal_metadata = optimizer.propose(history, seen)
+                selected_policy = "gemini_cli"
+            except Exception as error:
+                skipped.append(
+                    {
+                        "reason": "optimizer_fallback",
+                        "error": failure(error, "optimizer"),
+                    }
+                )
+        if candidate is None:
+            candidate = next_fallback()
+        if candidate is None:
+            reason = "candidate_list_exhausted"
+            break
+        remaining = budget - (time.monotonic() - start)
+        if remaining <= 0:
+            reason = "wall_budget"
+            break
+        try:
+            key = Candidate.from_dict(candidate).candidate_id
+        except Exception:
+            key = None  # executor emits a sanitized rejected record without executing either node.
+        if key in seen:
+            skipped.append(
+                {
+                    "input_index": index,
+                    "reason": "duplicate_candidate",
+                    "candidate_id": key,
+                }
+            )
+            continue
+        if key:
+            seen.add(key)
+        bounded = {
+            name: {
+                **runtime[name],
+                "timeout_seconds": min(runtime[name]["timeout_seconds"], remaining),
+                "deadline_epoch_seconds": time.time() + remaining,
+            }
+            for name in ("software", "hardware")
+        }
+        bounded["graph_timeout_seconds"] = remaining
+        record = run_experiment(
+            candidate,
+            runtime=bounded,
+            dispatcher=dispatcher,
+            results_root=results_root,
+            campaign_id=campaign_id,
+            iteration=len(history) + 1,
+            policy=selected_policy,
+            optimizer_metadata=proposal_metadata,
+        )
+        history.append(record)
+        summary.update(
+            records=[
+                {
+                    "run_id": r["run_id"],
+                    "candidate_id": r["candidate_id"],
+                    "status": r["status"],
+                }
+                for r in history
+            ],
+            pareto_candidate_ids=pareto(history),
+        )
+        atomic_json(directory / "summary.json", summary)
+        if sum(r["status"] == "failed" for r in history[-3:]) == 3:
+            reason = "repeated_runtime_failures"
+            break
+    if len(history) >= iterations and reason == "candidate_list_exhausted":
+        reason = "iteration_limit"
+    summary.update(
+        state="completed"
+        if all(r["status"] == "completed" for r in history) and history
+        else "incomplete",
+        stop_reason=reason,
+        elapsed_seconds=time.monotonic() - start,
+        optimizer_calls=optimizer_calls,
+    )
+    atomic_json(directory / "summary.json", summary)
+    return {**summary, "experiments": history, "results_directory": str(directory)}

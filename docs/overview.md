@@ -2,7 +2,7 @@
 
 The project explores hardware/software co-design for an offline AI Tutor. The intended CHIA loop proposes candidate settings, validates them, executes workloads, and compares measured outcomes. The complete automated loop is still under development.
 
-The native tutor baseline specifies Llama 3.2 1B Instruct with Q4_K_M weights, llama.cpp on CPU, and MiniLM-L6-dot-v1 retrieval. An attention kernel with packed Q4 KV cache is the gem5 proxy. It does not execute the full tutor model or establish tutor answer quality.
+The native tutor baseline specifies Llama 3.2 1B Instruct with Q4_K_M weights, llama.cpp on CPU. An attention kernel with packed Q4 KV cache is the gem5 proxy. It does not execute the full tutor model or establish tutor answer quality.
 
 ## Current status
 
@@ -18,7 +18,7 @@ See the [configuration guide](configuration.md) for authoritative inputs and the
 
 ## Next implementation work
 
-- Resolve model, embedding, and corpus artifacts and batch-size/runtime semantics.
+- Resolve model and evaluation artifacts and batch-size/runtime semantics.
 - Implement the tutor runner and evaluation against held-out reference answers.
 - Define the tutor-to-attention mapping and its limitations.
 - Connect the existing gem5 pipeline through the project adapters and CHIA.

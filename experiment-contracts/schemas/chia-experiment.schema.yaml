@@ -267,14 +267,6 @@ $defs:
       - batch_size
       - temperature
       - max_output_tokens
-      - embedding_model
-      - embedding_dimension
-      - retrieval_method
-      - similarity_metric
-      - top_k
-      - chunk_size
-      - chunk_overlap
-      - chunk_unit
       - runtime_ready
     properties:
       model:
@@ -298,33 +290,6 @@ $defs:
       max_output_tokens:
         type: integer
         minimum: 1
-      embedding_model:
-        type: string
-        minLength: 1
-        description: "Authoritative embedding model identifier (canonical: sentence-transformers/multi-qa-MiniLM-L6-dot-v1)."
-      embedding_dimension:
-        type: integer
-        minimum: 1
-      retrieval_method:
-        type: string
-        minLength: 1
-        description: "Canonical machine-readable retrieval method (semantic_similarity)."
-      similarity_metric:
-        type: string
-        minLength: 1
-        description: "Authoritative vector similarity metric (canonical: dot_product)."
-      top_k:
-        type: integer
-        minimum: 1
-      chunk_size:
-        type: integer
-        minimum: 1
-      chunk_overlap:
-        type: integer
-        minimum: 0
-      chunk_unit:
-        type: string
-        enum: ["characters"]
       runtime_ready:
         type: boolean
       status:
@@ -367,19 +332,15 @@ $defs:
 
   tutor_workload:
     type: object
-    description: "Offline AI Tutor evaluation dataset and corpus workload parameters."
+    description: "Offline AI Tutor evaluation dataset workload parameters."
     additionalProperties: false
     required:
       - dataset_id
-      - corpus_id
       - evaluation_protocol
       - num_questions
       - seed
     properties:
       dataset_id:
-        type: string
-        minLength: 1
-      corpus_id:
         type: string
         minLength: 1
       evaluation_protocol:
@@ -641,14 +602,6 @@ $defs:
           - batch_size
           - temperature
           - max_output_tokens
-          - embedding_model
-          - embedding_dimension
-          - retrieval_method
-          - similarity_metric
-          - top_k
-          - chunk_size
-          - chunk_overlap
-          - chunk_unit
           - runtime_ready
           - status
         properties:
@@ -659,14 +612,6 @@ $defs:
           batch_size: { type: integer, minimum: 1 }
           temperature: { type: number, minimum: 0 }
           max_output_tokens: { type: integer, minimum: 1 }
-          embedding_model: { type: string }
-          embedding_dimension: { type: integer, minimum: 1 }
-          retrieval_method: { type: string }
-          similarity_metric: { type: string }
-          top_k: { type: integer, minimum: 1 }
-          chunk_size: { type: integer, minimum: 1 }
-          chunk_overlap: { type: integer, minimum: 0 }
-          chunk_unit: { type: string, enum: ["characters"] }
           runtime_ready: { type: boolean }
           status: { type: string }
       fixed:
@@ -680,14 +625,6 @@ $defs:
           - batch_size
           - temperature
           - max_output_tokens
-          - embedding_model
-          - embedding_dimension
-          - retrieval_method
-          - similarity_metric
-          - top_k
-          - chunk_size
-          - chunk_overlap
-          - chunk_unit
         properties:
           model: { type: string }
           quantization: { type: string }
@@ -696,14 +633,6 @@ $defs:
           batch_size: { type: integer, minimum: 1 }
           temperature: { type: number, minimum: 0 }
           max_output_tokens: { type: integer, minimum: 1 }
-          embedding_model: { type: string }
-          embedding_dimension: { type: integer, minimum: 1 }
-          retrieval_method: { type: string }
-          similarity_metric: { type: string }
-          top_k: { type: integer, minimum: 1 }
-          chunk_size: { type: integer, minimum: 1 }
-          chunk_overlap: { type: integer, minimum: 0 }
-          chunk_unit: { type: string, enum: ["characters"] }
       active_candidates:
         type: object
       pending_search_space:
@@ -1217,8 +1146,6 @@ $defs:
     properties:
       dataset_id:
         type: string
-      corpus_id:
-        type: string
       evaluation_protocol:
         type: string
       num_questions:
@@ -1307,3 +1234,152 @@ $defs:
         items:
           type: "integer"
           minimum: 0
+
+  # Full-loop versioned contracts; legacy 0.2 definitions remain unchanged.
+  loop_candidate:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - profile
+    - hardware
+    - workload
+    - software
+    - measurement
+    properties:
+      schema_version:
+        const: 0.3.0
+      profile:
+        const: ollama-smoke
+      hardware:
+        $ref: '#/$defs/hardware'
+      workload:
+        $ref: '#/$defs/attention_workload'
+      software:
+        type: object
+        additionalProperties: false
+        required:
+        - model
+        - backend
+        - temperature
+        - max_output_tokens
+        - cpu_threads
+        - batch_size
+        properties:
+          model:
+            const: qwen2.5:0.5b
+          backend:
+            const: ollama
+          temperature:
+            type: number
+            enum:
+            - 0.0
+            - 0.2
+            - 0.5
+          max_output_tokens:
+            type: integer
+            enum:
+            - 64
+            - 128
+            - 256
+          cpu_threads:
+            type: integer
+            const: 4
+          batch_size:
+            type: integer
+            const: 1
+      measurement:
+        type: object
+        additionalProperties: false
+        required:
+        - software_repetitions
+        - kernel_iterations
+        properties:
+          software_repetitions:
+            type: integer
+            minimum: 1
+            maximum: 10
+          kernel_iterations:
+            type: integer
+            const: 10
+  loop_record:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - campaign_id
+    - iteration
+    - run_id
+    - candidate_id
+    - candidate
+    - status
+    - started_at
+    - ended_at
+    - software_result
+    - hardware_result
+    - evaluation
+    - failure
+    - events
+    - provenance
+    - optimizer
+    properties:
+      schema_version:
+        const: 0.3.0
+      campaign_id: &id001
+        type: string
+        minLength: 1
+      iteration:
+        type: integer
+        minimum: 1
+      run_id: *id001
+      candidate_id:
+        type: string
+        pattern: ^[0-9a-f]{64}$
+      candidate: &id002
+        type:
+        - object
+        - 'null'
+      status:
+        enum:
+        - completed
+        - failed
+        - rejected
+      started_at: *id001
+      ended_at: *id001
+      software_result: *id002
+      hardware_result: *id002
+      evaluation: *id002
+      failure: *id002
+      events:
+        type: array
+        items:
+          type: object
+      provenance:
+        type: object
+      optimizer:
+        type: object
+        additionalProperties: false
+        required:
+        - policy
+        - metadata
+        properties:
+          policy: *id001
+          metadata:
+            type: object
+    allOf:
+    - if:
+        properties:
+          status:
+            const: completed
+      then:
+        properties:
+          candidate:
+            $ref: '#/$defs/loop_candidate'
+          software_result:
+            type: object
+          hardware_result:
+            type: object
+          evaluation:
+            type: object
+          failure:
+            type: 'null'

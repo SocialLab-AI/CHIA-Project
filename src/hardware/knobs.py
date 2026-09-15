@@ -1,3 +1,5 @@
+"""Hardware-owned design-space construction and validation; consumed by candidate validation."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -30,10 +32,7 @@ def baseline_hardware_candidate(
     active = design_space["active_candidates"]["hardware"]
     fixed = design_space["fixed"]
 
-    candidate = {
-        knob: baseline[knob]
-        for knob in active
-    }
+    candidate = {knob: baseline[knob] for knob in active}
 
     candidate.update(
         {
@@ -63,13 +62,16 @@ def validate_hardware_candidate(
 ) -> None:
     active = design_space["active_candidates"]["hardware"]
     fixed = design_space["fixed"]
+    expected_keys = set(baseline_hardware_candidate(design_space))
+    if set(candidate) - expected_keys - {"isa"}:
+        raise HardwareConfigError("unknown hardware knob")
+    if any(isinstance(v, bool) for v in candidate.values()):
+        raise HardwareConfigError("boolean values are not hardware numbers")
 
     # Active search knobs must use one of the declared values.
     for knob, allowed_values in active.items():
         if knob not in candidate:
-            raise HardwareConfigError(
-                f"missing active hardware knob: {knob}"
-            )
+            raise HardwareConfigError(f"missing active hardware knob: {knob}")
 
         if candidate[knob] not in allowed_values:
             raise HardwareConfigError(
@@ -94,14 +96,11 @@ def validate_hardware_candidate(
         expected = fixed[knob]
 
         if knob not in candidate:
-            raise HardwareConfigError(
-                f"missing fixed hardware knob: {knob}"
-            )
+            raise HardwareConfigError(f"missing fixed hardware knob: {knob}")
 
         if candidate[knob] != expected:
             raise HardwareConfigError(
-                f"{knob} is fixed at {expected!r}, "
-                f"got {candidate[knob]!r}"
+                f"{knob} is fixed at {expected!r}, got {candidate[knob]!r}"
             )
 
     # Cross-knob constraint from the design-space contract.
@@ -109,9 +108,7 @@ def validate_hardware_candidate(
         candidate["cpu_model"] == "RiscvTimingSimpleCPU"
         and candidate["issue_width"] != 1
     ):
-        raise HardwareConfigError(
-            "RiscvTimingSimpleCPU requires issue_width=1"
-        )
+        raise HardwareConfigError("RiscvTimingSimpleCPU requires issue_width=1")
 
 
 def build_baseline_candidate() -> dict[str, Any]:

@@ -62,3 +62,8 @@ __pycache__/
 # Editor backup files
 *.save
 *.save.*
+
+# Operator-only overlays and runtime state
+*.local.yaml
+*.local.json
+.gemini/

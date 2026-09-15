@@ -1,0 +1,19 @@
+# Operator runtime settings only. The proposal's three deterministic candidates are generated in code.
+# Copy to an ignored *.local.yaml and choose reviewed runtime bounds/tolerances.
+campaign_id: deterministic-local-review
+mode: local
+tier: dev
+backend: local
+iterations: 3
+wall_budget_seconds: 1800
+runtime:
+  software:
+    endpoint: http://127.0.0.1:11434
+    timeout_seconds: 120
+    retries: 1
+    model_digest: null # preflight records the installed model digest; pin after first inspection
+  hardware:
+    image: ghcr.io/gem5/devcontainer:v25-1 # resolves an already-installed immutable image ID, never auto-pulls
+    timeout_seconds: 600
+    retries: 0
+    correctness_tolerance: null # REQUIRED: reviewed max_absolute_error and mean_squared_error
