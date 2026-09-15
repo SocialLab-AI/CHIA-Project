@@ -23,6 +23,18 @@ from src.hardware.attention_kernel import build_attention_kernel_args
 from src.hardware.gem5 import build_gem5_command
 
 
+RESOLVED_CPU_MODELS = {
+    "RiscvO3CPU": {
+        "type": "BaseO3CPU",
+        "cxx_class": "gem5::o3::CPU",
+    },
+    "RiscvTimingSimpleCPU": {
+        "type": "BaseTimingSimpleCPU",
+        "cxx_class": "gem5::TimingSimpleCPU",
+    },
+}
+
+
 def parse_correctness(stdout, tolerance):
     values = {}
     for line in stdout.splitlines():
@@ -74,8 +86,9 @@ def verify_resolved(config_json, config):
     hw = config["hardware"]
     if len(cpus) != hw["cores"]:
         raise MetricsError("Resolved CPU count differs from candidate.")
+    expected_cpu = RESOLVED_CPU_MODELS[hw["cpu_model"]]
     for cpu in cpus:
-        if cpu["type"] != hw["cpu_model"]:
+        if any(cpu.get(field) != value for field, value in expected_cpu.items()):
             raise MetricsError("Resolved CPU model differs from candidate.")
         if hw["cpu_model"] == "RiscvO3CPU" and cpu["issueWidth"] != hw["issue_width"]:
             raise MetricsError("Resolved issue width differs from candidate.")

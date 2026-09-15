@@ -80,6 +80,16 @@ def test_hardware_cli_and_build_define_mapping():
 
 def resolved(c):
     hw = c["hardware"]
+    cpu_identity = {
+        "RiscvO3CPU": {
+            "type": "BaseO3CPU",
+            "cxx_class": "gem5::o3::CPU",
+        },
+        "RiscvTimingSimpleCPU": {
+            "type": "BaseTimingSimpleCPU",
+            "cxx_class": "gem5::TimingSimpleCPU",
+        },
+    }[hw["cpu_model"]]
 
     def cache(prefix):
         return {
@@ -95,7 +105,7 @@ def resolved(c):
         "system": {
             "cpu": [
                 {
-                    "type": hw["cpu_model"],
+                    **cpu_identity,
                     "issueWidth": hw["issue_width"],
                     "icache": cache("l1i"),
                     "dcache": cache("l1d"),
@@ -116,6 +126,19 @@ def test_resolved_config_verification_detects_silent_mapping_failure():
     raw["system"]["cpu"][1]["dcache"]["size"] = 1024
     with pytest.raises(MetricsError):
         verify_resolved(raw, c)
+
+
+def test_resolved_cpu_identity_requires_type_and_cxx_class():
+    c = baseline_candidate()
+    raw = resolved(c)
+    raw["system"]["cpu"][0]["cxx_class"] = "gem5::TimingSimpleCPU"
+    with pytest.raises(MetricsError):
+        verify_resolved(raw, c)
+
+    timing = baseline_candidate()
+    timing["hardware"]["cpu_model"] = "RiscvTimingSimpleCPU"
+    timing["hardware"]["issue_width"] = 1
+    assert verify_resolved(resolved(timing), timing)
 
 
 def test_gem5_version_comes_from_executed_simulation_banner():
