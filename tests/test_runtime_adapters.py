@@ -5,7 +5,13 @@ import sys
 from unittest.mock import patch
 import pytest
 from src.common.candidate import baseline_candidate
-from src.common.errors import MetricsError, PreflightError, ExecutionTimeout
+from src.common.errors import (
+    MetricsError,
+    PreflightError,
+    ExecutionTimeout,
+    RuntimeExecutionError,
+    failure,
+)
 from src.common.process import run_process
 from src.hardware.attention_kernel import build_attention_kernel_args
 from src.hardware.gem5 import build_gem5_command
@@ -136,3 +142,24 @@ def test_process_output_summaries_do_not_expose_values(tmp_path):
     )
     assert result["stdout_summary"]["content"] == "[omitted]"
     assert "private-output" not in json.dumps(result["stdout_summary"])
+
+
+def test_runtime_failure_preserves_only_safe_diagnostic_metadata():
+    error = RuntimeExecutionError("Subprocess failed with exit code 2.")
+    error.runtime_stage = "compile_kernel"
+    error.stdout_summary = {
+        "bytes": 14,
+        "sha256": "a" * 64,
+        "content": "[omitted]",
+    }
+    error.stderr_summary = {
+        "bytes": 21,
+        "sha256": "b" * 64,
+        "content": "[omitted]",
+    }
+
+    recorded = failure(error, "hardware")
+
+    assert recorded["runtime_stage"] == "compile_kernel"
+    assert recorded["stderr_summary"]["bytes"] == 21
+    assert "private-output" not in json.dumps(recorded)

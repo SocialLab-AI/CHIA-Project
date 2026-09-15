@@ -12,8 +12,10 @@ import time
 from src.common.candidate import Candidate, ROOT
 from src.common.errors import (
     ConfigError,
+    ExecutionTimeout,
     MetricsError,
     PreflightError,
+    RuntimeExecutionError,
 )
 from src.common.process import run_process
 from src.common.security import safe_id, within, finite_number
@@ -121,10 +123,16 @@ def run_gem5_candidate(config, runtime=None, context=None):
         raise ConfigError("Invalid operator-provided Docker image reference.")
     deadline = time.monotonic() + runtime.get("timeout_seconds", 600)
 
-    def run(args):
-        return run_process(args, cwd=ROOT, timeout=deadline - time.monotonic())
+    def run(args, stage):
+        try:
+            return run_process(args, cwd=ROOT, timeout=deadline - time.monotonic())
+        except (RuntimeExecutionError, ExecutionTimeout) as error:
+            error.runtime_stage = stage
+            raise
 
-    inspected = json.loads(run([docker, "image", "inspect", image])["stdout"])
+    inspected = json.loads(
+        run([docker, "image", "inspect", image], "image_inspect")["stdout"]
+    )
     identity = inspected[0]
     pinned = (identity.get("RepoDigests") or [identity["Id"]])[0]
     image_id = identity["Id"]
@@ -140,7 +148,7 @@ def run_gem5_candidate(config, runtime=None, context=None):
     (directory / "candidate.json").write_text(candidate.payload, encoding="utf-8")
     summaries = []
 
-    def container(command):
+    def container(stage, command):
         name = "chia-" + run_id + "-" + str(len(summaries))
         argv = [
             docker,
@@ -162,7 +170,7 @@ def run_gem5_candidate(config, runtime=None, context=None):
             argv += ["--user", f"{os.getuid()}:{os.getgid()}"]
         argv += [image_id, *command]
         try:
-            result = run(argv)
+            result = run(argv, stage)
             summaries.append(
                 {"stdout": result["stdout_summary"], "stderr": result["stderr_summary"]}
             )
@@ -175,11 +183,13 @@ def run_gem5_candidate(config, runtime=None, context=None):
                 pass  # --rm commonly already removed it; cleanup never overwrites the primary failure.
 
     try:
-        gem5_version = container(["gem5", "--version"]).strip()[:200]
+        gem5_version = container("gem5_version", ["gem5", "--version"]).strip()[:200]
         compiler_version = container(
+            "compiler_version",
             ["riscv64-linux-gnu-gcc", "-dumpfullversion"]
         ).strip()
         container(
+            "compile_kernel",
             [
                 "riscv64-linux-gnu-gcc",
                 "-static",
@@ -194,6 +204,7 @@ def run_gem5_candidate(config, runtime=None, context=None):
             ]
         )
         output = container(
+            "gem5_simulation",
             [
                 "gem5",
                 "--outdir=/work/m5out",

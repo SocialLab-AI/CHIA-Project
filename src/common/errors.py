@@ -39,7 +39,7 @@ class OptimizerError(LoopError):
 
 def failure(error, stage):
     """Do not expose arbitrary exception strings (HTTP bodies may contain secrets)."""
-    return {
+    result = {
         "stage": stage,
         "error_type": type(error).__name__,
         "code": getattr(error, "code", "UNEXPECTED_ERROR"),
@@ -48,3 +48,23 @@ def failure(error, stage):
         else "Unexpected runtime failure; inspect restricted local artifacts.",
         "transient": bool(getattr(error, "transient", False)),
     }
+    runtime_stage = getattr(error, "runtime_stage", None)
+    if runtime_stage in {
+        "image_inspect",
+        "gem5_version",
+        "compiler_version",
+        "compile_kernel",
+        "gem5_simulation",
+    }:
+        result["runtime_stage"] = runtime_stage
+    for name in ("stdout_summary", "stderr_summary"):
+        summary = getattr(error, name, None)
+        if (
+            isinstance(summary, dict)
+            and set(summary) == {"bytes", "sha256", "content"}
+            and summary.get("content") == "[omitted]"
+            and isinstance(summary.get("bytes"), int)
+            and isinstance(summary.get("sha256"), str)
+        ):
+            result[name] = summary
+    return result
