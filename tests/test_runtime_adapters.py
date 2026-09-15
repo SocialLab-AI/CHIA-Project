@@ -15,7 +15,7 @@ from src.common.errors import (
 from src.common.process import run_process
 from src.hardware.attention_kernel import build_attention_kernel_args
 from src.hardware.gem5 import build_gem5_command
-from src.hardware.runner import verify_resolved
+from src.hardware.runner import verify_resolved, parse_gem5_version
 from src.tutor.runner import run_software_candidate
 from src.tutor.ollama_runtime import call_ollama
 
@@ -116,6 +116,13 @@ def test_resolved_config_verification_detects_silent_mapping_failure():
     raw["system"]["cpu"][1]["dcache"]["size"] = 1024
     with pytest.raises(MetricsError):
         verify_resolved(raw, c)
+
+
+def test_gem5_version_comes_from_executed_simulation_banner():
+    output = "gem5 Simulator System\ngem5 version 25.1.0.0\nstatus=PASS\n"
+    assert parse_gem5_version(output) == "25.1.0.0"
+    with pytest.raises(MetricsError):
+        parse_gem5_version("simulation output without a version banner")
 
 
 def test_no_unapproved_numerical_tolerance():

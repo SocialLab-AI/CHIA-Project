@@ -58,6 +58,15 @@ def parse_correctness(stdout, tolerance):
     return values
 
 
+def parse_gem5_version(output):
+    """Extract a bounded version token from the banner of the executed simulator."""
+    match = re.search(r"(?m)^gem5 version ([^\r\n]+)\s*$", output)
+    version = match.group(1).strip() if match else ""
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._+-]{0,127}", version):
+        raise MetricsError("gem5 execution did not report a valid version banner.")
+    return version
+
+
 def verify_resolved(config_json, config):
     """Inspect actual instantiated objects, not command text alone."""
     system = config_json["system"]
@@ -183,7 +192,6 @@ def run_gem5_candidate(config, runtime=None, context=None):
                 pass  # --rm commonly already removed it; cleanup never overwrites the primary failure.
 
     try:
-        gem5_version = container("gem5_version", ["gem5", "--version"]).strip()[:200]
         compiler_version = container(
             "compiler_version",
             ["riscv64-linux-gnu-gcc", "-dumpfullversion"]
@@ -218,6 +226,7 @@ def run_gem5_candidate(config, runtime=None, context=None):
             raise MetricsError(
                 "gem5 did not report the expected workload completion exit."
             )
+        gem5_version = parse_gem5_version(output)
         correctness = parse_correctness(output, tolerance)
         expected = {
             **config["workload"],
