@@ -30,6 +30,11 @@ dev = [
     { name = "pytest" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "jsonschema", specifier = ">=4.23,<5" },
@@ -38,6 +43,9 @@ requires-dist = [
     { name = "referencing", specifier = ">=0.35,<1" },
 ]
 provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.4.2" }]
 
 [[package]]
 name = "colorama"

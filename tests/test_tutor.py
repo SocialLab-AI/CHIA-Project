@@ -56,10 +56,13 @@ def test_user_supplied_software_baseline_values():
 
     assert sw["model"] == "Llama 3.2 1B Instruct"
     assert sw["quantization"] == "Q4_K_M"
-    assert sw["embedding_model"] == "MiniLM-L6-dot-v1"
+    assert (
+    sw["embedding_model"]
+    == "sentence-transformers/multi-qa-MiniLM-L6-dot-v1"
+    )
     assert sw["embedding_dimension"] == 384
-    assert sw["retrieval_method"] == "Semantic similarity"
-    assert sw["top_k"] == 2
+    assert sw["retrieval_method"] == "semantic_similarity"
+    assert sw["top_k"] == 3
     assert sw["chunk_size"] == 1500
     assert sw["chunk_overlap"] == 200
     assert sw["chunk_unit"] == "characters"

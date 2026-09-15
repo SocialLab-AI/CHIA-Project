@@ -1,0 +1,46 @@
+cluster_name: chia-hardware-loop
+
+file_mounts:
+  /tmp/chia-project/: /srv/chia-team/CHIA-Project/
+
+rsync_exclude:
+  - ".git"
+  - ".venv"
+  - "__pycache__"
+  - "gem5/results"
+
+provider:
+  head_ip: 173.212.217.138
+
+auth:
+  ssh_user: adam
+  ssh_private_key: /home/adam/.ssh/id_ed25519
+
+  overrides:
+    169.58.139.244:
+      ssh_user: ysf
+      ssh_private_key: /home/adam/.ssh/id_ed25519
+
+available_node_types:
+  gem5_worker:
+    resources:
+      gem5: 1
+
+    num_workers: 1
+
+    compatible_ips:
+      - 169.58.139.244
+
+    worker_env_commands:
+      - source /home/ysf/chia/.venv/bin/activate
+
+head_env_commands:
+  - source /home/adam/chia/.venv/bin/activate
+
+head_start_ray_commands:
+  - ray stop
+  - ray start --head --port=6379 --include-dashboard=True --dashboard-agent-listen-port=0
+
+worker_start_ray_commands:
+  - ray stop
+  - ray start --address=$RAY_HEAD_IP:6379 --dashboard-agent-listen-port=0

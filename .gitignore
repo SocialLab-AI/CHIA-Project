@@ -47,3 +47,18 @@ dist/
 *.tmp
 *.temp
 *.bak
+# Generated optimization outputs
+results/hardware-optimization/
+
+# Python temporary files
+__pycache__/
+.pytest_cache/
+*.py[cod]
+
+# Local secrets
+.env
+.env.*
+
+# Editor backup files
+*.save
+*.save.*
