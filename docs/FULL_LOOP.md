@@ -42,6 +42,8 @@ uv run pytest -q tests/test_scheduling.py
 
 The scheduling test launches only local Ray processes and shuts down that test session. It does not contact Adam/YSF. Do not confuse mocked runtime tests or local scheduling proof with real remote simulator/model execution.
 
+When `--config` and `--validate-only` are used together, the command validates the complete operator campaign configuration as well as every candidate. It rejects malformed YAML structure, unknown fields, unsupported tier/backend combinations, unsafe Ollama endpoints, invalid retry/timeout settings and missing numerical-tolerance fields without connecting to Ray or executing a runtime.
+
 For a real local campaign, copy `experiment-contracts/testing/full-loop.local.example.yaml` to an ignored `*.local.yaml`. Choose a unique campaign ID, fill a reviewed numerical tolerance and ensure the model/image are already installed. Then:
 
 ```text

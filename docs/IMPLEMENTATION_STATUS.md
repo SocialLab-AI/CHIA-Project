@@ -53,3 +53,4 @@ IMPLEMENTED means code exists with the evidence below. PARTIAL means acceptance 
 - 2026-09-15: user authorized publication for server checkout. Verified all 97 documented files match the tested snapshot before this checklist-only update.
 - 2026-09-15: Adam/YSF cluster startup and resource placement passed. Added the synchronized project root to head/worker `PYTHONPATH` after YSF correctly rejected the previously missing `src` import.
 - 2026-09-15: server rerun verified imports on Adam and YSF, both Ollama entrypoint forms, warm-model inference, Docker access and the installed gem5 image. Next gate is one combined candidate with a reviewed Q4 numerical tolerance.
+- 2026-09-15: acceptance usage exposed that `--validate-only` checked candidates but not the surrounding campaign document. Full offline campaign validation now runs before Ray initialization and rejects malformed nesting, unsafe endpoints, unknown runtime fields and incomplete correctness tolerances.

@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import yaml
 from src.common.candidate import Candidate
-from src.orchestration.chia import chia_entrypoint
+from src.orchestration.chia import chia_entrypoint, validate_campaign_config
 from src.orchestration.policies import deterministic_candidates
 
 
@@ -19,7 +19,8 @@ def main():
     args = parser.parse_args()
     config = yaml.safe_load(args.config.read_text()) if args.config else {}
     if args.validate_only:
-        candidates = config.get("candidates", deterministic_candidates())
+        checked = validate_campaign_config(config)
+        candidates = checked.get("candidates", deterministic_candidates())
         print(
             json.dumps(
                 {

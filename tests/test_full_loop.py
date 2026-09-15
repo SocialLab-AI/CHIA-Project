@@ -12,7 +12,7 @@ from src.common.errors import (
     MetricsError,
 )
 from src.common.security import safe_id, within, strict_json, local_endpoint
-from src.orchestration.chia import chia_entrypoint
+from src.orchestration.chia import chia_entrypoint, validate_campaign_config
 from src.orchestration.experiment import run_experiment
 from src.orchestration.nodes.validation import validation_node, mapping_node
 from src.orchestration.nodes.shared import execute_runtime
@@ -100,6 +100,43 @@ def test_three_candidate_full_loop(tmp_path, mocked_runtimes):
             "evaluation",
             "record",
         }
+
+
+@pytest.mark.parametrize(
+    "config",
+    [
+        {"runtime": None},
+        {"runtime": {"software": "bad"}},
+        {"runtime": {"software": {"endpoint": "[http://127.0.0.1:11434](http://127.0.0.1:11434)"}}},
+        {"runtime": {"hardware": {"correctness_tolerance": {"max_absolute_error": 0.01}}}},
+        {"software": {"endpoint": "http://127.0.0.1:11434"}},
+    ],
+)
+def test_campaign_validation_rejects_malformed_operator_config(config):
+    with pytest.raises(ConfigError):
+        validate_campaign_config(config)
+
+
+def test_campaign_validation_accepts_reviewed_chia_runtime():
+    checked = validate_campaign_config(
+        {
+            "campaign_id": "acceptance",
+            "mode": "chia",
+            "tier": "integration",
+            "backend": "contabo",
+            "iterations": 1,
+            "runtime": {
+                "software": {"endpoint": "http://127.0.0.1:11434"},
+                "hardware": {
+                    "correctness_tolerance": {
+                        "max_absolute_error": 0.01,
+                        "mean_squared_error": 0.00001,
+                    }
+                },
+            },
+        }
+    )
+    assert checked["mode"] == "chia" and checked["iterations"] == 1
 
 
 def test_invalid_candidate_never_executes_and_is_recorded(tmp_path, mocked_runtimes):
