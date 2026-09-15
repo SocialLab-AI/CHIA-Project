@@ -41,9 +41,11 @@ available_node_types:
 
     worker_env_commands:
       - source /home/ysf/chia/.venv/bin/activate
+      - export PYTHONPATH=/tmp/chia-project
 
 head_env_commands:
   - source /home/adam/chia/.venv/bin/activate
+  - export PYTHONPATH=/tmp/chia-project
 
 head_start_ray_commands:
   - ray stop

@@ -1,7 +1,13 @@
+"""Run the Tutor's standalone Ollama smoke test from either the repo root or module mode."""
+
 from __future__ import annotations
 
 from pathlib import Path
 from pprint import pprint
+import sys
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
 
 import yaml
 
@@ -12,8 +18,6 @@ from src.tutor.ollama_runtime import (
     load_system_prompt,
 )
 
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 CONFIG_PATH = (
     PROJECT_ROOT

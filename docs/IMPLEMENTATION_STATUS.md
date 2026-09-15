@@ -13,7 +13,7 @@ IMPLEMENTED means code exists with the evidence below. PARTIAL means acceptance 
 | 4. Candidate-driven runners (A) | IMPLEMENTED | Actual Docker/Ollama adapters; installed-service execution still unverified. |
 | 5. Knob system (A) | IMPLEMENTED | Immutable candidate, strict schema, fixed/search separation and cross-knob checks. |
 | 6. Runtime mappings (A/E) | PARTIAL | gem5 CLI/resolved config and Ollama fields wired; final llama.cpp inference mapper awaits runtime activation. |
-| 7. Adam head / YSF worker (B) | PARTIAL | Explicit resources, pinned dependencies and overlay renderer; remote placement not exercised. |
+| 7. Adam head / YSF worker (B) | PARTIAL | Remote placement verified: control/software on Adam and hardware on YSF. Worker project import fix is implemented and awaits server rerun. |
 | 8. Structured logging (A/C) | IMPLEMENTED | Run/candidate/node/worker/timestamps/duration/status, safe errors and output summaries. |
 | 9. Combined records (B/C) | IMPLEMENTED | Atomic records with SW/HW knobs/results, source hashes, versions and status. |
 | 10. Validation layers (A/C) | IMPLEMENTED | Schema, design space, semantic, preflight, numerical, resolved hardware, metrics and completed records. |
@@ -35,6 +35,7 @@ IMPLEMENTED means code exists with the evidence below. PARTIAL means acceptance 
 - After the inference-only change: **87 tests passed** in 24.35 seconds, including both local CHIA/Ray scheduling tests. One upstream Ray FutureWarning; no failed tests. Three obsolete indexing/chunking tests were removed along with their implementation.
 - All seven contract files, semantic checks, five rejection checks, manifest agreement and three deterministic candidate validations passed after the change.
 - Local Ollama was unavailable. No real gem5 simulation or remote Adam/YSF job was executed in this session.
+- Server acceptance evidence: CHIA brought up one head and one gem5 worker; resource placement matched the design; the Ollama smoke test completed at about 32 generated tokens/s. The first YSF project probe exposed a missing synchronized-source `PYTHONPATH`; the cluster configuration now supplies it to both node types and awaits rerun.
 
 ## Active and legacy paths
 
@@ -50,3 +51,4 @@ IMPLEMENTED means code exists with the evidence below. PARTIAL means acceptance 
 - 2026-09-15: removed index/chunk helpers, associated mappings/contracts/search placeholders and review tasks following the user's inference-only decision. Held-out evaluation remains separate from inference prompts.
 
 - 2026-09-15: user authorized publication for server checkout. Verified all 97 documented files match the tested snapshot before this checklist-only update.
+- 2026-09-15: Adam/YSF cluster startup and resource placement passed. Added the synchronized project root to head/worker `PYTHONPATH` after YSF correctly rejected the previously missing `src` import.
