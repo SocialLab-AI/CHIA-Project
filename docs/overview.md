@@ -2,7 +2,7 @@
 
 The project explores hardware/software co-design for an offline AI Tutor. The intended CHIA loop proposes candidate settings, validates them, executes workloads, and compares measured outcomes. The complete automated loop is still under development.
 
-The native tutor baseline specifies Llama 3.2 1B Instruct with Q4_K_M weights, llama.cpp on CPU. An attention kernel with packed Q4 KV cache is the gem5 proxy. It does not execute the full tutor model or establish tutor answer quality.
+The native Tutor runs Qwen2.5 0.5B Instruct with Q5_K_M weights through a loopback llama.cpp server on Adam. Three attributed OpenStax questions provide deterministic required-concept quality evidence. An attention kernel with packed Q4 KV cache remains the gem5 proxy; it does not execute the full Tutor model.
 
 ## Current status
 
@@ -12,7 +12,7 @@ The native tutor baseline specifies Llama 3.2 1B Instruct with Q4_K_M weights, l
 | Hardware path | Executable workload, gem5 configuration, runner, and metric extraction exist under `gem5/`. The repository records a Q4 baseline run. |
 | Native tutor | Baseline is specified; runtime readiness is false. Model artifacts and adapter implementation remain unresolved. |
 | Integration | `src/` provides interfaces; the hardware/tutor runners and CHIA entrypoint still contain unimplemented boundaries. |
-| Search | Seven hardware parameters are active; core count and proxy Q4 remain fixed. Software search ranges are pending. |
+| Search | Hardware knobs plus reviewed temperature/output limits are active; model identity and proxy Q4 remain fixed. |
 
 See the [configuration guide](configuration.md) for authoritative inputs and the [evidence index](experiments/README.md) for measured reports. Documentation inspection and schema tests are not new simulator execution evidence.
 

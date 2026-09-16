@@ -90,13 +90,14 @@ def baseline_candidate():
     )
     return {
         "schema_version": "0.3.0",
-        "profile": "ollama-smoke",
+        "profile": "qwen25-q5-openstax",
         "hardware": attention["hardware"],
         "software": {
-            "model": "qwen2.5:0.5b",
-            "backend": "ollama",
+            "model": "Qwen2.5 0.5B Instruct",
+            "quantization": "Q5_K_M",
+            "backend": "llama.cpp / CPU",
             "temperature": 0.0,
-            "max_output_tokens": 128,
+            "max_output_tokens": 384,
             "cpu_threads": 4,
             "batch_size": 1,
         },

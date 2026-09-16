@@ -117,3 +117,22 @@ def test_final_runtime_does_not_invent_missing_assets():
 
     with pytest.raises(PreflightError):
         map_final_tutor(software, {})
+
+
+def test_llama_server_mapping_keeps_artifact_and_request_fields_separate(tmp_path):
+    model = tmp_path / "qwen.gguf"
+    model.write_bytes(b"fixture")
+    mapping = map_final_tutor(
+        baseline_candidate()["software"],
+        {
+            "endpoint": "http://127.0.0.1:8081",
+            "assets_root": str(tmp_path),
+            "gguf": model.name,
+            "model_sha256": "a" * 64,
+            "context_tokens": 2048,
+            "parallel_slots": 1,
+        },
+    )
+    assert mapping["request"]["temperature"] == 0.0
+    assert mapping["artifact_assertions"]["model_path"] == str(model)
+    assert mapping["request_concurrency"] == 1

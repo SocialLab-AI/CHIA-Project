@@ -52,7 +52,7 @@ def provenance():
             return None
 
     versions = {}
-    for package in ("chialoops", "ray", "jsonschema", "pyyaml"):
+    for package in ("chialoops", "ray", "google-genai", "jsonschema", "pyyaml"):
         try:
             versions[package] = importlib.metadata.version(package)
         except importlib.metadata.PackageNotFoundError:

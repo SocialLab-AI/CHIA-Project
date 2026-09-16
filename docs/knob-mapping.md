@@ -117,18 +117,18 @@ Contracts reside in:
 
 | Field | Baseline Value | Unit | Status | Owner | Constraints & Unresolved Items |
 | --- | --- | --- | --- | --- | --- |
-| `software.model` | `Llama 3.2 1B Instruct` | - | PLANNED | Intern 3 | User-supplied baseline. Exact GGUF/model artifact path unresolved. |
-| `software.quantization` | `Q4_K_M` | - | PLANNED | Intern 3 | Model-weight quantization; distinct from attention proxy KV format Q4. |
-| `software.backend` | `llama.cpp / CPU` | - | PLANNED | Intern 3 | Local CPU execution; old Ollama assumptions replaced. |
+| `software.model` | `Qwen2.5 0.5B Instruct` | - | WIRED | Tutor | Exact GGUF path is local; SHA-256 is verified before execution. |
+| `software.quantization` | `Q5_K_M` | - | WIRED | Tutor | Model-weight quantization; distinct from attention proxy KV format Q4. |
+| `software.backend` | `llama.cpp / CPU` | - | WIRED | Tutor | Loopback llama.cpp server on Adam. |
 | `software.cpu_threads` | `4` | threads | PLANNED | Intern 3 | Native host worker threads. Independent of gem5 proxy threads (`2`). |
-| `software.batch_size` | `1` | - | PLANNED | Intern 3 | Runtime mapping pending; not automatically mapped to llama.cpp `n_batch`. |
-| `software.temperature` | `0.0` | unitless | PLANNED | Intern 3 | Sampling temperature for answer generation. Search space pending. |
+| `software.batch_size` | `1` | - | WIRED | Tutor | One sequential request through one server slot; not token `n_batch`. |
+| `software.temperature` | `0.0` | unitless | WIRED | Tutor | Search values: 0.0, 0.2, 0.5. |
 | `software.max_output_tokens` | `384` | tokens | PLANNED | Intern 3 | Response token generation limit. |
-| `software.runtime_ready` | `false` | boolean | PLANNED | Intern 3 | Schema-valid while execution readiness remains false pending artifacts. |
+| `software.runtime_ready` | `true` | boolean | WIRED | Tutor | Preflight verifies health, model path, hash, context and slots. |
 
 ### Software Search Space Status
 
-The initial software baseline is **fixed for initial comparison**. Software search space exploration (ranges, tunable status) is recorded as **pending definition** in `experiment-contracts/ai-tutor-config/design-space.yaml`.
+The model artifact and runtime topology are fixed. Gemini may choose only the reviewed temperature and maximum-output values, and deterministic validation remains authoritative.
 
 ### Evaluation Isolation Guardrail
 

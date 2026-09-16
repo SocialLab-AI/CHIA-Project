@@ -55,11 +55,14 @@ def test_software_design_space_valid(sw_ds_validator):
     )
 
 
-def test_software_search_recorded_as_pending():
-    """Verify that software search is explicitly recorded as pending and active_candidates is empty."""
+def test_software_search_is_bounded_and_artifact_is_fixed():
+    """Only sampling/output knobs are active; model identity remains fixed."""
     ds = load_yaml(DESIGN_SPACES_DIR / "software.yaml")
-    assert ds["active_candidates"] == {}
-    assert ds["pending_search_space"]["status"] == "pending_definition"
+    assert ds["active_candidates"] == {
+        "temperature": [0.0, 0.2, 0.5],
+        "max_output_tokens": [128, 256, 384],
+    }
+    assert ds["pending_search_space"]["status"] == "resolved_for_integration"
     assert len(ds["pending_search_space"]["knobs"]) == 2
 
     # Optimization metrics
@@ -87,10 +90,10 @@ def test_manifest_consistency():
 
     field_map = {f["field"]: f for f in fields}
     assert "software.model" in field_map
-    assert field_map["software.model"]["baseline"] == "Llama 3.2 1B Instruct"
-    assert field_map["software.quantization"]["baseline"] == "Q4_K_M"
+    assert field_map["software.model"]["baseline"] == "Qwen2.5 0.5B Instruct"
+    assert field_map["software.quantization"]["baseline"] == "Q5_K_M"
     assert field_map["software.cpu_threads"]["baseline"] == 4
-    assert field_map["software.runtime_ready"]["baseline"] is False
+    assert field_map["software.runtime_ready"]["baseline"] is True
 
 
 def test_no_stale_active_configs_references():

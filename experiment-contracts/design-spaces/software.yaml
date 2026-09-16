@@ -1,14 +1,13 @@
 schema_version: "0.2.0"
 
 description: >
-  AI Tutor software design space.
-  The initial software configuration is fixed for baseline
-  co-design experiments. Optimization search ranges may be
-  introduced separately later.
+  Executable AI Tutor software design space. Model identity,
+  quantization, backend, threads and request concurrency are fixed;
+  Gemini may choose only the reviewed sampling and output limits.
 
 baseline:
-  model: "Llama 3.2 1B Instruct"
-  quantization: "Q4_K_M"
+  model: "Qwen2.5 0.5B Instruct"
+  quantization: "Q5_K_M"
   backend: "llama.cpp / CPU"
 
   cpu_threads: 4
@@ -17,40 +16,40 @@ baseline:
   temperature: 0.0
   max_output_tokens: 384
 
-  runtime_ready: false
-  status: "baseline_resolved"
+  runtime_ready: true
+  status: "runtime_verified"
 
 
 fixed:
-  model: "Llama 3.2 1B Instruct"
-  quantization: "Q4_K_M"
+  model: "Qwen2.5 0.5B Instruct"
+  quantization: "Q5_K_M"
   backend: "llama.cpp / CPU"
 
   cpu_threads: 4
   batch_size: 1
-
   temperature: 0.0
   max_output_tokens: 384
 
-active_candidates: {}
-
+active_candidates:
+  temperature: [0.0, 0.2, 0.5]
+  max_output_tokens: [128, 256, 384]
 
 pending_search_space:
-  status: "pending_definition"
+  status: "resolved_for_integration"
   description: >
-    Software optimization search ranges have not yet been defined.
-    Initial experiments use the resolved fixed baseline.
+    The integration campaign searches only temperature and maximum
+    output length. Model artifacts and runtime topology remain fixed.
 
   knobs:
     - name: "temperature"
       baseline_value: 0.0
       unit: "unitless"
-      status: "baseline_resolved"
+      status: "active"
       intended_purpose: "Sampling temperature for answer generation"
 
     - name: "quantization"
-      baseline_value: "Q4_K_M"
-      status: "baseline_resolved"
+      baseline_value: "Q5_K_M"
+      status: "fixed"
       intended_purpose: "Model weight quantization"
 
 
@@ -64,7 +63,4 @@ optimization_metrics:
     intended_purpose: "Application response latency"
 
 
-unresolved_runtime_items:
-  - "exact Llama 3.2 1B Instruct GGUF artifact path"
-  - "exact OpenStax evaluation dataset/subset/artifact"
-  - "llama.cpp batch-size runtime mapping semantics / adapter mapping"
+unresolved_runtime_items: []

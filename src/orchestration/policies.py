@@ -7,7 +7,7 @@ from src.common.candidate import baseline_candidate
 def deterministic_candidates():
     first = baseline_candidate()
     second = copy.deepcopy(first)
-    second["software"]["max_output_tokens"] = 64
+    second["software"]["max_output_tokens"] = 128
     second["hardware"]["l1d_cache_kib"] = 32
     third = copy.deepcopy(first)
     third["software"]["temperature"] = 0.2

@@ -39,8 +39,27 @@ def verify_results(config, candidate_id, software, hardware):
     ):
         if not positive(value):
             raise MetricsError("Primary metric is missing, non-finite or nonpositive.")
-    if sw.get("sample_count") != config["measurement"]["software_repetitions"]:
+    quality = sw.get("answer_quality")
+    question_count = sw.get("question_count")
+    if (
+        isinstance(quality, bool)
+        or not isinstance(quality, (int, float))
+        or not math.isfinite(quality)
+        or not 0 <= quality <= 1
+        or type(question_count) is not int
+        or question_count < 1
+    ):
+        raise MetricsError("Tutor quality evidence is missing or invalid.")
+    expected_samples = question_count * config["measurement"]["software_repetitions"]
+    if sw.get("sample_count") != expected_samples:
         raise MetricsError("Software sample count differs from requested repetitions.")
+    dataset = software.get("dataset", {})
+    if (
+        not dataset.get("dataset_id")
+        or dataset.get("reference_visible_to_model") is not False
+        or dataset.get("license") != "CC BY 4.0"
+    ):
+        raise MetricsError("Tutor dataset provenance or reference isolation is absent.")
     if hardware.get("correctness", {}).get("status") != "PASS" or not hardware[
         "provenance"
     ].get("resolved_config_verified"):
@@ -86,12 +105,16 @@ def verify_results(config, candidate_id, software, hardware):
         "objectives": {
             "native_latency_ms": sw["latency_ms"],
             "proxy_simulated_seconds": hw["simulated_seconds"],
+            "answer_quality_loss": 1.0 - quality,
         },
-        "quality_evaluated": False,
-        "scope": "integration_test_not_final_tutor",
+        "answer_quality": quality,
+        "quality_evaluated": True,
+        "scope": "qwen_openstax_quality_plus_attention_proxy",
         "comparison_group": {
             "context_tokens": config["workload"]["context_tokens"],
             "profile": config["profile"],
+            "dataset_id": dataset["dataset_id"],
+            "question_count": question_count,
         },
     }
 

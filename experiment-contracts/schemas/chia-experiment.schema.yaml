@@ -1267,7 +1267,7 @@ $defs:
       schema_version:
         const: 0.3.0
       profile:
-        const: ollama-smoke
+        const: qwen25-q5-openstax
       hardware:
         $ref: '#/$defs/hardware'
       workload:
@@ -1277,6 +1277,7 @@ $defs:
         additionalProperties: false
         required:
         - model
+        - quantization
         - backend
         - temperature
         - max_output_tokens
@@ -1284,9 +1285,11 @@ $defs:
         - batch_size
         properties:
           model:
-            const: qwen2.5:0.5b
+            const: "Qwen2.5 0.5B Instruct"
+          quantization:
+            const: Q5_K_M
           backend:
-            const: ollama
+            const: "llama.cpp / CPU"
           temperature:
             type: number
             enum:
@@ -1296,9 +1299,9 @@ $defs:
           max_output_tokens:
             type: integer
             enum:
-            - 64
             - 128
             - 256
+            - 384
           cpu_threads:
             type: integer
             const: 4

@@ -1,6 +1,6 @@
 # chia-hackathon
 
-Local implementation: [full-loop guide](docs/FULL_LOOP.md) · [visible checklist](docs/IMPLEMENTATION_STATUS.md). The software workload is inference-only. Local runtime-fixture tests pass; real server execution remains a separate acceptance step.
+Local implementation: [full-loop guide](docs/FULL_LOOP.md) · [visible checklist](docs/IMPLEMENTATION_STATUS.md). The software workload is inference-only. Contract validation and 102 automated tests pass; the Qwen/llama.cpp combined server campaign is the next acceptance step.
 
 Our entry for the **A³ workshop hackathon @ MICRO 2026 (Athens)**, built on the CHIA framework.
 
@@ -74,8 +74,8 @@ docs/                   # project guides and experiment evidence
 
 experiment-contracts/ is the configuration source of truth. The executable
 hardware path lives under gem5/. The src/ package defines the modular
-integration boundaries; some tutor and orchestration components intentionally
-remain skeletons while their implementation is finalized.
+integration boundaries, including the Qwen/llama.cpp runtime and metered
+Gemini SDK optimizer.
 
 ## Documentation
 

@@ -1,6 +1,34 @@
-[
-  {
-    "id": "q001",
-    "reference": "Replace this placeholder with the matching OpenStax reference answer."
-  }
-]
+{
+  "schema_version": "1.0",
+  "dataset_id": "openstax-college-physics-2e-ch4-concepts-v1",
+  "method": "required_concept_coverage",
+  "references": [
+    {
+      "id": "openstax-cp2e-ch4-q3",
+      "reference": "Mass is a measure of inertia: an object with greater mass has greater resistance to a change in its velocity.",
+      "required_concepts": [
+        ["mass is a measure of inertia", "mass measures inertia"],
+        ["greater mass", "more mass"],
+        ["resistance to a change in motion", "resistance to a change in velocity", "harder to accelerate"]
+      ]
+    },
+    {
+      "id": "openstax-cp2e-ch4-q2",
+      "reference": "A force has both magnitude and direction and combines with other forces according to vector addition.",
+      "required_concepts": [
+        ["magnitude"],
+        ["direction"],
+        ["vector addition", "add as vectors"]
+      ]
+    },
+    {
+      "id": "openstax-cp2e-ch4-q5",
+      "reference": "Net force causes acceleration, which is a change in velocity rather than motion itself. For example, a force can change an object's speed or direction.",
+      "required_concepts": [
+        ["change in motion", "change in velocity", "acceleration"],
+        ["not motion itself", "can already be moving", "constant motion needs no net force"],
+        ["speed", "direction", "accelerate", "decelerate"]
+      ]
+    }
+  ]
+}

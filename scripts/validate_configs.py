@@ -236,16 +236,16 @@ def run_semantic_checks(verbose: bool = True) -> bool:
     tutor_sw = tutor_cfg["software"]
     tutor_eval = tutor_cfg["evaluation"]
 
-    if tutor_sw["model"] != "Llama 3.2 1B Instruct":
+    if tutor_sw["model"] != "Qwen2.5 0.5B Instruct":
         if verbose:
             print(
-                f"[FAIL] Tutor model must be 'Llama 3.2 1B Instruct', got {tutor_sw['model']}"
+                f"[FAIL] Tutor model must be 'Qwen2.5 0.5B Instruct', got {tutor_sw['model']}"
             )
         ok = False
-    if tutor_sw["quantization"] != "Q4_K_M":
+    if tutor_sw["quantization"] != "Q5_K_M":
         if verbose:
             print(
-                f"[FAIL] Tutor quantization must be 'Q4_K_M', got {tutor_sw['quantization']}"
+                f"[FAIL] Tutor quantization must be 'Q5_K_M', got {tutor_sw['quantization']}"
             )
         ok = False
     if tutor_sw["backend"] != "llama.cpp / CPU":
@@ -274,10 +274,10 @@ def run_semantic_checks(verbose: bool = True) -> bool:
                 f"[FAIL] Tutor max_output_tokens must be 384, got {tutor_sw['max_output_tokens']}"
             )
         ok = False
-    if tutor_sw["runtime_ready"] is not False:
+    if tutor_sw["runtime_ready"] is not True:
         if verbose:
             print(
-                "[FAIL] Tutor baseline runtime_ready must be False pending artifact resolution"
+                "[FAIL] Tutor baseline runtime_ready must be True after artifact verification"
             )
         ok = False
 
@@ -422,6 +422,17 @@ def run_manifest_consistency_checks(verbose: bool = True) -> bool:
         "software.runtime_ready",
     ]
 
+    wired_tutor_fields = {
+        "software.model",
+        "software.quantization",
+        "software.backend",
+        "software.cpu_threads",
+        "software.batch_size",
+        "software.temperature",
+        "software.max_output_tokens",
+        "software.runtime_ready",
+    }
+
     for req in required_in_manifest:
         if req not in field_map:
             if verbose:
@@ -429,10 +440,12 @@ def run_manifest_consistency_checks(verbose: bool = True) -> bool:
             ok = False
         else:
             entry = field_map[req]
-            if entry.get("status") != "PLANNED":
+            expected_status = "WIRED" if req in wired_tutor_fields else "PLANNED"
+            if entry.get("status") != expected_status:
                 if verbose:
                     print(
-                        f"[FAIL] Manifest field '{req}' status must be 'PLANNED', got '{entry.get('status')}'"
+                        f"[FAIL] Manifest field '{req}' status must be "
+                        f"'{expected_status}', got '{entry.get('status')}'"
                     )
                 ok = False
 

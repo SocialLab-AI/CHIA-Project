@@ -10,7 +10,7 @@ This is a full-stack **Domain-Specific Architecture co-design** entry: we don't 
 
 ## What the system is
 
-An offline, inference-only AI Tutor. The finalized model baseline is Llama 3.2 1B Instruct, Q4_K_M, on native CPU with llama.cpp. A separate Qwen2.5-0.5B/Ollama profile tests loop integration.
+An offline, inference-only AI Tutor. The executable baseline is Qwen2.5 0.5B Instruct with Q5_K_M weights, served on native CPU through llama.cpp.
 
 The native software measurement and simulated attention-kernel proxy are separate executions. See [current implementation](docs/FULL_LOOP.md) and [status](docs/IMPLEMENTATION_STATUS.md) for evidence and remaining gates.
 
@@ -21,8 +21,10 @@ Using CHIA, we run one optimization loop that repeats: **propose a joint SW+HW c
 ### What we optimize
 
 **Software knobs**
-- Model quantization level
-- Batch size
+- Sampling temperature
+- Maximum generated tokens
+
+The model artifact, Q5_K_M quantization, CPU threads and sequential request topology are fixed for this campaign.
 
 **Hardware knobs (gem5)**
 - L1 and L2 cache sizes
@@ -33,10 +35,10 @@ Using CHIA, we run one optimization loop that repeats: **propose a joint SW+HW c
 
 Two separate measurement paths that the loop fuses into one objective:
 
-- **Answer quality** — measured *natively* per software config. Questions come from a subset of the **OpenStax QA dataset**; a reference answer is the ground truth; an automated **reviewer model** scores our system's responses against it.
-- **Hardware metrics** — measured in **gem5**: latency, memory utilization, and energy. Energy comes from **Accelergy + McPAT** on top of the gem5 run.
+- **Answer quality** — measured *natively* on three attributed OpenStax conceptual questions with deterministic required-concept rubrics. References remain evaluator-only.
+- **Hardware metrics** — measured in **gem5**: simulated time, instructions, IPC, cache miss rates and memory traffic.
 
-Quantization is the knob that couples the two: it changes both answer quality (measured natively) and the compute profile fed to gem5.
+Native Tutor measurements and the gem5 attention proxy remain separate objective domains. The current proxy is an abstraction and does not claim to predict complete Qwen latency.
 
 ## Why gem5 runs a proxy, not the model
 

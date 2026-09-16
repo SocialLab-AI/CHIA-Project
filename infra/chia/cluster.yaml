@@ -1,4 +1,4 @@
-# Infrastructure-owned Adam control/Ollama and YSF gem5 topology; generate local overlay for host changes.
+# Infrastructure-owned Adam control/llama.cpp and YSF gem5 topology.
 cluster_name: chia-full-loop
 
 file_mounts:
@@ -49,7 +49,7 @@ head_env_commands:
 
 head_start_ray_commands:
   - ray stop
-  - ray start --head --port=6379 --include-dashboard=True --dashboard-host=127.0.0.1 --dashboard-agent-listen-port=0 --resources='{"control":1,"ollama":1}'
+  - ray start --head --port=6379 --include-dashboard=True --dashboard-host=127.0.0.1 --dashboard-agent-listen-port=0 --resources='{"control":1,"llama_cpp":1}'
 
 worker_start_ray_commands:
   - ray stop

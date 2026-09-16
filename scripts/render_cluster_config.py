@@ -34,9 +34,14 @@ def render(values):
     }
     config["available_node_types"]["gem5_worker"]["compatible_ips"] = [worker]
     config["file_mounts"] = {"/tmp/chia-project/": values["CHIA_PROJECT_PATH"]}
-    config["head_env_commands"] = ["source " + values["CHIA_HEAD_ENV"]]
+    project_pythonpath = "export PYTHONPATH=/tmp/chia-project"
+    config["head_env_commands"] = [
+        "source " + values["CHIA_HEAD_ENV"],
+        project_pythonpath,
+    ]
     config["available_node_types"]["gem5_worker"]["worker_env_commands"] = [
-        "source " + values["CHIA_WORKER_ENV"]
+        "source " + values["CHIA_WORKER_ENV"],
+        project_pythonpath,
     ]
     return config
 

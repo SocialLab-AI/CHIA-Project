@@ -8,12 +8,18 @@ iterations: 3
 wall_budget_seconds: 1800
 runtime:
   software:
-    endpoint: http://127.0.0.1:11434
-    timeout_seconds: 120
+    endpoint: http://127.0.0.1:8081
+    assets_root: /absolute/path/to/model-directory
+    gguf: qwen2.5-0.5b-instruct-q5_k_m.gguf
+    model_sha256: 041474553fcabfc2a2d67903f9d2c2e50bd92528e670da4f33b5d0ce6e59fd55
+    context_tokens: 2048
+    parallel_slots: 1
+    timeout_seconds: 300
     retries: 1
-    model_digest: null # preflight records the installed model digest; pin after first inspection
   hardware:
     image: ghcr.io/gem5/devcontainer:v25-1 # resolves an already-installed immutable image ID, never auto-pulls
     timeout_seconds: 600
     retries: 0
-    correctness_tolerance: null # REQUIRED: reviewed max_absolute_error and mean_squared_error
+    correctness_tolerance:
+      max_absolute_error: 0.01
+      mean_squared_error: 0.00001

@@ -30,7 +30,7 @@ RESOURCES = {
     "mapping": {"control": 0.01},
     "evaluation": {"control": 0.01},
     "record": {"control": 0.01},
-    "software": {"ollama": 1},
+    "software": {"llama_cpp": 1},
     "hardware": {"gem5": 1},
 }
 
@@ -83,7 +83,7 @@ class ChiaDispatcher:
 
         for resource in (
             "control",
-            "ollama",
+            "llama_cpp",
             "gem5",
         ):
             if available.get(resource, 0) < 1:

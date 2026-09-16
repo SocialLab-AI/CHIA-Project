@@ -10,40 +10,39 @@ IMPLEMENTED means code exists with the evidence below. PARTIAL means acceptance 
 |---|---|---|
 | 1. Inspect and preserve structure | IMPLEMENTED | Existing runtimes, contracts, scripts, infrastructure and tests inspected; no repository redesign. |
 | 2–3. Real graph and nodes (B) | IMPLEMENTED | Validation → mapping → SW/HW → verification → record, using real ChiaFunction bindings. |
-| 4. Candidate-driven runners (A) | IMPLEMENTED | Actual Ollama and Docker/gem5 adapters executed successfully on the Adam/YSF cluster for a validated candidate. |
+| 4. Candidate-driven runners (A) | IMPLEMENTED | Qwen llama.cpp and Docker/gem5 adapters are candidate-driven; server acceptance is required after deployment. |
 | 5. Knob system (A) | IMPLEMENTED | Immutable candidate, strict schema, fixed/search separation and cross-knob checks. |
-| 6. Runtime mappings (A/E) | PARTIAL | gem5 CLI/resolved config and Ollama fields wired; final llama.cpp inference mapper awaits runtime activation. |
+| 6. Runtime mappings (A/E) | IMPLEMENTED | gem5 CLI/resolved config and Qwen request fields are wired. GGUF path/hash, context and slots are checked; four server threads remain an explicit startup assertion. |
 | 7. Adam head / YSF worker (B) | IMPLEMENTED | Remote placement and synchronized project imports verified: control/software on Adam and hardware on YSF. |
 | 8. Structured logging (A/C) | IMPLEMENTED | Run/candidate/node/worker/timestamps/duration/status, safe errors and output summaries. |
 | 9. Combined records (B/C) | IMPLEMENTED | Atomic records with SW/HW knobs/results, source hashes, versions and status. |
 | 10. Validation layers (A/C) | IMPLEMENTED | Schema, design space, semantic, preflight, numerical, resolved hardware, metrics and completed records. |
 | 11. Failures (C) | IMPLEMENTED | Bounded transient retries, deadlines, per-attempt artifacts and failed records; invalid candidates never retried. |
 | 12. Security (C) | PARTIAL | No shell execution, strict paths/JSON, safe logs and isolated containers/CLI settings; deployment permissions need environment checks. |
-| 13. Practical containers (C) | IMPLEMENTED | gem5/toolchain Docker; Ollama local service. |
+| 13. Practical containers (C) | IMPLEMENTED | gem5/toolchain Docker; llama.cpp remains a local loopback service. |
 | 14. Local test ladder (B/C) | IMPLEMENTED | Unit, mocked integration, deterministic campaign and actual local CHIA scheduling with runtime fixtures. |
-| 15. Combined deterministic execution (B) | IMPLEMENTED | One real candidate completed across Adam/YSF with validation, SW/HW execution, numerical and resolved-config verification, evaluation, Pareto output and durable records. |
-| 16. Gemini CLI without MCP (D) | PARTIAL | Strict CLI boundary exists; mandatory cost-metering policy blocks live activation until metering is implemented. |
-| 17. Search controls (D) | PARTIAL | Iteration/wall limits, duplicates, malformed-output fallback, repeated-failure stop and diagnostic Pareto; quality-aware evaluation remains. |
+| 15. Combined deterministic execution (B) | PARTIAL | The earlier Ollama/gem5 candidate completed across Adam/YSF. The final Qwen/llama.cpp plus gem5 campaign still needs one server acceptance run. |
+| 16. Gemini SDK without MCP (D) | IMPLEMENTED | Optional metered Google GenAI SDK proposer receives schema-derived fixed/search spaces plus compact history and returns strict JSON for deterministic validation. |
+| 17. Search controls (D) | IMPLEMENTED | Iteration/wall/call/cost limits, duplicates, malformed-output fallback, repeated-failure stop, quality-aware objectives and diagnostic Pareto are wired. |
 | 18–19. Checklist and explanation | IMPLEMENTED | This checklist and FULL_LOOP.md document ownership, boundaries and evidence. |
-| 20. Publication authorization | IMPLEMENTED | User explicitly authorized commit and push after receiving the branch guide. Local checks passed; Adam/YSF deployment remains the next acceptance phase. |
-| E. Final inference evaluation | TODO | Pin GGUF, tokenizer budgets and held-out quality protocol; activate and measure final model. |
-| E. Proxy calibration | RISK | Whole-program timing includes setup/reference work; attention proxy is not Tutor inference. Numerical tolerance remains explicitly unset. |
+| 20. Publication authorization | IMPLEMENTED | User explicitly authorized commit and push. Contract, campaign, unit/integration and opt-in Ray scheduling checks pass for the publication snapshot. |
+| E. Final inference evaluation | PARTIAL | Qwen2.5 0.5B Q5_K_M, GGUF hash and initial OpenStax concept scoring are wired; larger held-out evaluation remains future work. |
+| E. Proxy calibration | RISK | Whole-program timing includes setup/reference work; the attention proxy is not Tutor inference and its correlation with Qwen behavior is not yet measured. |
 
 ## Verification
 
-- Before the scope change: 90 tests passed, including two actual local CHIA/Ray scheduling tests with runtime fixtures.
-- After the inference-only change: **87 tests passed** in 24.35 seconds, including both local CHIA/Ray scheduling tests. One upstream Ray FutureWarning; no failed tests. Three obsolete indexing/chunking tests were removed along with their implementation.
-- All seven contract files, semantic checks, five rejection checks, manifest agreement and three deterministic candidate validations passed after the change.
-- Local Ollama was unavailable. No real gem5 simulation or remote Adam/YSF job was executed in this session.
+- Current Qwen/llama.cpp integration: **102 tests passed, 2 scheduling tests skipped** when the explicit local-Ray opt-in was absent. No failed tests.
+- All seven contract files, semantic checks, five rejection checks, manifest agreement and three deterministic candidate validations pass.
 - Server acceptance evidence: CHIA brought up one head and one gem5 worker; resource placement and project imports passed on both hosts. Both Ollama script invocation styles completed; the warm run reached about 33.35 generated tokens/s and 2.19 seconds total latency. YSF found Docker and the preinstalled `ghcr.io/gem5/devcontainer:v25-1` image.
 - Full-loop server acceptance: campaign `adam-ysf-acceptance-20260915-04`, candidate `36decb...d054`, completed in 167.48 seconds. Software completed on Adam in 5.46 seconds; hardware completed on YSF in 164.99 seconds; evaluation completed and the candidate entered the diagnostic Pareto frontier.
+- Final runtime smoke evidence: the pinned Qwen2.5 0.5B Instruct Q5_K_M GGUF loaded in llama.cpp on loopback port 8081 and returned a valid OpenAI-compatible response. The final combined Qwen plus gem5 campaign has not yet run.
 
 ## Active and legacy paths
 
 - Supported combined entrypoint: `scripts/run_experiment.py`; instructions: [FULL_LOOP.md](FULL_LOOP.md).
 - Existing C workload, gem5 configuration and metrics parser are reused. `gem5/run_attention_experiment.py` remains a standalone diagnostic outside the combined loop.
-- The old SDK optimizer remains legacy, outside the default controller. Optional CLI activation remains gated by required cost accounting.
-- Qwen/Ollama testing ranges remain separate from the fixed Llama inference baseline. No production search ranges were invented.
+- The optional Google GenAI SDK optimizer is integrated into the controller. Deterministic candidates remain the fallback and default when optimization is disabled.
+- Qwen/llama.cpp temperature and output ranges are explicit; model identity, Q5_K_M artifact and service topology remain fixed.
 - Historical example records are illustrative. Synced project sources and the external proposal remain untouched.
 
 ## Journal
@@ -59,3 +58,4 @@ IMPLEMENTED means code exists with the evidence below. PARTIAL means acceptance 
 - 2026-09-15: the stage probe proved the installed `v25-1` gem5 executable rejects `--version` while its image, path, user and entrypoint are valid. Removed that incompatible command; provenance now parses and validates the version banner emitted by the simulator execution that generated the metrics.
 - 2026-09-15: the next server attempt compiled and completed gem5, passed its completion, version, shape and numerical checks, then exposed canonical-versus-serialized CPU naming. The verifier now maps `RiscvO3CPU` to gem5's observed `BaseO3CPU` / `gem5::o3::CPU` identity and retains an exact pair for each supported model.
 - 2026-09-15: campaign `adam-ysf-acceptance-20260915-04` completed the first real distributed deterministic candidate end to end. The next gate is record/provenance review and model-digest pinning before the three-candidate campaign.
+- 2026-09-16: replaced the Ollama adapter with the pinned Qwen2.5 0.5B Instruct Q5_K_M llama.cpp service, added GGUF/build/context/slot preflight, OpenStax questions with evaluator-only references, deterministic concept coverage, schema-aware Gemini output, and final combined-run configuration. The local suite passes; one remote combined acceptance run remains.

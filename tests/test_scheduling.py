@@ -15,7 +15,7 @@ def test_chia_schedules_on_explicit_resource():
 
     ray.init(
         num_cpus=2,
-        resources={"control": 1, "ollama": 1, "gem5": 1},
+        resources={"control": 1, "llama_cpp": 1, "gem5": 1},
         include_dashboard=False,
     )
     try:
@@ -50,7 +50,7 @@ def test_real_chia_full_graph_with_mocked_runtimes(tmp_path):
 
     ray.init(
         num_cpus=6,
-        resources={"control": 1, "ollama": 1, "gem5": 1},
+        resources={"control": 1, "llama_cpp": 1, "gem5": 1},
         include_dashboard=False,
     )
     try:
@@ -71,6 +71,13 @@ def test_real_chia_full_graph_with_mocked_runtimes(tmp_path):
                         "latency_ms": 10.0,
                         "throughput_qps": 100.0,
                         "sample_count": 1,
+                        "answer_quality": 0.75,
+                        "question_count": 1,
+                    },
+                    "dataset": {
+                        "dataset_id": "fixture-openstax",
+                        "license": "CC BY 4.0",
+                        "reference_visible_to_model": False,
                     },
                     "provenance": {"runtime_version": "mocked-on-real-Ray"},
                 },

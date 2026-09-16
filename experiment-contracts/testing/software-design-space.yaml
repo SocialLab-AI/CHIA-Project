@@ -1,10 +1,11 @@
-# Integration-owned test space from proposal section 6.1; not the final Tutor baseline.
-profile: ollama-smoke
+# Executable Qwen/llama.cpp search space used by the combined loop.
+profile: qwen25-q5-openstax
 active_candidates:
   temperature: [0.0, 0.2, 0.5]
-  max_output_tokens: [64, 128, 256]
+  max_output_tokens: [128, 256, 384]
 fixed:
-  model: qwen2.5:0.5b
-  backend: ollama
+  model: "Qwen2.5 0.5B Instruct"
+  quantization: "Q5_K_M"
+  backend: "llama.cpp / CPU"
   cpu_threads: 4
   batch_size: 1

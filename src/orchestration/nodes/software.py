@@ -1,4 +1,4 @@
-"""Adam software node; orchestration owns dispatch, tutor owns Ollama execution."""
+"""Adam software node; orchestration dispatches and Tutor owns llama.cpp execution."""
 
 from src.tutor.runner import run_software_candidate
 from src.orchestration.nodes.shared import execute_runtime

@@ -1,12 +1,16 @@
-"""Orchestration policy tests; legacy SDK proposal code is not the default execution path."""
+"""Orchestration policy tests for the active Gemini SDK path."""
 
 import pytest
 from src.orchestration.chia import chia_entrypoint
-from src.orchestration.nodes.optimizer import _parse_json_response
+from src.orchestration.gemini_api import proposal_schema
 
 
-def test_legacy_parser_retained():
-    assert _parse_json_response('{"hardware":{"issue_width":2}}') == {"issue_width": 2}
+def test_gemini_schema_has_closed_hardware_and_software_objects():
+    schema = proposal_schema()
+    assert schema["additionalProperties"] is False
+    assert schema["required"] == ["hardware", "software"]
+    assert schema["properties"]["hardware"]["additionalProperties"] is False
+    assert schema["properties"]["software"]["additionalProperties"] is False
 
 
 def test_iterations_rejected_before_execution():

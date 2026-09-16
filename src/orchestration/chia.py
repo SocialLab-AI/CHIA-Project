@@ -8,6 +8,7 @@ import yaml
 
 from src.common.candidate import ROOT, Candidate
 from src.common.errors import ConfigError, failure
+from src.common.logging import utc_now
 from src.common.records import atomic_json
 from src.common.security import finite_number, local_endpoint, safe_id
 from src.orchestration.dispatch import ChiaDispatcher, LocalDispatcher
@@ -126,7 +127,11 @@ def validate_campaign_config(value=None):
             "endpoint",
             "timeout_seconds",
             "retries",
-            "model_digest",
+            "assets_root",
+            "gguf",
+            "model_sha256",
+            "context_tokens",
+            "parallel_slots",
         },
         "hardware": {
             "image",
@@ -184,20 +189,22 @@ def validate_campaign_config(value=None):
 
     endpoint = runtime["software"].get(
         "endpoint",
-        "http://127.0.0.1:11434",
+        "http://127.0.0.1:8081",
     )
     runtime["software"]["endpoint"] = local_endpoint(endpoint)
 
-    model_digest = runtime["software"].get("model_digest")
-
-    if model_digest is not None and (
-        not isinstance(model_digest, str)
-        or not model_digest.strip()
-    ):
-        raise ConfigError(
-            "runtime.software.model_digest must be null "
-            "or a nonempty string."
-        )
+    supplied_software_runtime = value.get("runtime", {}).get("software", {})
+    if supplied_software_runtime:
+        for field in ("assets_root", "gguf", "model_sha256"):
+            item = runtime["software"].get(field)
+            if not isinstance(item, str) or not item.strip():
+                raise ConfigError(f"runtime.software.{field} must be nonempty text.")
+        for field in ("context_tokens", "parallel_slots"):
+            item = runtime["software"].get(field)
+            if type(item) is not int or item < 1:
+                raise ConfigError(
+                    f"runtime.software.{field} must be a positive integer."
+                )
 
     if "hardware" in value.get("runtime", {}):
         tolerance = runtime["hardware"].get(
@@ -452,6 +459,8 @@ def chia_entrypoint(config=None, *, dispatcher=None):
         "tier": tier,
         "backend": backend,
         "state": "running",
+        "started_at": utc_now(),
+        "ended_at": None,
         "records": [],
         "skipped": skipped,
         "optimizer_events": optimizer_events,
@@ -753,6 +762,7 @@ def chia_entrypoint(config=None, *, dispatcher=None):
 
     summary.update(
         state="completed" if completed else "incomplete",
+        ended_at=utc_now(),
         stop_reason=stop_reason,
         elapsed_seconds=(
             time.monotonic() - campaign_start

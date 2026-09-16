@@ -1,6 +1,24 @@
-[
-  {
-    "id": "q001",
-    "question": "Replace this placeholder with a real evaluation question."
-  }
-]
+{
+  "schema_version": "1.0",
+  "dataset_id": "openstax-college-physics-2e-ch4-concepts-v1",
+  "title": "OpenStax College Physics 2e Chapter 4 conceptual questions",
+  "license": "CC BY 4.0",
+  "source_url": "https://openstax.org/books/college-physics-2e/pages/4-conceptual-questions",
+  "questions": [
+    {
+      "id": "openstax-cp2e-ch4-q3",
+      "question": "How are inertia and mass related?",
+      "source_locator": "Chapter 4 conceptual question 3"
+    },
+    {
+      "id": "openstax-cp2e-ch4-q2",
+      "question": "What properties do forces have that allow us to classify them as vectors?",
+      "source_locator": "Chapter 4 conceptual question 2"
+    },
+    {
+      "id": "openstax-cp2e-ch4-q5",
+      "question": "Which statement is correct: net force causes motion, or net force causes a change in motion? Explain your answer and give an example.",
+      "source_locator": "Chapter 4 conceptual question 5"
+    }
+  ]
+}

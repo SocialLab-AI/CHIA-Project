@@ -4,7 +4,7 @@ from src.common.candidate import Candidate
 from src.common.logging import invoke
 from src.hardware.gem5 import build_gem5_command
 from src.hardware.attention_kernel import build_attention_kernel_args
-from src.tutor.runner import inference_mapping
+from src.tutor.mapping import map_software_candidate
 
 
 def validation_node(config, context):
@@ -21,7 +21,7 @@ def mapping_node(validated, context):
             "candidate": config,
             "hardware_argv": build_gem5_command(config),
             "kernel_defines": build_attention_kernel_args(config),
-            "inference": inference_mapping(config["software"]),
+            "inference": map_software_candidate(config["software"]),
         }
 
     return invoke("mapping", context, mapping)

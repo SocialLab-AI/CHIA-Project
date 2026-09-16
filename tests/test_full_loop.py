@@ -18,7 +18,7 @@ from src.orchestration.nodes.validation import validation_node, mapping_node
 from src.orchestration.nodes.shared import execute_runtime
 from src.common.records import validate_record
 from src.hardware.runner import parse_correctness
-from src.tutor.metrics import extract_generation_metrics
+from src.tutor.llama_cpp_runtime import extract_generation
 
 
 def software(config, runtime, context):
@@ -29,9 +29,16 @@ def software(config, runtime, context):
         "metrics": {
             "latency_ms": 10.0,
             "throughput_qps": 100.0,
-            "sample_count": config["measurement"]["software_repetitions"],
+            "sample_count": 3 * config["measurement"]["software_repetitions"],
+            "answer_quality": 0.75,
+            "question_count": 3,
         },
-        "provenance": {"runtime_version": "test-only", "model_digest": "fixture"},
+        "dataset": {
+            "dataset_id": "fixture-openstax",
+            "license": "CC BY 4.0",
+            "reference_visible_to_model": False,
+        },
+        "provenance": {"runtime_build": "test-only", "model_sha256": "a" * 64},
     }
 
 
@@ -107,7 +114,7 @@ def test_three_candidate_full_loop(tmp_path, mocked_runtimes):
     [
         {"runtime": None},
         {"runtime": {"software": "bad"}},
-        {"runtime": {"software": {"endpoint": "[http://127.0.0.1:11434](http://127.0.0.1:11434)"}}},
+        {"runtime": {"software": {"endpoint": "[http://127.0.0.1:8081](http://127.0.0.1:8081)"}}},
         {"runtime": {"hardware": {"correctness_tolerance": {"max_absolute_error": 0.01}}}},
         {"software": {"endpoint": "http://127.0.0.1:11434"}},
     ],
@@ -126,7 +133,14 @@ def test_campaign_validation_accepts_reviewed_chia_runtime():
             "backend": "contabo",
             "iterations": 1,
             "runtime": {
-                "software": {"endpoint": "http://127.0.0.1:11434"},
+                "software": {
+                    "endpoint": "http://127.0.0.1:8081",
+                    "assets_root": "/models",
+                    "gguf": "qwen.gguf",
+                    "model_sha256": "a" * 64,
+                    "context_tokens": 2048,
+                    "parallel_slots": 1,
+                },
                 "hardware": {
                     "correctness_tolerance": {
                         "max_absolute_error": 0.01,
@@ -266,7 +280,7 @@ def test_finite_but_inaccurate_is_rejected():
 
 def test_missing_metrics_are_not_zero():
     with pytest.raises(MetricsError):
-        extract_generation_metrics({"done": True, "response": "answer"})
+        extract_generation({"choices": []})
 
 
 def test_completed_record_detects_forged_metrics(tmp_path, mocked_runtimes):

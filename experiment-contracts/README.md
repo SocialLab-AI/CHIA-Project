@@ -10,10 +10,10 @@ experiment-contracts/
 ├── schemas/
 │   └── chia-experiment.schema.yaml     # Authoritative JSON Schema Draft 2020-12 master contract
 ├── baselines/
-│   ├── tutor.yaml                      # Native AI Tutor software baseline (Llama 3.2 1B Instruct)
+│   ├── tutor.yaml                      # Native Qwen2.5 Q5_K_M Tutor baseline
 │   └── attention.yaml                  # Verified gem5 two-core Q4 KV-cache attention baseline
 ├── design-spaces/
-│   ├── software.yaml                   # AI Tutor software design space (software search pending)
+│   ├── software.yaml                   # Bounded AI Tutor software design space
 │   └── hardware.yaml                   # Active gem5 attention proxy hardware design space
 ├── policies/
 │   └── compute-policy.yaml             # Host execution tiers, budgets, and backend permissions
@@ -41,18 +41,18 @@ All definitions compose via local JSON pointers (`#/$defs/...`) and resolve comp
 
 ## Software Baseline (`baselines/tutor.yaml`)
 
-- **Model**: `Llama 3.2 1B Instruct`
-- **Model-weight quantization**: `Q4_K_M`
+- **Model**: `Qwen2.5 0.5B Instruct`
+- **Model-weight quantization**: `Q5_K_M`
 - **Backend**: `llama.cpp / CPU`
 - **CPU threads**: `4` (native tutor CPU threads are independent of the gem5 proxy's 2 threads)
-- **Batch size**: `1` (runtime mapping pending; not automatically mapped to llama.cpp `n_batch`)
+- **Batch size**: `1` sequential request through one llama.cpp server slot
 - **Sampling temperature**: `0.0`
 - **Maximum output tokens**: `384`
-- **Runtime readiness**: `runtime_ready: false` (execution readiness deferred until model artifacts and runtime adapters are implemented)
+- **Runtime readiness**: `runtime_ready: true` with runtime verification of the server model path and GGUF SHA-256
 - **Baseline status**: `baseline_resolved` (software baseline knob values are resolved and authoritative)
 - **Evaluation guardrail**: Held-out OpenStax evaluation reference answers (`data/references/openstax.json`) are strictly isolated (`reference_source: "openstax"`, `reference_visible_to_model: false`) and must never be visible to the model.
 
-Software search space (`design-spaces/software.yaml`) records baseline knob values as `status: "baseline_resolved"` and search space exploration as `status: "pending_definition"`; the initial software baseline is fixed for comparison while optimization ranges are not yet defined.
+The software design space keeps the Qwen artifact, backend, CPU threads and request concurrency fixed. Only reviewed temperature and maximum-output values are active candidates.
 
 ## Hardware Baseline & Active Campaign (`baselines/attention.yaml`)
 

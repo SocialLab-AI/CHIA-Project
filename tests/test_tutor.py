@@ -53,13 +53,13 @@ def test_tutor_example_validates(tutor_validator):
     )
 
 
-def test_user_supplied_software_baseline_values():
-    """Verify all user-supplied software baseline values and units are preserved."""
+def test_verified_software_baseline_values():
+    """Verify the Qwen Q5 llama.cpp baseline and units are preserved."""
     tutor_data = load_yaml(BASELINES_DIR / "tutor.yaml")
     sw = tutor_data["software"]
 
-    assert sw["model"] == "Llama 3.2 1B Instruct"
-    assert sw["quantization"] == "Q4_K_M"
+    assert sw["model"] == "Qwen2.5 0.5B Instruct"
+    assert sw["quantization"] == "Q5_K_M"
     assert sw["temperature"] == 0.0
     assert sw["max_output_tokens"] == 384
     assert sw["batch_size"] == 1
@@ -83,20 +83,20 @@ def test_tutor_threads_independent_of_proxy_threads():
     assert tutor_threads > gem5_cores
 
 
-def test_model_weight_q4km_vs_proxy_kv_q4():
-    """Model-weight Q4_K_M and proxy KV-cache Q4 are distinct settings."""
+def test_model_weight_q5km_vs_proxy_kv_q4():
+    """Model-weight Q5_K_M and proxy KV-cache Q4 are distinct settings."""
     tutor_data = load_yaml(BASELINES_DIR / "tutor.yaml")
     attn_data = load_yaml(BASELINES_DIR / "attention.yaml")
 
-    assert tutor_data["software"]["quantization"] == "Q4_K_M"
+    assert tutor_data["software"]["quantization"] == "Q5_K_M"
     assert attn_data["software"]["kv_format"] == "Q4"
 
 
-def test_runtime_ready_false_without_artifacts():
-    """A baseline can be schema-valid while runtime_ready remains false."""
+def test_runtime_ready_after_artifact_and_adapter_verification():
+    """The committed contract reflects the verified server artifact path."""
     tutor_data = load_yaml(BASELINES_DIR / "tutor.yaml")
-    assert tutor_data["software"]["runtime_ready"] is False
-    assert len(tutor_data["software"]["unresolved_fields"]) > 0
+    assert tutor_data["software"]["runtime_ready"] is True
+    assert tutor_data["software"]["unresolved_fields"] == []
 
 
 def test_evaluation_reference_isolation_guardrail():
