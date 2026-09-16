@@ -134,5 +134,6 @@ def test_llama_server_mapping_keeps_artifact_and_request_fields_separate(tmp_pat
         },
     )
     assert mapping["request"]["temperature"] == 0.0
+    assert mapping["request"]["model"] == "qwen"
     assert mapping["artifact_assertions"]["model_path"] == str(model)
     assert mapping["request_concurrency"] == 1

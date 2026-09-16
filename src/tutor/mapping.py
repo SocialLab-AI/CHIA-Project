@@ -44,7 +44,7 @@ def map_final_tutor(software, runtime):
         "parallel_slots": runtime["parallel_slots"],
         "cpu_threads": candidate_mapping["cpu_threads"],
         "request": {
-            "model": software["model"],
+            "model": gguf.stem,
             "temperature": software["temperature"],
             "max_output_tokens": software["max_output_tokens"],
         },
