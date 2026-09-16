@@ -302,3 +302,78 @@ def test_nonfinite_runtime_data_still_produces_failed_record(tmp_path, mocked_ru
     assert record["status"] == "failed"
     assert record["hardware_result"] is None
     validate_record(record)
+def test_metered_gemini_candidate_is_saved(
+    tmp_path,
+    mocked_runtimes,
+):
+    metadata = {
+        "model": "gemini-3.1-flash-lite",
+        "sdk": "google-genai",
+        "prompt_version": "candidate-json-v2",
+        "prompt_sha256": "a" * 64,
+        "usage": {
+            "input_tokens": 422,
+            "candidate_tokens": 221,
+            "thought_tokens": 0,
+            "output_tokens": 221,
+            "total_tokens": 643,
+        },
+        "estimated_cost_usd": 0.000437,
+    }
+
+    with patch(
+        "src.orchestration.gemini_api.GeminiAPIOptimizer"
+    ) as optimizer_class:
+        optimizer_class.return_value.timeout_seconds = 60
+
+        optimizer_class.return_value.propose.return_value = (
+            baseline_candidate(),
+            metadata,
+        )
+
+        result = chia_entrypoint(
+            {
+                "campaign_id": "gemini-metered",
+                "iterations": 1,
+                "results_root": str(tmp_path),
+                "optimizer": {
+                    "enabled": True,
+	                    "policy": "gemini_api",
+                    "model": "gemini-3.1-flash-lite",
+                    "max_calls": 1,
+                    "budget_usd": 10.0,
+                    "timeout_seconds": 60,
+                },
+            }
+        )
+
+    assert result["state"] == "completed"
+    assert result["optimizer_calls"] == 1
+
+    assert (
+        result["gemini_usage_total"]["total_tokens"]
+        == 643
+    )
+
+    assert result["gemini_usage_total"][
+        "estimated_cost_usd"
+    ] == pytest.approx(0.000437)
+
+    record = result["experiments"][0]
+
+    assert record["optimizer"]["policy"] == "gemini_api"
+    assert record["optimizer"]["metadata"] == metadata
+
+    summary_path = (
+        tmp_path
+        / "gemini-metered"
+        / "summary.json"
+    )
+
+    saved_summary = json.loads(
+        summary_path.read_text(encoding="utf-8")
+    )
+
+    assert saved_summary[
+        "gemini_usage_total"
+    ]["input_tokens"] == 422

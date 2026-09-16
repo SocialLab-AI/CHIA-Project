@@ -26,6 +26,7 @@ def atomic_json(path, value):
             stream.flush()
             os.fsync(stream.fileno())
         os.replace(temporary, path)
+        os.chmod(path, 0o664)
     finally:
         if temporary:
             temporary.unlink(missing_ok=True)

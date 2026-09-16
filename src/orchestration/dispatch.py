@@ -1,11 +1,20 @@
-"""CHIA graph scheduling boundary; orchestration owns lazy real ChiaFunction bindings."""
+"""CHIA graph scheduling boundary."""
 
-from src.common.errors import PreflightError, ExecutionTimeout
-from src.orchestration.nodes.validation import validation_node, mapping_node
-from src.orchestration.nodes.hardware import hardware_node
-from src.orchestration.nodes.software import software_node
+from src.common.candidate import ROOT
+from src.common.errors import (
+    ExecutionTimeout,
+    PreflightError,
+)
 from src.orchestration.nodes.evaluation import evaluation_node
+from src.orchestration.nodes.hardware import hardware_node
 from src.orchestration.nodes.records import record_node
+from src.orchestration.nodes.shared import execute_runtime
+from src.orchestration.nodes.software import software_node
+from src.orchestration.nodes.validation import (
+    mapping_node,
+    validation_node,
+)
+
 
 FUNCTIONS = {
     "validation": validation_node,
@@ -15,6 +24,7 @@ FUNCTIONS = {
     "evaluation": evaluation_node,
     "record": record_node,
 }
+
 RESOURCES = {
     "validation": {"control": 0.01},
     "mapping": {"control": 0.01},
@@ -26,7 +36,7 @@ RESOURCES = {
 
 
 class LocalDispatcher:
-    """Explicit local execution of the same nodes; never claims Ray scheduling."""
+    """Run the same nodes locally without Ray scheduling."""
 
     def submit(self, name, *args):
         return FUNCTIONS[name](*args)
@@ -39,25 +49,57 @@ class LocalDispatcher:
 
 
 class ChiaDispatcher:
+    """Schedule graph nodes through CHIA and Ray."""
+
     def __init__(self, address="auto"):
         try:
             import ray
             from chia.base.ChiaFunction import ChiaFunction
-        except ImportError as exc:
+        except ImportError as error:
             raise PreflightError(
-                "Install the cluster extra before selecting CHIA execution."
-            ) from exc
+                "Install the cluster extra before selecting "
+                "CHIA execution."
+            ) from error
+
         self.ray = ray
+
         if not ray.is_initialized():
-            ray.init(address=address)
+            init_options = {}
+
+            if (
+                isinstance(address, str)
+                and address.startswith("ray://")
+            ):
+                init_options["runtime_env"] = {
+                    "working_dir": str(ROOT),
+                }
+
+            ray.init(
+                address=address,
+                **init_options,
+            )
+
         available = ray.cluster_resources()
-        for resource in ("control", "ollama", "gem5"):
+
+        for resource in (
+            "control",
+            "ollama",
+            "gem5",
+        ):
             if available.get(resource, 0) < 1:
-                raise PreflightError(f"Cluster lacks required {resource} resource.")
+                raise PreflightError(
+                    f"Cluster lacks required "
+                    f"{resource} resource."
+                )
+
         self.nodes = {
             name: ChiaFunction(
                 resources=RESOURCES[name],
-                num_cpus=4 if name == "software" else 1,
+                num_cpus=(
+                    4
+                    if name == "software"
+                    else 1
+                ),
                 max_retries=0,
                 retry_exceptions=False,
             )(function)
@@ -69,16 +111,26 @@ class ChiaDispatcher:
 
     def get(self, reference, timeout=None):
         try:
-            return self.ray.get(reference, timeout=timeout)
-        except self.ray.exceptions.GetTimeoutError as exc:
+            return self.ray.get(
+                reference,
+                timeout=timeout,
+            )
+        except self.ray.exceptions.GetTimeoutError as error:
             raise ExecutionTimeout(
-                "CHIA task did not finish before the campaign deadline."
-            ) from exc
+                "CHIA task did not finish before "
+                "the campaign deadline."
+            ) from error
 
     def cancel(self, reference):
         try:
             from chia.base.ChiaFunction import chia_cancel
 
-            chia_cancel(reference, force=True)
+            chia_cancel(
+                reference,
+                force=True,
+            )
         except ImportError:
-            self.ray.cancel(reference, force=True)
+            self.ray.cancel(
+                reference,
+                force=True,
+            )

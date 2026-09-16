@@ -882,12 +882,29 @@ $defs:
         required:
           - budget_usd
           - metering_required
+          - models
         properties:
           budget_usd:
             type: number
             minimum: 0
           metering_required:
             type: boolean
+          models:
+            type: object
+            minProperties: 1
+            additionalProperties:
+              type: object
+              additionalProperties: false
+              required:
+                - input_usd_per_million_tokens
+                - output_usd_per_million_tokens
+              properties:
+                input_usd_per_million_tokens:
+                  type: number
+                  minimum: 0
+                output_usd_per_million_tokens:
+                  type: number
+                  minimum: 0
       tiers:
         type: object
         additionalProperties: false
