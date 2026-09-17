@@ -1,4 +1,4 @@
-"""Opt-in real local CHIA/Ray scheduling test; does not claim Adam/YSF deployment."""
+"""Opt-in real local CHIA/Ray scheduling test; it does not claim remote deployment."""
 
 import os
 import socket

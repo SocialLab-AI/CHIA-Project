@@ -1,4 +1,4 @@
-"""Hardware-owned isolated Docker runner; used by the YSF node and local diagnostics."""
+"""Hardware-owned isolated Docker runner used by the gem5 worker and diagnostics."""
 
 import hashlib
 import importlib.util

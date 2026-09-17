@@ -192,7 +192,7 @@ def analyze_fidelity(model: dict, native: dict, hardware: dict) -> dict:
     ]
 
     # A full calibration claim requires a native platform exposing equivalent
-    # cache/memory configurations. Adam cannot change its physical L1/L2 design.
+    # cache/memory configurations. The current native host cannot do that.
     conclusion = (
         "C_PROXY_NEEDS_REVISION"
         if rho <= 0 or context_tolerance_violations
@@ -233,7 +233,7 @@ def analyze_fidelity(model: dict, native: dict, hardware: dict) -> dict:
         "native_hardware_ranking": None,
         "configuration_rank_correlation": None,
         "configuration_rank_limitation": (
-            "The Adam host cannot expose gem5-equivalent L1/L2 sizes, associativity, "
+            "The native host cannot expose gem5-equivalent L1/L2 sizes, associativity, "
             "issue width or memory controller settings. A native Qwen ranking over those "
             "configurations is therefore not identifiable on the current cluster."
         ),

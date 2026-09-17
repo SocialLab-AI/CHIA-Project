@@ -32,13 +32,17 @@ def test_generated_cluster_overlay_preserves_project_pythonpath():
         {
             "CHIA_HEAD_IP": "192.0.2.10",
             "CHIA_GEM5_IP": "192.0.2.11",
+            "CHIA_HEAD_USER": "control_user",
+            "CHIA_WORKER_USER": "simulation_user",
             "CHIA_PROJECT_PATH": "/srv/chia-project",
-            "CHIA_SSH_KEY": "/home/adam/.ssh/id_ed25519",
-            "CHIA_HEAD_ENV": "/home/adam/chia/.venv/bin/activate",
-            "CHIA_WORKER_ENV": "/home/ysf/chia/.venv/bin/activate",
+            "CHIA_SSH_KEY": "/home/chia/.ssh/id_ed25519",
+            "CHIA_HEAD_ENV": "/opt/chia/.venv/bin/activate",
+            "CHIA_WORKER_ENV": "/opt/chia/.venv/bin/activate",
         }
     )
 
     assert "export PYTHONPATH=/tmp/chia-project" in config["head_env_commands"]
     worker = config["available_node_types"]["gem5_worker"]
     assert "export PYTHONPATH=/tmp/chia-project" in worker["worker_env_commands"]
+    assert config["auth"]["ssh_user"] == "control_user"
+    assert config["auth"]["overrides"]["192.0.2.11"]["ssh_user"] == "simulation_user"

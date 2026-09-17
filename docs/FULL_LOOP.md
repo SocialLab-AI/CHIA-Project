@@ -8,18 +8,18 @@ The supported entrypoint is `scripts/run_experiment.py`. It uses the current rep
 flowchart TD
   C[Immutable candidate] --> V[Schema and campaign validation]
   V --> M[Hardware and software mapping]
-  M --> S[Software node on Adam]
-  M --> H[Hardware node on YSF]
+  M --> S[Software node on control host]
+  M --> H[Hardware node on gem5 worker]
   S --> E[Metrics and numerical verification]
   H --> E
-  E --> R[Combined record on Adam]
+  E --> R[Combined record on control host]
   R --> D[Deterministic decision and stopping]
   D --> C
 ```
 
 `src/orchestration/chia.py` owns campaign limits, duplicate rejection and history. `experiment.py` owns one candidate execution. `dispatch.py` binds the real CHIA `ChiaFunction` to the same functions used by local tests. No fake CHIA implementation is used when dependencies are missing: local mode is explicitly local, and CHIA mode fails preflight without the cluster extra.
 
-Nodes exchange success/failure envelopes so an application error does not erase the sibling's metrics. Infrastructure failures are also caught by the Adam driver, which writes the failed record locally. Automatic Ray retries are disabled. Only declared transient runtime errors receive bounded retries. Invalid candidates, deterministic build failures, numerical failures and timeouts are not retried.
+Nodes exchange success/failure envelopes so an application error does not erase the sibling's metrics. Infrastructure failures are also caught by the control driver, which writes the failed record locally. Automatic Ray retries are disabled. Only declared transient runtime errors receive bounded retries. Invalid candidates, deterministic build failures, numerical failures and timeouts are not retried.
 
 ## Deliberate testing profile
 
@@ -40,7 +40,7 @@ $env:CHIA_RUN_SCHEDULING_TESTS='1'
 uv run pytest -q tests/test_scheduling.py
 ```
 
-The scheduling test launches only local Ray processes and shuts down that test session. It does not contact Adam/YSF. Do not confuse mocked runtime tests or local scheduling proof with real remote simulator/model execution.
+The scheduling test launches only local Ray processes and shuts down that test session. It does not contact a remote cluster. Do not confuse mocked runtime tests or local scheduling proof with real remote simulator/model execution.
 
 When `--config` and `--validate-only` are used together, the command validates the complete operator campaign configuration as well as every candidate. It rejects malformed YAML structure, unknown fields, unsupported tier/backend combinations, unsafe llama.cpp endpoints, incomplete artifact bindings, invalid retry/timeout settings and missing numerical-tolerance fields without connecting to Ray or executing a runtime.
 
@@ -54,11 +54,11 @@ No model or Docker image is downloaded automatically. The hardware preflight res
 
 ## Worker placement and reproducibility
 
-- Adam advertises `control: 1` and `llama_cpp: 1`. Control nodes request a small control-label fraction; the software node reserves four host CPUs and the single llama.cpp server slot.
-- YSF advertises `gem5: 1`. The hardware node reserves one host CPU and the gem5 slot. Simulated core count remains two, independent of Ray CPU reservation.
+- The control host advertises `control: 1` and `llama_cpp: 1`. Control nodes request a small control-label fraction; the software node reserves four host CPUs and the single llama.cpp server slot.
+- The simulation worker advertises `gem5: 1`. The hardware node reserves one host CPU and the gem5 slot. Simulated core count remains two, independent of Ray CPU reservation.
 - CHIA injects worker resource flags from `available_node_types`; the head start command explicitly advertises its control/llama.cpp labels.
-- `render_cluster_config.py` generates ignored host overlays using environment-supplied addresses, project path, activation paths and key path. It never reads private-key contents or starts a server.
-- Source sync excludes credentials, environment files, local overlays, generated results and local CLI settings. Adam/YSF addresses and existing activation paths in the tracked template are retained as the known topology; review the generated overlay before server use.
+- `render_cluster_config.py` generates ignored host overlays using environment-supplied addresses, SSH users, project path, activation paths and key path. It never reads private-key contents or starts a server.
+- Source sync excludes credentials, environment files, local overlays, generated results and local CLI settings. The tracked template uses documentation-only addresses and generic paths; real topology belongs only in the ignored overlay.
 - Host-native CHIA/Ray and the loopback llama.cpp service remain host-native. Only gem5 and its compiler run in Docker. Linux containers run as the host UID/GID with networking disabled, dropped capabilities and no-new-privileges. Docker daemon access remains a host privilege requiring trusted workers.
 - Each record contains candidate hash, requested and executed knobs, native metrics, simulator metrics, correctness tolerance/evidence, worker events, git revision, dirty status, source hashes, installed package versions, GGUF SHA-256, llama.cpp build, image identity and executable hash.
 
@@ -82,6 +82,6 @@ Candidate iteration limits, wall deadline, duplicate handling, repeated runtime 
 
 ## Review before push and server phase
 
-After pulling on Adam, restart the CHIA cluster so the `llama_cpp` resource label replaces `ollama`, start the pinned loopback llama.cpp service, validate the local campaign file, and execute one candidate before increasing the iteration limit or enabling Gemini.
+After pulling on the control host, restart the CHIA cluster, start the pinned loopback llama.cpp service, validate the local campaign file, and execute one candidate before increasing the iteration limit or enabling Gemini.
 
 Primary API references: [CHIA functions](https://docs.chialoops.ai/en/latest/user_guides/chia_function.html), [cluster configuration](https://docs.chialoops.ai/en/latest/user_guides/cluster_config_reference.html), [llama.cpp server](https://github.com/ggml-org/llama.cpp/tree/master/tools/server), and [Google GenAI structured output](https://googleapis.github.io/python-genai/). Runtime installation uses locked dependencies and pinned artifact provenance; upstream documentation alone is not execution evidence.

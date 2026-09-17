@@ -1,4 +1,4 @@
-"""Integration-owned atomic records; one combined record per candidate attempt on Adam."""
+"""Integration-owned atomic records; one combined record per candidate attempt."""
 
 import importlib.metadata
 import os

@@ -11,9 +11,12 @@ This is the execution protocol for [Issue #60](https://github.com/SocialLab-AI/C
 | gem5 proxy context sweep | IMPLEMENTED | The Issue #60 runner dispatches the existing candidate-driven gem5 adapter for the same five contexts. |
 | gem5 hardware sensitivity | IMPLEMENTED | The runner evaluates the baseline plus reviewed sensitivity cases at 512 tokens. |
 | Normalization, Spearman rho, plot and report | IMPLEMENTED | Analysis writes machine-readable JSON, an SVG plot and a Markdown report. |
-| Real Adam/YSF evidence | TODO | Run the protocol on the live cluster and retain its generated artifact directory. |
-| Equivalent native hardware rank comparison | RISK | Adam cannot change its physical cache sizes, associativity, issue width or memory controller to match the gem5 candidates. |
-| Proxy remapping | TODO | Review the documented mismatch and measured trends before modifying the proxy dimensions. |
+| Distributed execution evidence | IMPLEMENTED | Native profiling and the original proxy sweep completed using a control host plus a resource-labelled gem5 worker. |
+| Durable evidence archival | PARTIAL | This branch records the reported measurements and decisions. The generated JSON/report/checksum bundle remains deployment-local and must be copied to the final review location before closing Issue #60. |
+| Equivalent native hardware rank comparison | RISK | The native host cannot change its physical cache sizes, associativity, issue width or memory controller to match the gem5 candidates. |
+| Qwen-shaped proxy remapping | PARTIAL | A temporary 14/2/64 pilot exposed and locally corrected grouped-query mapping and head-dispatch defects. The corrections are not yet applied to the canonical kernel. |
+
+The measured outcome and developer handoff are recorded in [Proxy calibration decision and handoff](proxy-calibration-handoff.md). That document is the current source for the experiment result, discovered defects, interpretation and remaining acceptance gates.
 
 ## What is measured
 
@@ -27,16 +30,16 @@ This is the execution protocol for [Issue #60](https://github.com/SocialLab-AI/C
 
 **UNKNOWN:** Hardware-configuration rank preservation cannot be calculated on the present cluster because there is no native Qwen platform with gem5-equivalent configurable caches and issue width. The report records this as unavailable instead of inventing a correlation.
 
-## Server procedure
+## Operator procedure
 
-Run from the repository root on Adam. Keep the local operator config uncommitted; `*.local.yaml` is ignored.
+Run from the repository root on the control host. Keep the local operator config uncommitted; `*.local.yaml` is ignored. The paths below are examples and must be replaced with local installation paths.
 
 ```bash
-source /home/adam/chia/.venv/bin/activate
+source /absolute/path/to/chia/.venv/bin/activate
 python -m pip install 'gguf==0.19.0'
 
 cmake --build \
-  /home/adam/qwen-q4-q5-validation/llama.cpp/build-chia \
+  /absolute/path/to/llama.cpp/build-chia \
   --target llama-bench \
   -j 4
 
@@ -49,8 +52,8 @@ Set these two values in `proxy-fidelity.server.local.yaml`:
 
 ```yaml
 native:
-  model_path: /home/adam/qwen-q4-q5-validation/models/qwen2.5-0.5b-instruct-q5_k_m.gguf
-  llama_bench: /home/adam/qwen-q4-q5-validation/llama.cpp/build-chia/bin/llama-bench
+  model_path: /absolute/path/to/qwen2.5-0.5b-instruct-q5_k_m.gguf
+  llama_bench: /absolute/path/to/llama.cpp/build-chia/bin/llama-bench
 ```
 
 The committed SHA-256 belongs to the exact reviewed server model. The profile phase will stop if the file differs.
@@ -96,6 +99,6 @@ results/proxy-fidelity/qwen-gem5-proxy-fidelity-v1/
 
 - `A_CALIBRATED_PROXY` is intentionally unavailable under the present protocol because equivalent native hardware rankings cannot be observed.
 - `B_PARTIAL_PROXY` means the measured context ordering agrees, while the proxy remains limited to an attention kernel.
-- `C_PROXY_NEEDS_REVISION` means the native and proxy context ordering is nonpositive.
+- `C_PROXY_NEEDS_REVISION` means the context ordering is nonpositive or at least one finite numerical result exceeds the reviewed tolerance.
 
 Do not change the proxy dimensions until the first evidence bundle has been copied and reviewed. That preserves proof of the original mismatch requested in Issue #60.

@@ -1,4 +1,4 @@
-"""Adam-owned persistence node; receives verified outcomes, never model-authored metrics."""
+"""Persistence node; receives verified outcomes and never model-authored metrics."""
 
 import socket
 import time

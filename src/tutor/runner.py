@@ -1,4 +1,4 @@
-"""Qwen Tutor candidate runner used locally and by the Adam CHIA software node."""
+"""Qwen Tutor candidate runner used locally and by the CHIA software node."""
 
 import hashlib
 import time

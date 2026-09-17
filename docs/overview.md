@@ -1,27 +1,27 @@
 # Project overview
 
-The project explores hardware/software co-design for an offline AI Tutor. The intended CHIA loop proposes candidate settings, validates them, executes workloads, and compares measured outcomes. The complete automated loop is still under development.
+The project explores hardware/software co-design for an offline AI Tutor. Its CHIA loop proposes or selects candidate settings, validates them, executes native software and simulated hardware workloads, verifies their metrics, persists one combined record and chooses whether to continue.
 
-The native Tutor runs Qwen2.5 0.5B Instruct with Q5_K_M weights through a loopback llama.cpp server on Adam. Three attributed OpenStax questions provide deterministic required-concept quality evidence. An attention kernel with packed Q4 KV cache remains the gem5 proxy; it does not execute the full Tutor model.
+The native Tutor runs Qwen2.5 0.5B Instruct with Q5_K_M weights through a loopback llama.cpp server on the control host. Three attributed OpenStax questions provide deterministic required-concept quality evidence. An attention kernel with packed Q4 KV cache remains the gem5 proxy; it does not execute the full Tutor model.
 
 ## Current status
 
 | Area | Observed repository state |
 |---|---|
 | Contracts | Domain JSON schemas, shared definitions, YAML examples and design spaces, and a common validator exist. |
-| Hardware path | Executable workload, gem5 configuration, runner, and metric extraction exist under `gem5/`. The repository records a Q4 baseline run. |
-| Native tutor | Baseline is specified; runtime readiness is false. Model artifacts and adapter implementation remain unresolved. |
-| Integration | `src/` provides interfaces; the hardware/tutor runners and CHIA entrypoint still contain unimplemented boundaries. |
-| Search | Hardware knobs plus reviewed temperature/output limits are active; model identity and proxy Q4 remain fixed. |
+| Hardware path | The candidate-driven Docker/gem5 runner maps validated hardware and workload fields, verifies the resolved simulation and retains metrics plus numerical evidence. Proxy calibration remains partial. |
+| Native tutor | The llama.cpp adapter verifies the configured Qwen GGUF identity and evaluates attributed OpenStax questions with deterministic required-concept coverage. |
+| Integration | Real CHIA nodes execute validation, mapping, software, hardware, evaluation and record persistence with resource-labelled workers. |
+| Search | Hardware knobs plus reviewed temperature/output limits are active; model identity and proxy KV format remain fixed. Deterministic candidates work without Gemini; the optional SDK proposer remains validation-gated. |
 
 See the [configuration guide](configuration.md) for authoritative inputs and the [evidence index](experiments/README.md) for measured reports. Documentation inspection and schema tests are not new simulator execution evidence.
 
-## Next implementation work
+## Next evidence work
 
-- Resolve model and evaluation artifacts and batch-size/runtime semantics.
-- Implement the tutor runner and evaluation against held-out reference answers.
-- Define the tutor-to-attention mapping and its limitations.
-- Connect the existing gem5 pipeline through the project adapters and CHIA.
-- Finalize software candidates and the quality/scoring protocol before optimization campaigns.
+- Apply and test the grouped-query mapping and generic head-dispatch corrections described in the [proxy calibration handoff](experiments/proxy-calibration-handoff.md).
+- Record the active llama.cpp KV-cache representation independently from model-weight quantization.
+- Add dimension-normalized correctness metrics and a Q4 attention region of interest.
+- Repeat the corrected five-context proxy sweep before accepting a Qwen-calibrated mapping.
+- Expand the held-out Tutor evaluation and review the quality metric before making educational-quality claims.
 
-The [compute policy](../experiment-contracts/compute-policy/compute-policy.yaml) governs execution tiers. Keep real host resources separate from simulated hardware parameters. Organizer burst remains reserved for the final campaign according to the current policy.
+The [compute policy](../experiment-contracts/policies/compute-policy.yaml) governs execution tiers. Keep real host resources separate from simulated hardware parameters. Organizer burst remains reserved for the final campaign according to the current policy.

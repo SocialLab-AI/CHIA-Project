@@ -1,9 +1,10 @@
-"""Infrastructure-owned Adam/YSF overlay generator; never reads key contents or changes servers."""
+"""Render an ignored operator-specific CHIA overlay from a portable template."""
 
 import argparse
 import ipaddress
 import os
 from pathlib import Path
+import re
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,6 +16,9 @@ def render(values):
     worker = str(ipaddress.ip_address(values["CHIA_GEM5_IP"]))
     if head == worker:
         raise ValueError("Head and gem5 host must be distinct.")
+    for name in ("CHIA_HEAD_USER", "CHIA_WORKER_USER"):
+        if not re.fullmatch(r"[a-z_][a-z0-9_-]{0,31}", values[name]):
+            raise ValueError(f"{name} must be a valid unprivileged Linux user name.")
     for name in (
         "CHIA_PROJECT_PATH",
         "CHIA_SSH_KEY",
@@ -28,9 +32,13 @@ def render(values):
                 f"{name} must be an absolute Linux path without shell metacharacters or spaces."
             )
     config["provider"]["head_ip"] = head
+    config["auth"]["ssh_user"] = values["CHIA_HEAD_USER"]
     config["auth"]["ssh_private_key"] = values["CHIA_SSH_KEY"]
     config["auth"]["overrides"] = {
-        worker: {"ssh_user": "ysf", "ssh_private_key": values["CHIA_SSH_KEY"]}
+        worker: {
+            "ssh_user": values["CHIA_WORKER_USER"],
+            "ssh_private_key": values["CHIA_SSH_KEY"],
+        }
     }
     config["available_node_types"]["gem5_worker"]["compatible_ips"] = [worker]
     config["file_mounts"] = {"/tmp/chia-project/": values["CHIA_PROJECT_PATH"]}
@@ -55,6 +63,8 @@ def main():
     names = (
         "CHIA_HEAD_IP",
         "CHIA_GEM5_IP",
+        "CHIA_HEAD_USER",
+        "CHIA_WORKER_USER",
         "CHIA_PROJECT_PATH",
         "CHIA_SSH_KEY",
         "CHIA_HEAD_ENV",

@@ -1,41 +1,106 @@
 # Running and validating
 
-Run commands from the repository root unless stated otherwise. Python 3.10 or newer is declared in `pyproject.toml`. The examples below use the project's `uv` workflow.
+Run commands from the repository root unless stated otherwise. Python 3.10 or newer is declared in `pyproject.toml`. No command in this guide downloads a model or simulator image automatically.
 
-## Local environment
-
-```powershell
-uv sync --extra dev
-```
-
-This installs the declared runtime and test dependencies, including PyYAML. Dependency installation may require network access. No model or simulator is installed by this command.
-
-## Contract checks
+## Local environment and review
 
 ```powershell
+uv sync --extra cluster
+uv run pytest -q -m "not scheduling"
 uv run python scripts/validate_configs.py
-uv run python -m pytest -q
+uv run python scripts/run_experiment.py --validate-only
 git diff --check
 ```
 
-The validator checks schemas, local references, YAML examples, semantic rules, negative cases and mapping consistency. Passing these checks proves the checked contracts agree; it does not prove model inference, the full CHIA loop, or a gem5 campaign ran.
-
-## Hardware execution
-
-The implemented entrypoint is `gem5/run_attention_experiment.py`. Inspect its arguments without running a simulation:
+The tests and contract validator prove deterministic logic, schemas, examples and mappings. They do not prove that a remote worker, llama.cpp or gem5 is available. The scheduling tests are opt-in because they start real local Ray processes:
 
 ```powershell
-uv run python gem5/run_attention_experiment.py --help
+$env:CHIA_RUN_SCHEDULING_TESTS = "1"
+uv run pytest -q tests/test_scheduling.py
 ```
 
-A simulation requires Docker, a compatible gem5/toolchain image, and a prepared gem5 source directory. The script defaults to `~/gem5-src`; specify the real path explicitly when different. With these prerequisites prepared, the source-defined invocation is:
+## Portable cluster configuration
 
-```powershell
-uv run python gem5/run_attention_experiment.py experiment-contracts/attention-experiments/baseline.attention.yaml --gem5-src C:/path/to/gem5-src
+`infra/chia/cluster.yaml` is a portable example containing documentation-only IP addresses and generic paths. Do not commit a real address, username, key path or host-specific installation path.
+
+Set the deployment values in the operator shell:
+
+```bash
+export CHIA_HEAD_IP="<control-host-address>"
+export CHIA_GEM5_IP="<simulation-worker-address>"
+export CHIA_HEAD_USER="<control-host-ssh-user>"
+export CHIA_WORKER_USER="<simulation-worker-ssh-user>"
+export CHIA_PROJECT_PATH="/absolute/path/to/project"
+export CHIA_SSH_KEY="/absolute/path/to/private-key"
+export CHIA_HEAD_ENV="/absolute/path/to/control-venv/bin/activate"
+export CHIA_WORKER_ENV="/absolute/path/to/worker-venv/bin/activate"
+
+python scripts/render_cluster_config.py \
+  --output infra/chia/cluster.local.yaml
 ```
 
-Replace the placeholder path. This command builds and executes the workload and writes outputs under `gem5/results/q4-baseline/` by default. It has not been executed as part of this documentation cleanup. See the [hardware README](../gem5/README.md) and [recorded Q4 result](../gem5/baseline-results.md) for hardware-specific context.
+The renderer validates the addresses, unprivileged usernames and absolute paths. It writes only an ignored `*.local.yaml` file and never reads private-key contents or contacts a host. Review the generated file before starting the cluster:
 
-## Tutor and full-loop execution
+```bash
+chia up infra/chia/cluster.local.yaml
+```
 
-The native tutor configuration remains a draft, and project runner/CHIA adapters still contain `NotImplementedError`. There is no verified end-to-end tutor or CHIA command documented here yet. `scripts/run_experiment.py` and `scripts/run_gem5.py` are scaffold boundaries; use the implemented gem5 entrypoint above for hardware work.
+The control host advertises `control` and `llama_cpp`. The simulation worker advertises `gem5`. CHIA/Ray schedules nodes by these labels; simulated CPU cores are independent of Ray CPU reservations.
+
+## Runtime prerequisites
+
+The control host requires:
+
+- the project environment with the locked CHIA/Ray dependencies;
+- the exact configured Qwen GGUF;
+- a compatible llama.cpp build and loopback-only server;
+- the configured OpenStax evaluation files.
+
+The simulation worker requires:
+
+- the project environment with CHIA/Ray;
+- Docker access for a trusted worker account;
+- the pinned gem5/toolchain image already installed.
+
+The project preflights model hash, build identity, context capacity, parallel slots and container identity. Credentials belong in environment variables. They must not appear in campaign YAML, generated records or shared logs.
+
+## Full-loop campaign
+
+Copy the portable campaign and edit the ignored copy for the deployment:
+
+```bash
+cp experiment-contracts/testing/full-loop.local.example.yaml \
+  experiment-contracts/testing/full-loop.server.local.yaml
+```
+
+Choose a unique campaign ID. For distributed execution, set `mode: chia` and select the approved tier/backend pair. Set the loopback llama.cpp endpoint, model directory, GGUF filename, SHA-256, context capacity, parallel slots, timeouts and reviewed numerical tolerance. Validate the complete campaign without connecting to Ray:
+
+```bash
+python scripts/run_experiment.py \
+  --config experiment-contracts/testing/full-loop.server.local.yaml \
+  --validate-only
+```
+
+Then execute the campaign:
+
+```bash
+python scripts/run_experiment.py \
+  --config experiment-contracts/testing/full-loop.server.local.yaml
+```
+
+The controller validates and maps each candidate, runs native Qwen and gem5 nodes, verifies their results, writes one combined record, and applies deterministic stopping rules. See [FULL_LOOP.md](FULL_LOOP.md) for node ownership, retry behavior, logging, security and record semantics.
+
+## Proxy-fidelity experiment
+
+Issue #60 uses a separate protocol because native prompt processing and a one-layer attention microbenchmark have different measurement scopes. Follow [the proxy-fidelity protocol](experiments/proxy-fidelity.md) and read the [calibration decision and developer handoff](experiments/proxy-calibration-handoff.md) before changing the kernel dimensions or numerical tolerance.
+
+Run profile, native, hardware and analysis phases separately so expensive simulation work can be resumed without repeating completed measurements. Generated evidence belongs under the configured ignored results directory. Preserve earlier bundles instead of rewriting them after a proxy change.
+
+## Result interpretation
+
+- Native llama.cpp latency and quality are application metrics.
+- gem5 simulated seconds, instructions, IPC and cache misses are proxy metrics.
+- Simulator host wall time is an execution-cost metric.
+- Numerical error checks the Q4 proxy against its FP32 kernel reference.
+
+A successful distributed run proves that the nodes executed and produced validated records. It does not prove that the attention proxy predicts full-model latency or educational quality.

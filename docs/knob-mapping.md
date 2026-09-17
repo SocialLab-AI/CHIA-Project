@@ -119,7 +119,7 @@ Contracts reside in:
 | --- | --- | --- | --- | --- | --- |
 | `software.model` | `Qwen2.5 0.5B Instruct` | - | WIRED | Tutor | Exact GGUF path is local; SHA-256 is verified before execution. |
 | `software.quantization` | `Q5_K_M` | - | WIRED | Tutor | Model-weight quantization; distinct from attention proxy KV format Q4. |
-| `software.backend` | `llama.cpp / CPU` | - | WIRED | Tutor | Loopback llama.cpp server on Adam. |
+| `software.backend` | `llama.cpp / CPU` | - | WIRED | Tutor | Loopback llama.cpp server on the control host. |
 | `software.cpu_threads` | `4` | threads | PLANNED | Intern 3 | Native host worker threads. Independent of gem5 proxy threads (`2`). |
 | `software.batch_size` | `1` | - | WIRED | Tutor | One sequential request through one server slot; not token `n_batch`. |
 | `software.temperature` | `0.0` | unitless | WIRED | Tutor | Search values: 0.0, 0.2, 0.5. |

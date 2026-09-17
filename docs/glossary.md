@@ -8,7 +8,7 @@
 | Baseline | Reference configuration used for comparison. |
 | Design space | Active candidate values, fixed settings, evaluation axes and deferred options. |
 | Knob | A configurable setting; only an active search knob may be varied in the current campaign. |
-| Tutor | Native Qwen2.5 0.5B Instruct Q5_K_M application served by llama.cpp on Adam. |
+| Tutor | Native Qwen2.5 0.5B Instruct Q5_K_M application served by llama.cpp on the control host. |
 | Attention proxy | Packed Q4 KV-cache attention kernel executed in gem5, representing a limited part of inference computation. |
 | Model quantization | Representation of Tutor model weights, fixed to Q5_K_M; this is separate from proxy KV-cache Q4. |
 | KV-cache format | Representation of cached attention keys/values; Q4 in the current proxy. |

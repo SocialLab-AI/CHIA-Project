@@ -27,7 +27,7 @@ software:
   status: "runtime_verified"
 
   description: >
-    Verified CPU baseline served by llama.cpp on Adam. The committed
+    Verified CPU baseline served by llama.cpp on the control host. The committed
     contract records the logical artifact; the absolute server path stays
     in an ignored local campaign file.
 
