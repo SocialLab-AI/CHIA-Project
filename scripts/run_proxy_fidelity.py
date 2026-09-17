@@ -138,6 +138,13 @@ def _read_json(path):
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
+def _within_reviewed_tolerance(correctness, tolerance):
+    return all(
+        correctness[name] <= tolerance[name]
+        for name in ("max_absolute_error", "mean_squared_error")
+    )
+
+
 def collect_profile(config):
     directory = _directory(config)
     native = config["native"]
@@ -209,6 +216,9 @@ def collect_hardware(config):
         "timeout_seconds": settings["timeout_seconds"],
         "retries": 0,
         "correctness_tolerance": settings["correctness_tolerance"],
+        # Fidelity calibration treats approximation error as evidence. The
+        # normal full loop retains strict enforcement and still fails closed.
+        "enforce_correctness_tolerance": False,
     }
     timestamp = int(time.time())
     context_cases = []
@@ -232,6 +242,9 @@ def collect_hardware(config):
             "candidate_id": result["candidate_id"],
             "metrics": result["metrics"],
             "correctness": result["correctness"],
+            "correctness_within_reviewed_tolerance": _within_reviewed_tolerance(
+                result["correctness"], settings["correctness_tolerance"]
+            ),
             "provenance": result["provenance"],
             "artifacts": result["artifacts"],
         }
@@ -246,6 +259,9 @@ def collect_hardware(config):
             "hardware": baseline_candidate()["hardware"],
             "metrics": baseline_512["metrics"],
             "correctness": baseline_512["correctness"],
+            "correctness_within_reviewed_tolerance": baseline_512[
+                "correctness_within_reviewed_tolerance"
+            ],
             "provenance": baseline_512["provenance"],
         }
     ]
@@ -277,6 +293,9 @@ def collect_hardware(config):
                 "hardware": candidate["hardware"],
                 "metrics": result["metrics"],
                 "correctness": result["correctness"],
+                "correctness_within_reviewed_tolerance": _within_reviewed_tolerance(
+                    result["correctness"], settings["correctness_tolerance"]
+                ),
                 "provenance": result["provenance"],
             }
         )
@@ -285,6 +304,11 @@ def collect_hardware(config):
         "kind": "gem5_proxy_fidelity_sweep",
         "contexts": contexts,
         "sensitivity": sensitivity,
+        "reviewed_correctness_tolerance": settings["correctness_tolerance"],
+        "tolerance_behavior": (
+            "Raw finite errors were collected without aborting; each case is marked "
+            "against the reviewed full-loop tolerance."
+        ),
         "measurement_scope": "Q4 attention proxy, not complete Qwen inference",
     }
     atomic_json(directory / "gem5-proxy-sweep.json", evidence)

@@ -35,7 +35,11 @@ RESOLVED_CPU_MODELS = {
 }
 
 
-def parse_correctness(stdout, tolerance):
+def parse_correctness(stdout, tolerance, *, enforce_tolerance=True):
+    """Parse finite numerical evidence and optionally enforce the acceptance gate."""
+
+    if not isinstance(enforce_tolerance, bool):
+        raise ConfigError("enforce_tolerance must be boolean.")
     values = {}
     for line in stdout.splitlines():
         if "=" in line:
@@ -62,7 +66,9 @@ def parse_correctness(stdout, tolerance):
             raise MetricsError(
                 "Numerical correctness evidence or approved tolerance is missing."
             ) from exc
-        if not math.isfinite(value) or value < 0 or value > limit:
+        if not math.isfinite(value) or value < 0:
+            raise MetricsError("Attention workload reported invalid numerical error.")
+        if enforce_tolerance and value > limit:
             raise MetricsError(
                 "Attention error exceeds the configured numerical tolerance."
             )
@@ -137,6 +143,9 @@ def run_gem5_candidate(config, runtime=None, context=None):
         )
     for key, value in tolerance.items():
         finite_number(value, key)
+    enforce_tolerance = runtime.get("enforce_correctness_tolerance", True)
+    if not isinstance(enforce_tolerance, bool):
+        raise ConfigError("enforce_correctness_tolerance must be boolean.")
     docker = shutil.which("docker")
     if not docker:
         raise PreflightError("Docker is not installed on the hardware worker.")
@@ -240,7 +249,11 @@ def run_gem5_candidate(config, runtime=None, context=None):
                 "gem5 did not report the expected workload completion exit."
             )
         gem5_version = parse_gem5_version(output)
-        correctness = parse_correctness(output, tolerance)
+        correctness = parse_correctness(
+            output,
+            tolerance,
+            enforce_tolerance=enforce_tolerance,
+        )
         expected = {
             **config["workload"],
             "context": config["workload"]["context_tokens"],

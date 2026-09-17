@@ -21,6 +21,8 @@ This is the execution protocol for [Issue #60](https://github.com/SocialLab-AI/C
 
 **FACT:** The gem5 workload executes one representative attention kernel with packed-Q4 KV-cache data, a floating-point reference and deterministic correctness checks. It excludes projections, MLP blocks, embeddings, tokenization, sampling, all-layer repetition and the llama.cpp runtime.
 
+**FACT:** The normal full loop fails immediately when the reviewed Q4 error tolerance is exceeded. This calibration sweep instead retains every finite raw error, marks each violation, and continues so a failed approximation becomes evidence rather than a missing experiment. Non-finite output and workload failures still stop execution.
+
 **INTERPRETATION:** Native prompt processing and the proxy's single-query attention are not identical operations. Their normalized context trends are useful evidence, but a positive correlation does not prove cycle-accurate full-model fidelity.
 
 **UNKNOWN:** Hardware-configuration rank preservation cannot be calculated on the present cluster because there is no native Qwen platform with gem5-equivalent configurable caches and issue width. The report records this as unavailable instead of inventing a correlation.

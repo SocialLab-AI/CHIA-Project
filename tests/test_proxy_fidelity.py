@@ -15,6 +15,7 @@ from src.hardware.proxy_fidelity import (
     render_trend_svg,
     spearman_rank_correlation,
 )
+from src.hardware.runner import parse_correctness
 from src.tutor.benchmark import (
     parse_gnu_time,
     parse_llama_bench_json,
@@ -152,6 +153,22 @@ def test_native_measurement_parsers_keep_units_and_scope():
     assert counters == {"cycles": 1000.0, "instructions": 500.0}
 
 
+def test_calibration_can_collect_finite_error_without_weakening_default_gate():
+    output = (
+        "status=PASS\n"
+        "max_absolute_error=0.010727912\n"
+        "mean_squared_error=0.000012264\n"
+    )
+    tolerance = {"max_absolute_error": 0.01, "mean_squared_error": 0.00001}
+
+    with pytest.raises(MetricsError, match="exceeds"):
+        parse_correctness(output, tolerance)
+
+    observed = parse_correctness(output, tolerance, enforce_tolerance=False)
+    assert observed["max_absolute_error"] == pytest.approx(0.010727912)
+    assert observed["mean_squared_error"] == pytest.approx(0.000012264)
+
+
 def test_analysis_labels_partial_proxy_and_renders_artifacts():
     model = {
         "architecture": "qwen2",
@@ -177,6 +194,11 @@ def test_analysis_labels_partial_proxy_and_renders_artifacts():
             {
                 "context_tokens": context,
                 "metrics": {"simulated_seconds": value},
+                "correctness": {
+                    "max_absolute_error": 0.005,
+                    "mean_squared_error": 0.000005,
+                },
+                "correctness_within_reviewed_tolerance": True,
             }
             for context, value in zip(CONTEXT_LENGTHS, (2, 3, 5, 9, 17))
         ],
@@ -184,6 +206,10 @@ def test_analysis_labels_partial_proxy_and_renders_artifacts():
             {"case_id": "slow", "metrics": {"simulated_seconds": 2.0}},
             {"case_id": "fast", "metrics": {"simulated_seconds": 1.0}},
         ],
+        "reviewed_correctness_tolerance": {
+            "max_absolute_error": 0.01,
+            "mean_squared_error": 0.00001,
+        },
     }
 
     analysis = analyze_fidelity(model, native, hardware)
@@ -195,6 +221,7 @@ def test_analysis_labels_partial_proxy_and_renders_artifacts():
     assert analysis["native_hardware_ranking"] is None
     assert analysis["configuration_rank_correlation"] is None
     assert analysis["conclusion"] == "B_PARTIAL_PROXY"
+    assert analysis["context_tolerance_violations"] == []
     assert "complete Qwen inference" in report
     assert "unavailable on the current cluster" in report
     assert svg.startswith('<svg xmlns="http://www.w3.org/2000/svg"')
@@ -214,6 +241,50 @@ def test_analysis_rejects_incomplete_context_evidence():
                 ]
             },
         )
+
+
+def test_reviewed_numerical_violation_requires_proxy_revision():
+    model = {
+        "layers": 1,
+        "hidden_size": None,
+        "query_heads": 4,
+        "kv_heads": 2,
+        "head_dimension": 32,
+        "feed_forward_dimension": None,
+        "maximum_context_length": 2048,
+        "quantization": None,
+    }
+    native = {
+        "contexts": [
+            {"context_tokens": context, "average_latency_ms": index + 1}
+            for index, context in enumerate(CONTEXT_LENGTHS)
+        ]
+    }
+    hardware = {
+        "contexts": [
+            {
+                "context_tokens": context,
+                "metrics": {"simulated_seconds": index + 1},
+                "correctness": {
+                    "max_absolute_error": 0.010727912 if context == 128 else 0.005,
+                    "mean_squared_error": 0.000012264 if context == 128 else 0.000005,
+                },
+                "correctness_within_reviewed_tolerance": context != 128,
+            }
+            for index, context in enumerate(CONTEXT_LENGTHS)
+        ],
+        "sensitivity": [],
+        "reviewed_correctness_tolerance": {
+            "max_absolute_error": 0.01,
+            "mean_squared_error": 0.00001,
+        },
+    }
+
+    analysis = analyze_fidelity(model, native, hardware)
+
+    assert analysis["context_spearman_rho"] == pytest.approx(1.0)
+    assert analysis["context_tolerance_violations"] == [128]
+    assert analysis["conclusion"] == "C_PROXY_NEEDS_REVISION"
 
 
 def test_issue_configuration_is_strict_and_candidate_validated(tmp_path):

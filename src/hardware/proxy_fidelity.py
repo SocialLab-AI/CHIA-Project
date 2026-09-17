@@ -180,10 +180,24 @@ def analyze_fidelity(model: dict, native: dict, hardware: dict) -> dict:
         hardware.get("sensitivity", []),
         key=lambda item: item["metrics"]["simulated_seconds"],
     )
+    context_tolerance_violations = [
+        item["context_tokens"]
+        for item in hardware["contexts"]
+        if not item.get("correctness_within_reviewed_tolerance", True)
+    ]
+    sensitivity_tolerance_violations = [
+        item["case_id"]
+        for item in sensitivity
+        if not item.get("correctness_within_reviewed_tolerance", True)
+    ]
 
     # A full calibration claim requires a native platform exposing equivalent
     # cache/memory configurations. Adam cannot change its physical L1/L2 design.
-    conclusion = "C_PROXY_NEEDS_REVISION" if rho <= 0 else "B_PARTIAL_PROXY"
+    conclusion = (
+        "C_PROXY_NEEDS_REVISION"
+        if rho <= 0 or context_tolerance_violations
+        else "B_PARTIAL_PROXY"
+    )
     return {
         "schema_version": "0.1.0",
         "contexts": contexts,
@@ -198,6 +212,24 @@ def analyze_fidelity(model: dict, native: dict, hardware: dict) -> dict:
         "proxy_measurement_scope": hardware.get("measurement_scope", "not recorded"),
         "context_spearman_rho": rho,
         "proxy_hardware_ranking": [item["case_id"] for item in sensitivity],
+        "reviewed_correctness_tolerance": hardware.get(
+            "reviewed_correctness_tolerance"
+        ),
+        "hardware_context_evidence": [
+            {
+                "context_tokens": item["context_tokens"],
+                "max_absolute_error": item["correctness"]["max_absolute_error"],
+                "mean_squared_error": item["correctness"]["mean_squared_error"],
+                "within_reviewed_tolerance": item.get(
+                    "correctness_within_reviewed_tolerance", True
+                ),
+            }
+            for item in sorted(
+                hardware["contexts"], key=lambda value: value["context_tokens"]
+            )
+        ],
+        "context_tolerance_violations": context_tolerance_violations,
+        "sensitivity_tolerance_violations": sensitivity_tolerance_violations,
         "native_hardware_ranking": None,
         "configuration_rank_correlation": None,
         "configuration_rank_limitation": (
@@ -330,6 +362,31 @@ def render_report(analysis: dict, model: dict, proxy: dict | None = None) -> str
         f"Spearman context-rank correlation: **{analysis['context_spearman_rho']:.4f}**.",
         "",
         "![Normalized Qwen and proxy trends](normalized-context-trends.svg)",
+        "",
+        "## Numerical approximation evidence",
+        "",
+        "| Context | Maximum absolute error | Mean squared error | Within reviewed tolerance? |",
+        "|---:|---:|---:|---|",
+    ]
+    for item in sorted(
+        analysis.get("hardware_context_evidence", []),
+        key=lambda value: value["context_tokens"],
+    ):
+        lines.append(
+            f"| {item['context_tokens']} | {item['max_absolute_error']:.9f} | "
+            f"{item['mean_squared_error']:.9f} | "
+            f"{'yes' if item['within_reviewed_tolerance'] else 'no'} |"
+        )
+    lines += [
+        "",
+        "Reviewed tolerance: "
+        + _cell(analysis.get("reviewed_correctness_tolerance")),
+        "",
+        "Contexts outside the reviewed tolerance: "
+        + (
+            ", ".join(str(value) for value in analysis["context_tolerance_violations"])
+            or "none"
+        ),
         "",
         "## Hardware-configuration sensitivity",
         "",
