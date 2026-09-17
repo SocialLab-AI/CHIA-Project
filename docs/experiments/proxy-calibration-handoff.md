@@ -10,7 +10,7 @@ The tables below transcribe the completed run outputs reviewed during the invest
 
 **PARTIAL — retain and calibrate the proxy.**
 
-Keep the proxy as a one-layer attention workload for comparing simulated hardware candidates. Do not use its simulated seconds as a prediction of complete Qwen latency. The original proxy produced strong context-scaling evidence, but its dimensions and KV-head mapping did not represent the selected Qwen model. A Qwen-shaped pilot improved structural fidelity and exposed two real kernel defects. The corrected pilot still needs relative-error analysis and a complete context sweep before it can be labelled Qwen-calibrated.
+Keep the proxy as a one-layer attention workload for comparing simulated hardware candidates. Do not use its simulated seconds as a prediction of complete Qwen latency. The original proxy produced strong context-scaling evidence, but its dimensions and KV-head mapping did not represent the selected Qwen model. A Qwen-shaped pilot improved structural fidelity and exposed two real kernel defects. The canonical kernel now contains the mapping and dispatch corrections plus relative-error output. The repeated corrected comparison still requires distributed execution before the proxy can be labelled Qwen-calibrated.
 
 ```text
 Exact Qwen GGUF
@@ -42,7 +42,7 @@ Original 4/2/32 proxy --> gem5 context sweep ----------------+
 
 **IDEA:** After the kernel defects and measurement limitations are corrected, use the proxy to rank legal gem5 hardware candidates while native Qwen measures application latency and answer quality.
 
-**UNKNOWN:** The active llama.cpp KV-cache type, revised-proxy context trend, dimension-normalized numerical error and native-versus-gem5 hardware-rank preservation remain unverified.
+**UNKNOWN:** The revised-proxy context trend, measured dimension-normalized error and native-versus-gem5 hardware-rank preservation remain unverified. Native llama-bench reported F16 K/V; the separately launched llama.cpp service did not explicitly override its cache types, so its startup evidence should still be retained.
 
 ## Phase 1: exact model profiling
 
@@ -168,20 +168,20 @@ The revised proxy is therefore structurally better and numerically unresolved. T
 
 The timing and instruction rows are not a fair optimization comparison because the original and revised workloads have different shapes and repetition counts, and the gem5 measurement includes initialization and FP32 reference work.
 
-## Required canonical implementation
+## Canonical implementation and remaining work
 
-The next developer should implement the following changes in reviewed repository code rather than copying a temporary pilot wholesale:
+Current status:
 
-1. In `gem5/attention_kv.c`, replace the modulo KV selection in both FP32 and Q4 paths with validated grouped-query mapping.
-2. Generalize main-thread execution so every query head is processed for any legal head count.
-3. Add structural validation for positive dimensions and `query_heads % kv_heads == 0` in the canonical candidate path.
-4. Add unit or native workload tests covering 4/2 and 14/2 shapes so the missing-even-head defect cannot return.
-5. Extend correctness output and `src/hardware/runner.py` parsing with reference RMS, RMSE, normalized RMSE, reference maximum magnitude and normalized maximum error.
-6. Verify and record llama.cpp `cache-type-k` and `cache-type-v`. Keep weight quantization and KV-cache quantization as separate fields.
-7. Add an m5 region of interest around the quantized attention operation so performance counters can exclude initialization, FP32 reference calculation and thread setup. Retain whole-program metrics for backward comparison.
-8. Run correctness-only native tests before spending gem5 time.
-9. Repeat the corrected 14/2/64 gem5 sweep at contexts 128, 256, 512, 1024 and 2048.
-10. Generate a new evidence bundle and retain the original bundle unchanged.
+1. **IMPLEMENTED:** `gem5/attention_kv.c` uses validated grouped-query mapping in FP32 and Q4 paths.
+2. **IMPLEMENTED:** both threads use generic strided head dispatch, covering every legal query head.
+3. **IMPLEMENTED:** production validation remains fixed while an explicit calibration-only path accepts only reviewed 4/2/32 and 14/2/64 shapes with one iteration.
+4. **IMPLEMENTED:** unit tests cover the calibration boundary, both compile mappings, relative parsing and repeated-trial aggregation.
+5. **IMPLEMENTED:** correctness output and parsing include reference RMS, RMSE, normalized RMSE, reference maximum magnitude and normalized maximum error.
+6. **PARTIAL:** native llama-bench recorded F16 K/V. Preserve the llama.cpp service startup evidence to confirm its effective cache defaults independently.
+7. **TODO:** add an m5 region of interest around quantized attention so performance counters can exclude initialization, FP32 reference calculation and thread setup. Retain whole-program metrics for backward comparison.
+8. **TODO:** compile and run both corrected shapes natively on the Linux execution host.
+9. **TODO:** run `scripts/run_proxy_comparison.py` for three trials at contexts 128, 256, 512, 1024 and 2048.
+10. **TODO:** review and publish the new report, JSON, SVGs and checksum manifest while retaining the original bundle unchanged.
 
 ## Acceptance gates
 

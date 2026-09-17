@@ -1,0 +1,15 @@
+# Repeated Issue #60 comparison. Copy to an ignored *.local.yaml before use.
+experiment_id: qwen-proxy-comparison-v1
+contexts: [128, 256, 512, 1024, 2048]
+trials_per_context: 3
+results_root: results/proxy-comparison
+native_evidence_directory: results/proxy-fidelity/qwen-gem5-proxy-fidelity-v1
+
+hardware:
+  mode: chia
+  ray_address: auto
+  image: ghcr.io/gem5/devcontainer:v25-1
+  timeout_seconds: 1800
+  correctness_tolerance:
+    max_absolute_error: 0.01
+    mean_squared_error: 0.00001

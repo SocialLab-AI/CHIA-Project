@@ -14,7 +14,7 @@
 docker run -d \
   --name gem5-dev \
   --restart unless-stopped \
-  -v /home/yehya/gem5-src:/gem5-src \
+  -v /path/to/gem5-src:/gem5-src \
   ghcr.io/gem5/devcontainer:v25-1 \
   sleep infinity
 

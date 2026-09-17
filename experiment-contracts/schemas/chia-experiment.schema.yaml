@@ -1321,7 +1321,8 @@ $defs:
             maximum: 10
           kernel_iterations:
             type: integer
-            const: 10
+            minimum: 1
+            maximum: 10
   loop_record:
     type: object
     additionalProperties: false

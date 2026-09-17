@@ -161,7 +161,9 @@ def _normalize(values: list[float]) -> list[float]:
     return [value / values[0] for value in values]
 
 
-def analyze_fidelity(model: dict, native: dict, hardware: dict) -> dict:
+def analyze_fidelity(
+    model: dict, native: dict, hardware: dict, proxy: dict | None = None
+) -> dict:
     """Combine measured evidence without claiming unavailable native cache rankings."""
 
     contexts, native_latency = _by_context(
@@ -173,7 +175,7 @@ def analyze_fidelity(model: dict, native: dict, hardware: dict) -> dict:
     if contexts != hardware_contexts:
         raise MetricsError("Native and proxy context axes differ.")
     rho = spearman_rank_correlation(native_latency, proxy_latency)
-    comparison = architecture_comparison(model)
+    comparison = architecture_comparison(model, proxy)
     mismatches = sum(row["match"] == "no" for row in comparison)
     missing = sum(row["match"] in {"not_modeled", "unknown"} for row in comparison)
     sensitivity = sorted(

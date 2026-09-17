@@ -197,6 +197,21 @@ def test_candidate_is_immutable_snapshot():
     assert c.candidate_id == before and c.config["hardware"]["issue_width"] == 2
 
 
+def test_qwen_shape_is_allowed_only_by_explicit_calibration_validation():
+    candidate = baseline_candidate()
+    candidate["workload"].update(
+        {"query_heads": 14, "kv_heads": 2, "head_dimension": 64, "layers": 1}
+    )
+    candidate["measurement"]["kernel_iterations"] = 1
+
+    with pytest.raises(ConfigError, match="fixed by this campaign"):
+        Candidate.from_dict(candidate)
+
+    calibrated = Candidate.from_dict(candidate, calibration=True)
+    assert calibrated.config["workload"]["query_heads"] == 14
+    assert calibrated.config["measurement"]["kernel_iterations"] == 1
+
+
 @pytest.mark.parametrize(
     "mutate",
     [
@@ -273,7 +288,15 @@ def test_retry_only_transient():
 def test_finite_but_inaccurate_is_rejected():
     with pytest.raises(MetricsError):
         parse_correctness(
-            "status=PASS\nmax_absolute_error=100\nmean_squared_error=100",
+            "status=PASS\n"
+            "kv_mapping=grouped_query\n"
+            "max_absolute_error=100\n"
+            "mean_squared_error=100\n"
+            "root_mean_squared_error=10\n"
+            "reference_rms=1\n"
+            "reference_max_absolute=1\n"
+            "normalized_rmse=10\n"
+            "normalized_max_error=100\n",
             {"max_absolute_error": 0.1, "mean_squared_error": 0.1},
         )
 
