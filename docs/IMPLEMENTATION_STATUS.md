@@ -27,7 +27,7 @@ IMPLEMENTED means code exists with the evidence below. PARTIAL means acceptance 
 | 18–19. Checklist and explanation | IMPLEMENTED | This checklist and FULL_LOOP.md document ownership, boundaries and evidence. |
 | 20. Publication authorization | IMPLEMENTED | User explicitly authorized commit and push. Contract, campaign, unit/integration and opt-in Ray scheduling checks pass for the publication snapshot. |
 | E. Final inference evaluation | PARTIAL | Qwen2.5 0.5B Q5_K_M, GGUF hash and initial OpenStax concept scoring are wired; larger held-out evaluation remains future work. |
-| E. Proxy calibration | RISK | Whole-program timing includes setup/reference work; the attention proxy is not Tutor inference and its correlation with Qwen behavior is not yet measured. |
+| E. Proxy calibration | PARTIAL | Issue #60 now has exact GGUF inspection, native/gem5 context sweeps, sensitivity cases, normalized plots and Spearman analysis. Real Adam/YSF evidence and the reviewed post-evidence remapping remain TODO; equivalent native hardware ranking is unavailable on the current cluster. |
 
 ## Verification
 
@@ -59,3 +59,4 @@ IMPLEMENTED means code exists with the evidence below. PARTIAL means acceptance 
 - 2026-09-15: the next server attempt compiled and completed gem5, passed its completion, version, shape and numerical checks, then exposed canonical-versus-serialized CPU naming. The verifier now maps `RiscvO3CPU` to gem5's observed `BaseO3CPU` / `gem5::o3::CPU` identity and retains an exact pair for each supported model.
 - 2026-09-15: campaign `adam-ysf-acceptance-20260915-04` completed the first real distributed deterministic candidate end to end. The next gate is record/provenance review and model-digest pinning before the three-candidate campaign.
 - 2026-09-16: replaced the Ollama adapter with the pinned Qwen2.5 0.5B Instruct Q5_K_M llama.cpp service, added GGUF/build/context/slot preflight, OpenStax questions with evaluator-only references, deterministic concept coverage, schema-aware Gemini output, and final combined-run configuration. The local suite passes; one remote combined acceptance run remains.
+- 2026-09-17: implemented the Issue #60 proxy-fidelity protocol without changing the original proxy dimensions: exact GGUF metadata, controlled native and gem5 context sweeps, gem5 sensitivity, normalized trend plot, Spearman context correlation and evidence report. Server execution remains the acceptance gate; native hardware-rank correlation is explicitly unidentifiable on Adam.

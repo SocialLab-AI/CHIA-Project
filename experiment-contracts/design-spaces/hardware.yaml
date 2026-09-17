@@ -42,7 +42,8 @@ active_candidates:
     l2_associativity: [4, 8, 16]
 
 evaluation_axes:
-  context_tokens: [128, 256, 512]
+  # Issue #60 calibration axis; these are workloads, not optimization knobs.
+  context_tokens: [128, 256, 512, 1024, 2048]
 
 fixed:
   cores: 2

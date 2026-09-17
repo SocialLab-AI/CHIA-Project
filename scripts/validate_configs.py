@@ -223,11 +223,13 @@ def run_semantic_checks(verbose: bool = True) -> bool:
                 "[FAIL] Active candidates should not contain software search in Q4 campaign"
             )
         ok = False
-    # Evaluation axes
-    if any(x > 512 for x in ds_attn["evaluation_axes"]["context_tokens"]):
+    # Issue #60 uses the same compiled kernel shape at five reviewed contexts.
+    # This remains an evaluation axis and is never exposed as an optimizer knob.
+    expected_context_axis = [128, 256, 512, 1024, 2048]
+    if ds_attn["evaluation_axes"]["context_tokens"] != expected_context_axis:
         if verbose:
             print(
-                "[FAIL] Context tokens >512 exposed in evaluation_axes before runtime validation"
+                "[FAIL] Proxy calibration context axis differs from the reviewed protocol"
             )
         ok = False
 

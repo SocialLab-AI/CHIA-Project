@@ -753,7 +753,7 @@ $defs:
             minItems: 1
             uniqueItems: true
             items:
-              enum: [128, 256, 512]
+              enum: [128, 256, 512, 1024, 2048]
       fixed:
         $ref: "#/$defs/hardware_fixed_summary"
       constraints:
@@ -812,7 +812,7 @@ $defs:
       memory_type: { const: "DDR3_1600_8x8" }
       memory_size_mib: { const: 16 }
       simulation_mode: { const: "SE" }
-      context_tokens: { enum: [128, 256, 512] }
+      context_tokens: { enum: [128, 256, 512, 1024, 2048] }
       query_heads: { const: 4 }
       kv_heads: { const: 2 }
       head_dimension: { const: 32 }
