@@ -194,9 +194,13 @@ def run_native_context_sweep(
 
     with tempfile.TemporaryDirectory(prefix="chia-proxy-native-") as temporary:
         temporary = Path(temporary)
-        for context in contexts:
+        for index, context in enumerate(contexts, start=1):
             if type(context) is not int or context < 1:
                 raise ConfigError("Context lengths must be positive integers.")
+            print(
+                f"[native {index}/{len(contexts)}] context={context} starting",
+                flush=True,
+            )
             time_path = temporary / f"time-{context}.txt"
             perf_path = temporary / f"perf-{context}.csv"
             benchmark = [
@@ -242,6 +246,10 @@ def run_native_context_sweep(
                 else None
             )
             results.append(parsed)
+            print(
+                f"[native {index}/{len(contexts)}] context={context} completed",
+                flush=True,
+            )
 
     return {
         "schema_version": "0.1.0",

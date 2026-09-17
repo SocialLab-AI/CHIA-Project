@@ -165,10 +165,14 @@ def collect_native(config):
 
 def _run_hardware_cases(cases, runtime, mode, ray_address):
     if mode == "local":
-        return [
-            run_gem5_candidate(candidate, runtime, {"run_id": run_id})
-            for run_id, candidate in cases
-        ]
+        results = []
+        for index, (run_id, candidate) in enumerate(cases, start=1):
+            print(f"[hardware {index}/{len(cases)}] {run_id} starting", flush=True)
+            results.append(
+                run_gem5_candidate(candidate, runtime, {"run_id": run_id})
+            )
+            print(f"[hardware {index}/{len(cases)}] {run_id} completed", flush=True)
+        return results
     try:
         import ray
         from chia.base.ChiaFunction import ChiaFunction, chia_cancel
@@ -185,10 +189,12 @@ def _run_hardware_cases(cases, runtime, mode, ray_address):
         retry_exceptions=False,
     )(run_gem5_candidate)
     results = []
-    for run_id, candidate in cases:
+    for index, (run_id, candidate) in enumerate(cases, start=1):
+        print(f"[hardware {index}/{len(cases)}] {run_id} submitted", flush=True)
         reference = node.chia_remote(candidate, runtime, {"run_id": run_id})
         try:
             results.append(ray.get(reference, timeout=runtime["timeout_seconds"] + 30))
+            print(f"[hardware {index}/{len(cases)}] {run_id} completed", flush=True)
         except ray.exceptions.GetTimeoutError as error:
             chia_cancel(reference, force=True)
             raise ExecutionTimeout("gem5 calibration case exceeded its deadline.") from error
@@ -323,12 +329,14 @@ def main():
     )
     outputs = {}
     for phase in phases:
+        print(f"[phase] {phase} starting", flush=True)
         outputs[phase] = {
             "profile": collect_profile,
             "native": collect_native,
             "hardware": collect_hardware,
             "analyze": analyze,
         }[phase](config)
+        print(f"[phase] {phase} completed", flush=True)
     print(json.dumps({"experiment_id": config["experiment_id"], "phases": list(outputs)}, indent=2))
     return 0
 
