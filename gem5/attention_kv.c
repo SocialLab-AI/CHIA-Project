@@ -26,7 +26,17 @@
 #ifndef THREADS
 #define THREADS 2
 #endif
+#if QUERY_HEADS < KV_HEADS
+#error "QUERY_HEADS must be greater than or equal to KV_HEADS"
+#endif
 
+#if QUERY_HEADS % KV_HEADS != 0
+#error "QUERY_HEADS must be divisible by KV_HEADS"
+#endif
+
+#if HEAD_DIM % 2 != 0
+#error "HEAD_DIM must be even for packed Q4 storage"
+#endif
 #define PACKED_DIM (HEAD_DIM / 2)
 #define Q4_MAX 7
 
@@ -148,7 +158,7 @@ static void run_fp32_reference(void)
     const float scale = 1.0f / sqrtf((float)HEAD_DIM);
 
     for (int query_head = 0; query_head < QUERY_HEADS; query_head++) {
-        int kv_head = query_head % KV_HEADS;
+        int kv_head = query_head / (QUERY_HEADS / KV_HEADS);
         float maximum_score = -INFINITY;
 
         for (int token = 0; token < CONTEXT; token++) {
@@ -201,7 +211,7 @@ static void run_fp32_reference(void)
 static void run_q4_head(int query_head)
 {
     const float scale = 1.0f / sqrtf((float)HEAD_DIM);
-    int kv_head = query_head % KV_HEADS;
+    int kv_head = query_head / (QUERY_HEADS / KV_HEADS);
     float maximum_score = -INFINITY;
 
     for (int token = 0; token < CONTEXT; token++) {
@@ -268,6 +278,7 @@ static int run_q4_attention(void)
 {
     pthread_t worker_thread;
     int worker_id = 1;
+    int main_id = 0;
 
     if (pthread_create(
             &worker_thread,
@@ -278,11 +289,12 @@ static int run_q4_attention(void)
         return 0;
     }
 
-    /* The main thread handles query heads 0 and 2. */
-    run_q4_head(0);
-    run_q4_head(2);
+    /*
+     * The main thread processes all even query heads while the
+     * worker thread processes all odd query heads.
+     */
+    attention_worker(&main_id);
 
-    /* The worker handles query heads 1 and 3. */
     if (pthread_join(worker_thread, NULL) != 0) {
         return 0;
     }
