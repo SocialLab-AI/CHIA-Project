@@ -25,7 +25,14 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         raise RuntimeExecutionError("Runtime HTTP redirects are forbidden.")
 
 
-def request_json(endpoint, route, payload=None, *, timeout=120):
+def request_json(
+    endpoint,
+    route,
+    payload=None,
+    *,
+    timeout=120,
+    expected_type=dict,
+):
     """Exchange one bounded JSON object with a loopback llama.cpp server."""
 
     endpoint = local_endpoint(endpoint)
@@ -68,8 +75,11 @@ def request_json(endpoint, route, payload=None, *, timeout=120):
             )
 
             if (
-                not isinstance(result, dict)
-                or "error" in result
+                not isinstance(result, expected_type)
+                or (
+                    isinstance(result, dict)
+                    and "error" in result
+                )
             ):
                 raise RuntimeExecutionError(
                     "llama.cpp returned an error "
@@ -101,10 +111,68 @@ def request_json(endpoint, route, payload=None, *, timeout=120):
         ) from None
 
     except urllib.error.URLError as exc:
+        if isinstance(
+            exc.reason,
+            TimeoutError,
+        ):
+            raise ExecutionTimeout(
+                "Local llama.cpp request timed out."
+            ) from None
+
         raise TransientRuntimeError(
             "Cannot connect to the local "
             "llama.cpp runtime."
         ) from exc
+
+
+def inspect_slots(endpoint, *, timeout=2):
+    """Return a safe slot-activity snapshot for failure diagnostics.
+
+    The llama.cpp slot response can contain request parameters, so this
+    adapter deliberately retains only identifiers and processing state.
+    """
+
+    try:
+        slots = request_json(
+            endpoint,
+            "/slots",
+            timeout=timeout,
+            expected_type=list,
+        )
+    except Exception as error:
+        return {
+            "available": False,
+            "error_type": type(error).__name__,
+        }
+
+    safe_slots = []
+
+    for slot in slots:
+        if not isinstance(slot, dict):
+            continue
+
+        safe_slot = {
+            "is_processing": bool(
+                slot.get("is_processing", False)
+            ),
+        }
+
+        for field in ("id", "id_task"):
+            value = slot.get(field)
+            if isinstance(value, int) and not isinstance(value, bool):
+                safe_slot[field] = value
+
+        safe_slots.append(safe_slot)
+
+    return {
+        "available": True,
+        "slot_count": len(safe_slots),
+        "processing_count": sum(
+            slot["is_processing"]
+            for slot in safe_slots
+        ),
+        "slots": safe_slots,
+    }
 
 
 def file_sha256(path):
@@ -238,12 +306,17 @@ def call_llama_cpp(
     temperature,
     max_output_tokens,
     timeout=120,
-    max_attempts=3,
+    max_attempts=2,
     retry_delay_seconds=2.0,
+    deadline=None,
+    attempt_events=None,
 ):
     """Call the local llama.cpp chat endpoint.
 
-    Transient connection failures and request timeouts are retried.
+    Only transient availability failures are retried. A client-side timeout
+    is not retried because it does not prove that llama.cpp cancelled the
+    original generation; with one server slot, an immediate retry can queue
+    behind the still-running request.
 
     Runtime/model errors and malformed responses are not retried,
     because those indicate deterministic configuration/runtime failures.
@@ -296,23 +369,99 @@ def call_llama_cpp(
         "cache_prompt": False,
     }
 
+    events = (
+        attempt_events
+        if attempt_events is not None
+        else []
+    )
+
     for attempt in range(
         1,
         max_attempts + 1,
     ):
+        remaining = None
+
+        if deadline is not None:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                error = ExecutionTimeout(
+                    "Software candidate deadline expired before request attempt."
+                )
+                error.timeout_scope = "candidate"
+                error.request_attempts = list(events)
+                raise error
+
+        attempt_timeout = (
+            timeout
+            if remaining is None
+            else min(timeout, remaining)
+        )
+        started = time.monotonic()
+
         try:
-            return request_json(
+            result = request_json(
                 endpoint,
                 "/v1/chat/completions",
                 payload,
-                timeout=timeout,
+                timeout=attempt_timeout,
             )
 
-        except (
-            ExecutionTimeout,
-            TransientRuntimeError,
-        ):
+            events.append(
+                {
+                    "attempt": attempt,
+                    "status": "completed",
+                    "elapsed_seconds": round(
+                        time.monotonic() - started,
+                        6,
+                    ),
+                    "timeout_seconds": attempt_timeout,
+                }
+            )
+
+            return result
+
+        except ExecutionTimeout as error:
+            error.timeout_scope = getattr(
+                error,
+                "timeout_scope",
+                "request",
+            )
+            events.append(
+                {
+                    "attempt": attempt,
+                    "status": "failed",
+                    "error_type": type(error).__name__,
+                    "message": str(error),
+                    "elapsed_seconds": round(
+                        time.monotonic() - started,
+                        6,
+                    ),
+                    "timeout_seconds": attempt_timeout,
+                    "retry_scheduled": False,
+                }
+            )
+            error.request_attempts = list(events)
+            raise
+
+        except TransientRuntimeError as error:
+            retry_scheduled = attempt < max_attempts
+            events.append(
+                {
+                    "attempt": attempt,
+                    "status": "failed",
+                    "error_type": type(error).__name__,
+                    "message": str(error),
+                    "elapsed_seconds": round(
+                        time.monotonic() - started,
+                        6,
+                    ),
+                    "timeout_seconds": attempt_timeout,
+                    "retry_scheduled": retry_scheduled,
+                }
+            )
+
             if attempt >= max_attempts:
+                error.request_attempts = list(events)
                 raise
 
             delay = (
@@ -320,7 +469,35 @@ def call_llama_cpp(
                 * (2 ** (attempt - 1))
             )
 
+            if deadline is not None:
+                remaining = deadline - time.monotonic()
+                if remaining <= delay:
+                    deadline_error = ExecutionTimeout(
+                        "Software candidate deadline expired before request retry."
+                    )
+                    deadline_error.timeout_scope = "candidate"
+                    deadline_error.request_attempts = list(events)
+                    raise deadline_error from error
+
             time.sleep(delay)
+
+        except Exception as error:
+            events.append(
+                {
+                    "attempt": attempt,
+                    "status": "failed",
+                    "error_type": type(error).__name__,
+                    "message": str(error),
+                    "elapsed_seconds": round(
+                        time.monotonic() - started,
+                        6,
+                    ),
+                    "timeout_seconds": attempt_timeout,
+                    "retry_scheduled": False,
+                }
+            )
+            error.request_attempts = list(events)
+            raise
 
     raise RuntimeExecutionError(
         "llama.cpp generation exhausted "

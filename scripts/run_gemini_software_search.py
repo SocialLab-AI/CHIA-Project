@@ -28,7 +28,10 @@ from src.common.candidate import Candidate, ROOT
 from src.orchestration.gemini_api import (
     GeminiSoftwareOptimizer,
 )
-from src.tutor.runner import run_software_candidate
+from src.tutor.runner import (
+    run_software_candidate,
+    software_failure,
+)
 
 
 def write_json(path: Path, value: object) -> None:
@@ -298,10 +301,7 @@ def main() -> int:
                 "software": software,
                 "metrics": None,
                 "optimizer": metadata,
-                "error": {
-                    "type": type(error).__name__,
-                    "message": str(error),
-                },
+                "error": software_failure(error),
             }
 
             print(
@@ -347,6 +347,11 @@ def main() -> int:
                     "status": item["status"],
                     "software": item["software"],
                     "metrics": item["metrics"],
+                    **(
+                        {"error": item["error"]}
+                        if item["status"] == "failed"
+                        else {}
+                    ),
                 }
                 for item in history
             ],

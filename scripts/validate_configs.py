@@ -284,10 +284,12 @@ def run_semantic_checks(verbose: bool = True) -> bool:
         ok = False
 
     # Evaluation isolation guardrail
-    if tutor_eval.get("reference_source") != "openstax":
+    if tutor_eval.get("reference_source") != "user_curated_mixed_qa":
         if verbose:
             print(
-                f"[FAIL] Evaluation reference source must be 'openstax', got {tutor_eval.get('reference_source')}"
+                "[FAIL] Evaluation reference source must be "
+                "'user_curated_mixed_qa', got "
+                f"{tutor_eval.get('reference_source')}"
             )
         ok = False
     if tutor_eval.get("reference_visible_to_model") is not False:

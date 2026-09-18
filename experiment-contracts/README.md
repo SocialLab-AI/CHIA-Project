@@ -50,7 +50,7 @@ All definitions compose via local JSON pointers (`#/$defs/...`) and resolve comp
 - **Maximum output tokens**: `384`
 - **Runtime readiness**: `runtime_ready: true` with runtime verification of the server model path and GGUF SHA-256
 - **Baseline status**: `baseline_resolved` (software baseline knob values are resolved and authoritative)
-- **Evaluation guardrail**: Held-out OpenStax evaluation reference answers (`data/references/openstax.json`) are strictly isolated (`reference_source: "openstax"`, `reference_visible_to_model: false`) and must never be visible to the model.
+- **Evaluation guardrail**: Evaluator-only answers for the custom mixed educational QA set are stored in the legacy path `data/references/openstax.json`. They are strictly isolated (`reference_source: "user_curated_mixed_qa"`, `reference_visible_to_model: false`) and must never be visible to the model.
 
 The software design space keeps the Qwen artifact, backend, CPU threads and request concurrency fixed. Only reviewed temperature and maximum-output values are active candidates.
 

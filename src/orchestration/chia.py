@@ -132,6 +132,10 @@ def validate_campaign_config(value=None):
             "model_sha256",
             "context_tokens",
             "parallel_slots",
+            "candidate_timeout_seconds",
+            "request_timeout_seconds",
+            "request_retries",
+            "request_retry_delay_seconds",
         },
         "hardware": {
             "image",
@@ -204,6 +208,34 @@ def validate_campaign_config(value=None):
             if type(item) is not int or item < 1:
                 raise ConfigError(
                     f"runtime.software.{field} must be a positive integer."
+                )
+
+        for field in (
+            "candidate_timeout_seconds",
+            "request_timeout_seconds",
+        ):
+            if field in runtime["software"]:
+                finite_number(
+                    runtime["software"][field],
+                    f"runtime.software.{field}",
+                    positive=True,
+                )
+
+        if "request_retry_delay_seconds" in runtime["software"]:
+            finite_number(
+                runtime["software"]["request_retry_delay_seconds"],
+                "runtime.software.request_retry_delay_seconds",
+            )
+
+        if "request_retries" in runtime["software"]:
+            request_retries = runtime["software"]["request_retries"]
+            if (
+                type(request_retries) is not int
+                or not 0 <= request_retries <= 2
+            ):
+                raise ConfigError(
+                    "runtime.software.request_retries must be an integer "
+                    "between zero and two."
                 )
 
     if "hardware" in value.get("runtime", {}):

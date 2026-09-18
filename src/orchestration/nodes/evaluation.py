@@ -109,7 +109,7 @@ def verify_results(config, candidate_id, software, hardware):
         },
         "answer_quality": quality,
         "quality_evaluated": True,
-        "scope": "qwen_openstax_quality_plus_attention_proxy",
+        "scope": "qwen_mixed_qa_quality_plus_attention_proxy",
         "comparison_group": {
             "context_tokens": config["workload"]["context_tokens"],
             "profile": config["profile"],

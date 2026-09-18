@@ -1,5 +1,5 @@
 # Executable Qwen/llama.cpp search space used by the combined loop.
-profile: qwen25-q5-openstax
+profile: qwen25-q5-mixed-qa
 active_candidates:
   temperature: [0.0, 0.2, 0.5]
   max_output_tokens: [128, 256, 384]

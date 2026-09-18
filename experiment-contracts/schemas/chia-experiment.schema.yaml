@@ -1184,7 +1184,7 @@ $defs:
         type: string
       reference_source:
         type: string
-        const: "openstax"
+        const: "user_curated_mixed_qa"
         description: "Hard guardrail: held out for evaluation only."
       reference_visible_to_model:
         type: boolean
@@ -1274,7 +1274,7 @@ $defs:
       schema_version:
         const: 0.3.0
       profile:
-        const: qwen25-q5-openstax
+        const: qwen25-q5-mixed-qa
       hardware:
         $ref: '#/$defs/hardware'
       workload:

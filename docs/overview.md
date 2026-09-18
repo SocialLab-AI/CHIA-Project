@@ -2,7 +2,7 @@
 
 The project explores hardware/software co-design for an offline AI Tutor. The intended CHIA loop proposes candidate settings, validates them, executes workloads, and compares measured outcomes. The complete automated loop is still under development.
 
-The native Tutor runs Qwen2.5 0.5B Instruct with Q5_K_M weights through a loopback llama.cpp server on Adam. Three attributed OpenStax questions provide deterministic required-concept quality evidence. An attention kernel with packed Q4 KV cache remains the gem5 proxy; it does not execute the full Tutor model.
+The native Tutor runs Qwen2.5 0.5B Instruct with Q5_K_M weights through a loopback llama.cpp server. A 100-question custom mixed educational QA set provides deterministic required-concept coverage evidence. An attention kernel with packed Q4 KV cache remains the gem5 proxy; it does not execute the full Tutor model.
 
 ## Current status
 

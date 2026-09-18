@@ -70,7 +70,7 @@ Current hardware timing is **whole-program simulation including setup and FP32 r
 
 The frequency knob now controls a separate CPU clock; the shared system clock remains 1 GHz. L1 caches inherit the CPU clock, L2/buses remain on the system clock. Cache latency fields map to tag/data/response parameters as an explicit bundle. This is an experiment model, not measured physical cache latency/area.
 
-Native latency is software HTTP roundtrip time for each OpenStax question. Proxy simulated time and simulator host runtime are separate. Deterministic required-concept coverage provides a reproducible initial quality signal; it is not human judgment and does not prove educational effectiveness. The Pareto frontier compares native latency, proxy time and quality loss only within the same evaluation group. A larger held-out set and human review remain future research work.
+Native latency is software HTTP roundtrip time for each question in the custom mixed educational QA set. Proxy simulated time and simulator host runtime are separate. Deterministic required-concept coverage provides a reproducible initial quality signal; it is not human judgment and does not prove educational effectiveness. The Pareto frontier compares native latency, proxy time and quality loss only within the same evaluation group. A held-out set with reviewed provenance and human review remain future research work.
 
 ## Optional Gemini SDK optimizer
 

@@ -4,8 +4,8 @@ import hashlib
 import time
 
 from src.common.candidate import Candidate, ROOT
-from src.common.errors import ExecutionTimeout
-from src.common.security import within
+from src.common.errors import ConfigError, ExecutionTimeout
+from src.common.security import finite_number, within
 from src.tutor.evaluator import (
     evaluate_required_concepts,
     load_evaluation_set,
@@ -13,6 +13,7 @@ from src.tutor.evaluator import (
 from src.tutor.llama_cpp_runtime import (
     call_llama_cpp,
     extract_generation,
+    inspect_slots,
     preflight,
 )
 from src.tutor.mapping import map_final_tutor
@@ -29,6 +30,26 @@ def load_system_prompt(relative_path="prompts/tutor_system.txt"):
     ).read_text(
         encoding="utf-8",
     )
+
+
+def software_failure(error):
+    """Serialize safe Tutor failure provenance for campaign records."""
+
+    result = {
+        "type": type(error).__name__,
+        "message": str(error),
+    }
+
+    sample = getattr(
+        error,
+        "sample_failure",
+        None,
+    )
+
+    if isinstance(sample, dict):
+        result["sample"] = sample
+
+    return result
 
 
 def run_software_candidate(config, runtime=None, context=None):
@@ -68,6 +89,39 @@ def run_software_candidate(config, runtime=None, context=None):
         "request_timeout_seconds",
         120,
     )
+
+    request_retries = runtime.get(
+        "request_retries",
+        1,
+    )
+
+    request_retry_delay_seconds = runtime.get(
+        "request_retry_delay_seconds",
+        2.0,
+    )
+
+    finite_number(
+        candidate_timeout_seconds,
+        "software candidate timeout",
+        positive=True,
+    )
+    finite_number(
+        request_timeout_seconds,
+        "software request timeout",
+        positive=True,
+    )
+    finite_number(
+        request_retry_delay_seconds,
+        "software request retry delay",
+    )
+
+    if (
+        type(request_retries) is not int
+        or not 0 <= request_retries <= 2
+    ):
+        raise ConfigError(
+            "Software request retries must be an integer between zero and two."
+        )
 
     candidate_deadline = (
         time.monotonic()
@@ -175,13 +229,31 @@ def run_software_candidate(config, runtime=None, context=None):
             )
 
             if remaining <= 0:
-                raise ExecutionTimeout(
+                error = ExecutionTimeout(
                     (
                         "Software candidate deadline expired "
                         f"after {completed_samples}/"
                         f"{expected_sample_count} samples."
                     )
                 )
+                error.timeout_scope = "candidate"
+                error.sample_failure = {
+                    "question_id": question_id,
+                    "repetition": repetition + 1,
+                    "sample_index": completed_samples + 1,
+                    "expected_sample_count": expected_sample_count,
+                    "completed_sample_count": completed_samples,
+                    "temperature": config["software"]["temperature"],
+                    "max_output_tokens": config["software"][
+                        "max_output_tokens"
+                    ],
+                    "elapsed_seconds": candidate_timeout_seconds,
+                    "request_timeout_seconds": None,
+                    "attempt_count": 0,
+                    "attempts": [],
+                    "timeout_scope": "candidate",
+                }
+                raise error
 
             # One individual request gets its own bounded timeout.
             # It should never be allowed to consume the entire
@@ -209,6 +281,7 @@ def run_software_candidate(config, runtime=None, context=None):
             )
 
             start = time.perf_counter()
+            attempt_events = []
 
             try:
                 result = call_llama_cpp(
@@ -221,12 +294,72 @@ def run_software_candidate(config, runtime=None, context=None):
                     ],
                     **mapping["request"],
                     timeout=per_request_timeout,
+                    max_attempts=request_retries + 1,
+                    retry_delay_seconds=(
+                        request_retry_delay_seconds
+                    ),
+                    deadline=candidate_deadline,
+                    attempt_events=attempt_events,
                 )
 
             except Exception as exc:
                 elapsed_seconds = (
                     time.perf_counter()
                     - start
+                )
+
+                slot_state = inspect_slots(
+                    mapping["endpoint"],
+                    timeout=min(
+                        2,
+                        max(
+                            0.001,
+                            candidate_deadline
+                            - time.monotonic(),
+                        ),
+                    ),
+                )
+
+                attempts = getattr(
+                    exc,
+                    "request_attempts",
+                    attempt_events,
+                )
+
+                sample_failure = {
+                    "question_id": question_id,
+                    "repetition": repetition + 1,
+                    "sample_index": sample_number,
+                    "expected_sample_count": expected_sample_count,
+                    "completed_sample_count": completed_samples,
+                    "temperature": config["software"]["temperature"],
+                    "max_output_tokens": config["software"][
+                        "max_output_tokens"
+                    ],
+                    "elapsed_seconds": round(
+                        elapsed_seconds,
+                        6,
+                    ),
+                    "request_timeout_seconds": per_request_timeout,
+                    "attempt_count": len(attempts),
+                    "attempts": attempts,
+                    "timeout_scope": getattr(
+                        exc,
+                        "timeout_scope",
+                        None,
+                    ),
+                    "slot_state_after_failure": slot_state,
+                }
+
+                exc.sample_failure = sample_failure
+                exc.args = (
+                    f"{exc} "
+                    f"(question_id={question_id}, "
+                    f"repetition={repetition + 1}, "
+                    f"sample_index={sample_number}, "
+                    f"attempts={len(attempts)}, "
+                    f"elapsed_seconds={elapsed_seconds:.3f}, "
+                    f"timeout_seconds={per_request_timeout:.3f})",
                 )
 
                 print(
@@ -293,6 +426,18 @@ def run_software_candidate(config, runtime=None, context=None):
                 ),
                 quality=quality,
                 generated_answer=answer,
+                request_attempt_count=(
+                    len(attempt_events)
+                ),
+                request_retry_count=(
+                    max(
+                        0,
+                        len(attempt_events) - 1,
+                    )
+                ),
+                request_attempts=(
+                    attempt_events
+                ),
             )
 
             samples.append(
@@ -348,6 +493,14 @@ def run_software_candidate(config, runtime=None, context=None):
         ),
         sample_count=(
             len(samples)
+        ),
+        retried_sample_count=sum(
+            sample["request_retry_count"] > 0
+            for sample in samples
+        ),
+        request_retry_count=sum(
+            sample["request_retry_count"]
+            for sample in samples
         ),
     )
 

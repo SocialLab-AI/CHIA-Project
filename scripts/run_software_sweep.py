@@ -6,7 +6,7 @@ This deliberately bypasses gem5 and the hardware node.
 It uses the same:
 - canonical Candidate validation
 - Qwen/llama.cpp runtime adapter
-- OpenStax evaluation
+- mixed educational QA evaluation
 - software metrics
 
 that the integrated CHIA loop uses.
@@ -28,7 +28,10 @@ import yaml
 
 from src.common.candidate import Candidate, ROOT
 from src.orchestration.policies import deterministic_software_candidates
-from src.tutor.runner import run_software_candidate
+from src.tutor.runner import (
+    run_software_candidate,
+    software_failure,
+)
 
 
 SMOKE_CONFIGS = {
@@ -274,10 +277,7 @@ def main() -> int:
                 "candidate_id": snapshot.candidate_id,
                 "status": "failed",
                 "software": software,
-                "error": {
-                    "type": type(error).__name__,
-                    "message": str(error),
-                },
+                "error": software_failure(error),
             }
 
             print(

@@ -46,7 +46,7 @@ flowchart TD
 | gem5 simulation | Intern 2 (`yahyafl`) | `src/hardware/runner.py`, `gem5/run_attention_experiment.py` |
 | Attention proxy workload | Intern 2 (`yahyafl`) | `gem5/attention_kv.c`, `gem5/extract_metrics.py` |
 | AI Tutor workload | Intern 3 (`sara-alsayyah`) | `src/tutor/runner.py` |
-| Evaluation & benchmark | Intern 3 (`sara-alsayyah`) | Held-out OpenStax benchmark (`data/references/openstax.json`) |
+| Evaluation & benchmark | Intern 3 (`sara-alsayyah`) | Custom mixed educational QA benchmark (`data/references/openstax.json`, retained as a legacy loader path) |
 | CHIA co-design orchestration | Intern 1 (`admatieh`) | `src/orchestration/experiment.py`, `scripts/run_experiment.py` |
 | Architecture & contracts | Lynn (`lynn511`) | `experiment-contracts/` |
 
@@ -132,8 +132,8 @@ The model artifact and runtime topology are fixed. Gemini may choose only the re
 
 ### Evaluation Isolation Guardrail
 
-- Reference answers from OpenStax (`data/references/openstax.json`) are used solely for offline answer evaluation.
-- `evaluation.reference_source: "openstax"`
+- Evaluator-only answers for the custom mixed QA set (`data/references/openstax.json`) are used solely for offline answer evaluation.
+- `evaluation.reference_source: "user_curated_mixed_qa"`
 - `evaluation.reference_visible_to_model: false`
 - Reference answers must NEVER be provided as model input.
 

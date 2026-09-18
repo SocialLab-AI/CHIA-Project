@@ -7,9 +7,9 @@ metadata:
   artifact_manifest: "server-local artifact verified by SHA-256 at runtime"
 
 workload:
-  dataset_id: "openstax-college-physics-2e-ch4-concepts-v1"
+  dataset_id: "edge-ai-tutor-mixed-qa-v2-100q"
   evaluation_protocol: "required-concept-coverage-v1"
-  num_questions: 3
+  num_questions: 100
   seed: 42
 
 software:
@@ -27,7 +27,7 @@ software:
   status: "runtime_verified"
 
   description: >
-    Verified CPU baseline served by llama.cpp on Adam. The committed
+    Verified CPU baseline served by llama.cpp. The committed
     contract records the logical artifact; the absolute server path stays
     in an ignored local campaign file.
 
@@ -37,13 +37,13 @@ evaluation:
   questions_file: "data/questions/questions.json"
   references_file: "data/references/openstax.json"
 
-  reference_source: "openstax"
+  reference_source: "user_curated_mixed_qa"
   reference_visible_to_model: false
 
   comparison_method: "required_concept_coverage"
   similarity_metric: "matched_required_concept_groups"
 
-  sample_limit: 3
+  sample_limit: 100
 
 proxy_evaluation:
   type: "attention_kernel"
@@ -61,4 +61,4 @@ status:
   state: "planned"
   message: >
     Software baseline values are resolved.
-    Runtime adapter and initial OpenStax evaluation set are implemented.
+    Runtime adapter and mixed educational QA evaluation set are implemented.

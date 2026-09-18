@@ -90,7 +90,7 @@ def baseline_candidate():
     )
     return {
         "schema_version": "0.3.0",
-        "profile": "qwen25-q5-openstax",
+        "profile": "qwen25-q5-mixed-qa",
         "hardware": attention["hardware"],
         "software": {
             "model": "Qwen2.5 0.5B Instruct",
