@@ -225,6 +225,55 @@ def test_attention_proxy_compiles_and_runs_both_reviewed_shapes(
     assert correctness["kv_mapping"] == "grouped_query"
 
 
+@pytest.mark.skipif(shutil.which("gcc") is None, reason="gcc is unavailable")
+@pytest.mark.parametrize(
+    "source_name,query_heads,head_dimension",
+    [
+        ("attention_kv_original_proxy.c", 4, 32),
+        ("attention_kv_qwen_proxy.c", 14, 64),
+    ],
+)
+def test_frozen_proxy_entry_files_compile_and_report_locked_shapes(
+    tmp_path, source_name, query_heads, head_dimension
+):
+    executable = tmp_path / source_name.removesuffix(".c")
+    compile_result = subprocess.run(
+        [
+            shutil.which("gcc"),
+            "-O2",
+            "-std=c11",
+            "-pthread",
+            "-DCONTEXT=16",
+            str(ROOT / "gem5" / source_name),
+            "-lm",
+            "-o",
+            str(executable),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert compile_result.returncode == 0, compile_result.stderr
+
+    execution = subprocess.run(
+        [str(executable)],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert execution.returncode == 0, execution.stderr
+    correctness = parse_correctness(
+        execution.stdout,
+        {"max_absolute_error": 0.0, "mean_squared_error": 0.0},
+        enforce_tolerance=False,
+    )
+    assert correctness["query_heads"] == str(query_heads)
+    assert correctness["head_dimension"] == str(head_dimension)
+    assert correctness["repetitions"] == "1"
+
+
 def resolved(c):
     hw = c["hardware"]
     cpu_identity = {

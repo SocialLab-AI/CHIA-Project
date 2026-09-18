@@ -10,7 +10,7 @@ The tables below transcribe the completed run outputs reviewed during the invest
 
 **PARTIAL — retain and calibrate the proxy.**
 
-Keep the proxy as a one-layer attention workload for comparing simulated hardware candidates. Do not use its simulated seconds as a prediction of complete Qwen latency. The original proxy produced strong context-scaling evidence, but its dimensions and KV-head mapping did not represent the selected Qwen model. A Qwen-shaped pilot improved structural fidelity and exposed two real kernel defects. The canonical kernel now contains the mapping and dispatch corrections plus relative-error output. The repeated corrected comparison still requires distributed execution before the proxy can be labelled Qwen-calibrated.
+Keep the proxy as a one-layer attention workload for comparing simulated hardware candidates. Do not use its simulated seconds as a prediction of complete Qwen latency. The original proxy produced strong context-scaling evidence, but its dimensions and KV-head mapping did not represent the selected Qwen model. A Qwen-shaped pilot improved structural fidelity and exposed two real kernel defects. The canonical kernel now contains the mapping and dispatch corrections plus relative-error output. The repeated corrected comparison completed on 2026-09-18; both profiles remain preserved while the team reviews the KV-format and numerical-acceptance gaps. See the [complete experiment record](proxy-comparison-results-20260918.md).
 
 ```text
 Exact Qwen GGUF
@@ -27,7 +27,7 @@ Original 4/2/32 proxy --> gem5 context sweep ----------------+
               +--> exposed grouped-query mapping defect
               +--> exposed incomplete head dispatch
               +--> corrected one-context pilot
-              +--> full corrected sweep still required
+              +--> repeated five-context comparison completed
 ```
 
 ## Evidence classification
@@ -42,7 +42,9 @@ Original 4/2/32 proxy --> gem5 context sweep ----------------+
 
 **IDEA:** After the kernel defects and measurement limitations are corrected, use the proxy to rank legal gem5 hardware candidates while native Qwen measures application latency and answer quality.
 
-**UNKNOWN:** The revised-proxy context trend, measured dimension-normalized error and native-versus-gem5 hardware-rank preservation remain unverified. Native llama-bench reported F16 K/V; the separately launched llama.cpp service did not explicitly override its cache types, so its startup evidence should still be retained.
+**FACT:** The repeated comparison measured the revised proxy at all five contexts for three trials each. It preserved the native context ordering with Spearman rho `1.0` and had normalized-trend MAPE `3.668%`.
+
+**UNKNOWN:** Native-versus-gem5 hardware-rank preservation remains unverified. Native llama-bench reported F16 K/V while the proxy used packed Q4, so KV-format equivalence is not established.
 
 ## Phase 1: exact model profiling
 
@@ -61,7 +63,7 @@ Original 4/2/32 proxy --> gem5 context sweep ----------------+
 | Intermediate dimension | 4864 |
 | Maximum context | 32768 |
 | Parameters derived from tensor shapes | 630,167,424 |
-| KV-cache quantization | Runtime-dependent; not yet recorded |
+| KV-cache quantization | F16 K/V in the recorded native benchmark; runtime setting, not GGUF metadata |
 
 ## Phase 2: native Qwen context sweep
 
@@ -116,7 +118,7 @@ repetitions: 1
 kv_format: Q4
 ```
 
-The pilot was executed through a temporary operator script. Its source changes are not yet part of the canonical repository kernel.
+The pilot was executed through a temporary operator script. The defects it exposed were subsequently corrected in the canonical repository kernel and verified by the repeated comparison.
 
 ### Defect 1: incorrect grouped-query mapping
 
@@ -179,15 +181,15 @@ Current status:
 5. **IMPLEMENTED:** correctness output and parsing include reference RMS, RMSE, normalized RMSE, reference maximum magnitude and normalized maximum error.
 6. **PARTIAL:** native llama-bench recorded F16 K/V. Preserve the llama.cpp service startup evidence to confirm its effective cache defaults independently.
 7. **TODO:** add an m5 region of interest around quantized attention so performance counters can exclude initialization, FP32 reference calculation and thread setup. Retain whole-program metrics for backward comparison.
-8. **TODO:** compile and run both corrected shapes natively on the Linux execution host.
-9. **TODO:** run `scripts/run_proxy_comparison.py` for three trials at contexts 128, 256, 512, 1024 and 2048.
-10. **TODO:** review and publish the new report, JSON, SVGs and checksum manifest while retaining the original bundle unchanged.
+8. **IMPLEMENTED:** both corrected shapes compiled and ran natively before distributed execution.
+9. **IMPLEMENTED:** `scripts/run_proxy_comparison.py` completed three trials at contexts 128, 256, 512, 1024 and 2048 for both profiles.
+10. **PARTIAL:** the repository records the reviewed report, tables and artifact checksums. The checksum-matching raw JSON, checkpoint, SVGs and full execution log remain deployment-local and should be attached to a durable review location.
 
 ## Acceptance gates
 
-The revised proxy can be labelled **Qwen-shaped** after the mapping, dispatch and divisibility checks are merged and tested.
+The revised proxy can be labelled **Qwen-shaped** because the mapping, dispatch and divisibility checks are merged and tested.
 
-It can be labelled **context-calibrated** only after the revised five-context sweep preserves the native ordering and has a reviewed bound on normalized trend deviation.
+The five-context sweep preserved native ordering and measured a `3.668%` normalized-trend MAPE. The team must still approve whether that evidence is sufficient for the **context-calibrated** label.
 
 It can be labelled **numerically accepted** only after the team reviews dimension-normalized error and selects a justified tolerance. Passing must not be created by raising the old limit without analysis.
 
@@ -200,14 +202,18 @@ It cannot claim **native hardware-rank preservation** without measurements on eq
 | File | Responsibility |
 |---|---|
 | `gem5/attention_kv.c` | FP32 reference, packed-Q4 attention kernel, threading and correctness output |
+| `gem5/attention_kv_original_proxy.c` | Frozen corrected 4/2/32 comparison entry profile |
+| `gem5/attention_kv_qwen_proxy.c` | Frozen corrected 14/2/64 comparison entry profile |
 | `src/hardware/attention_kernel.py` | Maps canonical workload fields to C compile definitions |
 | `src/hardware/runner.py` | Builds and runs the kernel in isolated Docker/gem5, parses correctness and verifies executed shape |
 | `src/hardware/proxy_fidelity.py` | Builds architecture comparisons, normalized trends, sensitivity ordering and reports |
 | `src/tutor/model_profile.py` | Extracts SHA-verified model architecture from GGUF metadata |
 | `src/tutor/benchmark.py` | Runs controlled native llama-bench context measurements |
 | `scripts/run_proxy_fidelity.py` | Executes profile, native, hardware and analysis phases |
+| `scripts/run_proxy_comparison.py` | Executes the checkpointed repeated two-profile comparison |
 | `experiment-contracts/testing/proxy-fidelity.server.example.yaml` | Portable operator configuration example |
 | `docs/experiments/proxy-fidelity.md` | Reproducible execution protocol |
+| `docs/experiments/proxy-comparison-results-20260918.md` | Completed 30-job result, tables, interpretation and checksums |
 | This document | Decision history, measured results, defects and remaining gates |
 
 ## Final reporting rule

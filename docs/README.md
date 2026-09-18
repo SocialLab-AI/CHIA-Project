@@ -12,6 +12,7 @@ Start here for the offline AI Tutor and CHIA hardware/software co-design project
 | [Glossary](glossary.md) | Terms used in this project |
 | [Experiment evidence](experiments/README.md) | Current Q4 report and historical FP32 evidence |
 | [Proxy calibration handoff](experiments/proxy-calibration-handoff.md) | Issue #60 result, kernel defects, decision and continuation checklist |
+| [Completed proxy comparison](experiments/proxy-comparison-results-20260918.md) | Repeated 30-job comparison, tables, checksums and pending team decision |
 
 The [contract directory](../experiment-contracts/README.md) owns configuration values and validation rules. Link to those inputs instead of maintaining another baseline in documentation.
 

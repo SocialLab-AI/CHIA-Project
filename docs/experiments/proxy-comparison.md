@@ -1,5 +1,8 @@
 # Repeated proxy-profile comparison
 
+**Execution status:** Completed on 2026-09-18. Read the
+[recorded result and decision boundary](proxy-comparison-results-20260918.md).
+
 This is the continuation experiment for Issue #60. It compares two corrected one-layer attention profiles under the same gem5 hardware configuration, context lengths and repetition count:
 
 | Profile | Query heads | KV heads | Head dimension | Kernel iterations per trial |
@@ -59,4 +62,7 @@ The report compares context-rank correlation, normalized-trend mean absolute per
 
 ## Decision rule
 
-Prefer the Qwen-shaped profile only if its numerical approximation remains controlled and its normalized context trend is at least as defensible as the corrected original. Keep the Issue #60 decision open until the generated report and checksums are reviewed.
+The completed run showed that both profiles preserve the native context trend,
+while the Qwen-shaped profile violates the existing absolute Q4 limits at every
+context. Both profiles remain available for team review; no production profile
+is selected by this protocol document.

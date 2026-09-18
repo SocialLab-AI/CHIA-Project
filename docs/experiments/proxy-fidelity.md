@@ -14,7 +14,7 @@ This is the execution protocol for [Issue #60](https://github.com/SocialLab-AI/C
 | Distributed execution evidence | IMPLEMENTED | Native profiling and the original proxy sweep completed using a control host plus a resource-labelled gem5 worker. |
 | Durable evidence archival | PARTIAL | This branch records the reported measurements and decisions. The generated JSON/report/checksum bundle remains deployment-local and must be copied to the final review location before closing Issue #60. |
 | Equivalent native hardware rank comparison | RISK | The native host cannot change its physical cache sizes, associativity, issue width or memory controller to match the gem5 candidates. |
-| Qwen-shaped proxy remapping | PARTIAL | Grouped-query mapping, generic head dispatch and normalized-error output are implemented. The repeated corrected comparison still requires distributed execution and review. |
+| Qwen-shaped proxy remapping | PARTIAL | Grouped-query mapping, generic head dispatch, normalized-error output and the repeated distributed comparison are complete. Both profiles are preserved; F16/Q4 alignment, numerical acceptance and final team selection remain. |
 
 The measured outcome and developer handoff are recorded in [Proxy calibration decision and handoff](proxy-calibration-handoff.md). That document is the current source for the experiment result, discovered defects, interpretation and remaining acceptance gates.
 

@@ -18,7 +18,7 @@ See the [configuration guide](configuration.md) for authoritative inputs and the
 
 ## Next evidence work
 
-- Apply and test the grouped-query mapping and generic head-dispatch corrections described in the [proxy calibration handoff](experiments/proxy-calibration-handoff.md).
+- Review the completed [proxy comparison result](experiments/proxy-comparison-results-20260918.md) and select a final proxy only after resolving the F16-native versus Q4-proxy and numerical-acceptance questions.
 - Record the active llama.cpp KV-cache representation independently from model-weight quantization.
 - Add dimension-normalized correctness metrics and a Q4 attention region of interest.
 - Repeat the corrected five-context proxy sweep before accepting a Qwen-calibrated mapping.

@@ -7,6 +7,7 @@
 | [Qwen–gem5 proxy fidelity protocol](proxy-fidelity.md) | Issue #60 architecture comparison, matched context sweeps, analysis and server procedure |
 | [Proxy calibration decision and handoff](proxy-calibration-handoff.md) | Measured outcome, original-versus-revised comparison, discovered defects and remaining acceptance gates |
 | [Repeated proxy-profile comparison](proxy-comparison.md) | Equal-iteration, repeated original-corrected versus Qwen-shaped gem5 experiment |
+| [Completed proxy comparison result](proxy-comparison-results-20260918.md) | Reviewed 30-job result tables, conclusions, limitations and artifact checksums |
 
 Reports describe the execution recorded in them. They are not proof that later commits, other configurations or the complete tutor loop were executed successfully.
 
