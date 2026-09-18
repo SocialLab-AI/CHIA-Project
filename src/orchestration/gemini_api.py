@@ -485,6 +485,11 @@ def parse_software_proposal(
     candidate = baseline_candidate()
 
     candidate["software"].update(proposed_software)
+    # JSON permits both 0 and 0.0 for a numeric enum. Normalize the knob so
+    # equivalent configurations always receive the same candidate ID.
+    candidate["software"]["temperature"] = float(
+        candidate["software"]["temperature"]
+    )
 
     if (
         isinstance(software_repetitions, bool)
