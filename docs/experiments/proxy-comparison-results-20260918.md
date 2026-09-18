@@ -167,8 +167,10 @@ transcription.
 | `normalized-context-trends-qwen-shaped.svg` | `fdd0ece0801c45b6ef66bb77ee65304369b69bdfd105cd557ab3b1494eafc8d0` |
 | `proxy-comparison.json` | `cf012ce53fbbabfbbe704a7cb8863aec77d85f41377095ef93a390234b35826a` |
 
-The machine-readable transcription is stored beside this document under
-`evidence/qwen-proxy-comparison-20260918-01/summary.transcribed.json`.
+The safe, checksum-matching report, SVG plots and hash manifest, the
+machine-readable transcription and complete rerun instructions are stored under
+`evidence/qwen-proxy-comparison-20260918-01/`. The raw checkpoint and full JSON
+remain deployment-local because they contain per-trial runtime provenance.
 
 ## Remaining work before Issue #60 closes
 
