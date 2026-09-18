@@ -1,33 +1,901 @@
 {
-  "schema_version": "1.0",
-  "dataset_id": "openstax-college-physics-2e-ch4-concepts-v1",
-  "method": "required_concept_coverage",
+  "dataset_id": "edge-ai-tutor-mixed-qa-v2-100q",
   "references": [
     {
-      "id": "openstax-cp2e-ch4-q3",
-      "reference": "Mass is a measure of inertia: an object with greater mass has greater resistance to a change in its velocity.",
-      "required_concepts": [
-        ["mass is a measure of inertia", "mass measures inertia"],
-        ["greater mass", "more mass"],
-        ["resistance to a change in motion", "resistance to a change in velocity", "harder to accelerate"]
+      "id":"q001",
+      "reference_answer":"Photosynthesis is the process by which plants use light energy to convert carbon dioxide and water into glucose, releasing oxygen.",
+      "required_concepts":[
+        ["light energy","sunlight","energy from the sun"],
+        ["carbon dioxide"],
+        ["water"],
+        ["glucose","sugar","chemical energy"],
+        ["oxygen"]
       ]
     },
     {
-      "id": "openstax-cp2e-ch4-q2",
-      "reference": "A force has both magnitude and direction and combines with other forces according to vector addition.",
-      "required_concepts": [
-        ["magnitude"],
+      "id":"q002",
+      "reference_answer":"The Moon has phases because as it orbits Earth, we see different portions of its sunlit half.",
+      "required_concepts":[
+        ["moon orbits earth","moon orbits the earth","orbit around earth"],
+        ["sunlight","sunlit","illuminated"],
+        ["different portions","different parts","different amounts"],
+        ["relative positions","sun earth moon","sun earth and moon"]
+      ]
+    },
+    {
+      "id":"q003",
+      "reference_answer":"Objects fall toward Earth because Earth's gravity attracts objects with mass toward its center.",
+      "required_concepts":[
+        ["gravity","gravitational force"],
+        ["earth attracts","attracted toward earth","toward earth"],
+        ["mass"]
+      ]
+    },
+    {
+      "id":"q004",
+      "reference_answer":"Mass measures the amount of matter in an object, while weight is the force of gravity acting on that mass.",
+      "required_concepts":[
+        ["mass","amount of matter"],
+        ["weight","force"],
+        ["gravity","gravitational"]
+      ]
+    },
+    {
+      "id":"q005",
+      "reference_answer":"The water cycle moves water through evaporation, condensation, precipitation, runoff, and collection.",
+      "required_concepts":[
+        ["evaporation"],
+        ["condensation"],
+        ["precipitation","rain","snow"],
+        ["runoff"],
+        ["collection","accumulation"]
+      ]
+    },
+    {
+      "id":"q006",
+      "reference_answer":"Three quarters plus one eighth equals seven eighths.",
+      "required_concepts":[
+        ["7/8","seven eighths"],
+        ["6/8","common denominator"]
+      ]
+    },
+    {
+      "id":"q007",
+      "reference_answer":"Subtract 5 from both sides to get 3x = 15, then divide by 3, giving x = 5.",
+      "required_concepts":[
+        ["3x = 15","3x equals 15"],
+        ["x = 5","x equals 5"]
+      ]
+    },
+    {
+      "id":"q008",
+      "reference_answer":"The area is length times width, so 7 times 6 equals 42 square meters.",
+      "required_concepts":[
+        ["42 square meters","42 m2","42"],
+        ["length times width","length x width","multiply"],
+        ["7","6"]
+      ]
+    },
+    {
+      "id":"q009",
+      "reference_answer":"Fifteen percent of 200 is 30.",
+      "required_concepts":[
+        ["30"],
+        ["15 percent","15%"]
+      ]
+    },
+    {
+      "id":"q010",
+      "reference_answer":"The average is 8 because 4 + 8 + 12 = 24, and 24 divided by 3 is 8.",
+      "required_concepts":[
+        ["8"],
+        ["24"],
+        ["divide by 3","divided by 3"]
+      ]
+    },
+    {
+      "id":"q011",
+      "reference_answer":"Tokyo is the capital of Japan.",
+      "required_concepts":[["tokyo"],["japan"]]
+    },
+    {
+      "id":"q012",
+      "reference_answer":"Jupiter is the largest planet in the Solar System.",
+      "required_concepts":[["jupiter"],["largest planet"]]
+    },
+    {
+      "id":"q013",
+      "reference_answer":"William Shakespeare wrote Hamlet.",
+      "required_concepts":[["william shakespeare","shakespeare"],["hamlet"]]
+    },
+    {
+      "id":"q014",
+      "reference_answer":"Seven continents are commonly recognized.",
+      "required_concepts":[["seven","7"],["continents"]]
+    },
+    {
+      "id":"q015",
+      "reference_answer":"The United Kingdom uses the pound sterling, also called the British pound or GBP.",
+      "required_concepts":[
+        ["pound sterling","british pound","gbp","sterling"],
+        ["united kingdom","uk"]
+      ]
+    },
+    {
+      "id":"q016",
+      "reference_answer":"If two pencils cost 3 dollars, one costs 1.5 dollars, so six pencils cost 9 dollars.",
+      "required_concepts":[
+        ["1.5","1.50"],
+        ["9 dollars","$9"],
+        ["six pencils","6 pencils"]
+      ]
+    },
+    {
+      "id":"q017",
+      "reference_answer":"Metal feels colder because it conducts heat away from your hand faster than wood.",
+      "required_concepts":[
+        ["thermal conductivity","conductivity"],
+        ["conducts heat","transfers heat","removes heat"],
+        ["wood","wooden"],
+        ["hand","skin"]
+      ]
+    },
+    {
+      "id":"q018",
+      "reference_answer":"Ice floats because its hydrogen-bonded crystal structure makes it less dense than liquid water.",
+      "required_concepts":[
+        ["less dense","lower density"],
+        ["ice"],
+        ["liquid water","water"],
+        ["hydrogen bonds","crystal structure","open structure"]
+      ]
+    },
+    {
+      "id":"q019",
+      "reference_answer":"A plant kept in darkness will eventually weaken and die because without light it cannot continue photosynthesis and make enough food.",
+      "required_concepts":[
+        ["photosynthesis"],
+        ["light","sunlight"],
+        ["glucose","food","energy"],
+        ["die","dies","death","stop growing"]
+      ]
+    },
+    {
+      "id":"q020",
+      "reference_answer":"An opaque object creates a shadow because it blocks light from passing through it.",
+      "required_concepts":[
+        ["blocks light","block light","light is blocked"],
+        ["opaque"],
+        ["shadow"],
+        ["cannot pass","does not pass through"]
+      ]
+    },
+
+    {
+      "id":"q021",
+      "reference_answer":"Newton's first law states that an object remains at rest or continues moving at constant velocity unless acted on by a net external force.",
+      "required_concepts":[
+        ["at rest","remains at rest"],
+        ["constant velocity","constant motion","continues moving"],
+        ["net force","external force","unbalanced force"],
+        ["inertia"]
+      ]
+    },
+    {
+      "id":"q022",
+      "reference_answer":"Newton's second law states that net force equals mass times acceleration.",
+      "required_concepts":[
+        ["force","net force"],
+        ["mass"],
+        ["acceleration"],
+        ["f = ma","force equals mass times acceleration"]
+      ]
+    },
+    {
+      "id":"q023",
+      "reference_answer":"Newton's third law states that forces occur in equal and opposite pairs.",
+      "required_concepts":[
+        ["equal"],
+        ["opposite"],
+        ["action","force"],
+        ["reaction"]
+      ]
+    },
+    {
+      "id":"q024",
+      "reference_answer":"Velocity is the rate of change of displacement and includes both speed and direction.",
+      "required_concepts":[
+        ["speed","rate"],
         ["direction"],
-        ["vector addition", "add as vectors"]
+        ["displacement","position"]
       ]
     },
     {
-      "id": "openstax-cp2e-ch4-q5",
-      "reference": "Net force causes acceleration, which is a change in velocity rather than motion itself. For example, a force can change an object's speed or direction.",
-      "required_concepts": [
-        ["change in motion", "change in velocity", "acceleration"],
-        ["not motion itself", "can already be moving", "constant motion needs no net force"],
-        ["speed", "direction", "accelerate", "decelerate"]
+      "id":"q025",
+      "reference_answer":"Acceleration is the rate at which velocity changes with time.",
+      "required_concepts":[
+        ["change in velocity","velocity changes","change of velocity"],
+        ["time","per unit time"],
+        ["acceleration"]
+      ]
+    },
+    {
+      "id":"q026",
+      "reference_answer":"Kinetic energy is the energy an object has because of its motion.",
+      "required_concepts":[
+        ["energy"],
+        ["motion","moving"],
+        ["kinetic"]
+      ]
+    },
+    {
+      "id":"q027",
+      "reference_answer":"Potential energy is stored energy associated with an object's position or configuration.",
+      "required_concepts":[
+        ["stored energy","energy stored"],
+        ["position","configuration"],
+        ["potential"]
+      ]
+    },
+    {
+      "id":"q028",
+      "reference_answer":"Friction opposes relative motion between surfaces and converts some mechanical energy into heat.",
+      "required_concepts":[
+        ["opposes motion","resists motion","opposing force"],
+        ["surfaces","contact"],
+        ["heat","thermal energy"]
+      ]
+    },
+    {
+      "id":"q029",
+      "reference_answer":"Pressure increases when the same force is applied over a smaller area.",
+      "required_concepts":[
+        ["pressure increases","higher pressure","increases"],
+        ["same force","force"],
+        ["smaller area","less area"]
+      ]
+    },
+    {
+      "id":"q030",
+      "reference_answer":"The passenger moves forward because inertia causes the body to continue its previous motion when the car stops.",
+      "required_concepts":[
+        ["inertia"],
+        ["continues moving","continue motion","previous motion"],
+        ["car stops","suddenly stops"]
+      ]
+    },
+
+    {
+      "id":"q031",
+      "reference_answer":"An atom is the smallest unit of an element that retains that element's chemical properties.",
+      "required_concepts":[
+        ["smallest unit","basic unit"],
+        ["element"],
+        ["chemical properties","properties"]
+      ]
+    },
+    {
+      "id":"q032",
+      "reference_answer":"An element contains one type of atom, while a compound contains atoms of two or more elements chemically bonded together.",
+      "required_concepts":[
+        ["element","one type of atom"],
+        ["compound"],
+        ["two or more elements","different elements"],
+        ["chemically bonded","chemical bonds"]
+      ]
+    },
+    {
+      "id":"q033",
+      "reference_answer":"A physical change changes form or state without creating a new substance, while a chemical change produces one or more new substances.",
+      "required_concepts":[
+        ["physical change"],
+        ["no new substance","same substance"],
+        ["chemical change"],
+        ["new substance","new substances"]
+      ]
+    },
+    {
+      "id":"q034",
+      "reference_answer":"pH measures how acidic or basic a solution is.",
+      "required_concepts":[
+        ["acidity","acidic"],
+        ["basic","alkaline"],
+        ["solution"],
+        ["ph"]
+      ]
+    },
+    {
+      "id":"q035",
+      "reference_answer":"During evaporation, molecules at the surface of a liquid gain enough energy to enter the gas phase.",
+      "required_concepts":[
+        ["liquid"],
+        ["gas","vapor"],
+        ["surface"],
+        ["energy","gain energy"]
+      ]
+    },
+    {
+      "id":"q036",
+      "reference_answer":"During condensation, gas molecules lose energy and change into a liquid.",
+      "required_concepts":[
+        ["gas","vapor"],
+        ["liquid"],
+        ["lose energy","cool","cooling"],
+        ["condensation"]
+      ]
+    },
+    {
+      "id":"q037",
+      "reference_answer":"Salt dissolves because polar water molecules attract and surround the positive and negative ions in salt.",
+      "required_concepts":[
+        ["polar","polarity"],
+        ["water molecules"],
+        ["ions","positive and negative ions"],
+        ["surround","attract"]
+      ]
+    },
+    {
+      "id":"q038",
+      "reference_answer":"Oxygen acts as the final electron acceptor in aerobic cellular respiration, allowing efficient ATP production.",
+      "required_concepts":[
+        ["oxygen"],
+        ["electron acceptor","accepts electrons"],
+        ["cellular respiration","aerobic respiration"],
+        ["atp","energy"]
+      ]
+    },
+    {
+      "id":"q039",
+      "reference_answer":"A molecule consists of two or more atoms chemically bonded together.",
+      "required_concepts":[
+        ["two or more atoms","atoms"],
+        ["chemically bonded","chemical bonds"],
+        ["molecule"]
+      ]
+    },
+    {
+      "id":"q040",
+      "reference_answer":"Density is mass per unit volume.",
+      "required_concepts":[
+        ["mass"],
+        ["volume"],
+        ["mass per unit volume","mass divided by volume"]
+      ]
+    },
+
+    {
+      "id":"q041",
+      "reference_answer":"The cell membrane controls which substances enter and leave the cell.",
+      "required_concepts":[
+        ["controls","regulates"],
+        ["enter","into the cell"],
+        ["leave","out of the cell"],
+        ["cell membrane"]
+      ]
+    },
+    {
+      "id":"q042",
+      "reference_answer":"The nucleus contains most of a eukaryotic cell's DNA and helps control cell activities.",
+      "required_concepts":[
+        ["dna","genetic material"],
+        ["control","regulates"],
+        ["cell activities","cell functions"],
+        ["nucleus"]
+      ]
+    },
+    {
+      "id":"q043",
+      "reference_answer":"Mitochondria generate much of the cell's ATP through cellular respiration.",
+      "required_concepts":[
+        ["atp"],
+        ["energy"],
+        ["cellular respiration"],
+        ["mitochondria"]
+      ]
+    },
+    {
+      "id":"q044",
+      "reference_answer":"DNA is the molecule that stores hereditary genetic information in living organisms.",
+      "required_concepts":[
+        ["genetic information","genetic instructions"],
+        ["hereditary","heredity"],
+        ["molecule"],
+        ["dna"]
+      ]
+    },
+    {
+      "id":"q045",
+      "reference_answer":"A gene is a segment of DNA containing information that contributes to a functional product or inherited trait.",
+      "required_concepts":[
+        ["segment of dna","part of dna"],
+        ["information","instructions"],
+        ["trait","functional product","protein"],
+        ["gene"]
+      ]
+    },
+    {
+      "id":"q046",
+      "reference_answer":"Plant cells generally have a cell wall, chloroplasts, and a large central vacuole, while animal cells do not have cell walls or chloroplasts.",
+      "required_concepts":[
+        ["cell wall"],
+        ["chloroplasts","chloroplast"],
+        ["large central vacuole","vacuole"],
+        ["animal cells","plant cells"]
+      ]
+    },
+    {
+      "id":"q047",
+      "reference_answer":"Humans need oxygen for aerobic cellular respiration, which produces ATP used by cells.",
+      "required_concepts":[
+        ["cellular respiration","aerobic respiration"],
+        ["atp","energy"],
+        ["cells"],
+        ["oxygen"]
+      ]
+    },
+    {
+      "id":"q048",
+      "reference_answer":"Red blood cells transport oxygen from the lungs to body tissues using hemoglobin.",
+      "required_concepts":[
+        ["transport oxygen","carry oxygen"],
+        ["lungs"],
+        ["tissues","body"],
+        ["hemoglobin"]
+      ]
+    },
+    {
+      "id":"q049",
+      "reference_answer":"The heart pumps blood through the circulatory system to deliver oxygen and nutrients and carry away wastes.",
+      "required_concepts":[
+        ["pumps blood","pump blood"],
+        ["circulatory system","circulation"],
+        ["oxygen","nutrients"],
+        ["waste","carbon dioxide"]
+      ]
+    },
+    {
+      "id":"q050",
+      "reference_answer":"Digestion breaks food into smaller molecules that can be absorbed and used by the body.",
+      "required_concepts":[
+        ["breaks down food","break food","breakdown"],
+        ["smaller molecules","nutrients"],
+        ["absorbed","absorption"],
+        ["body","cells"]
+      ]
+    },
+
+    {
+      "id":"q051",
+      "reference_answer":"Twenty-five percent of 80 is 20.",
+      "required_concepts":[["20"],["25 percent","25%"]]
+    },
+    {
+      "id":"q052",
+      "reference_answer":"Seven multiplied by eight equals 56.",
+      "required_concepts":[["56"],["7","seven"],["8","eight"]]
+    },
+    {
+      "id":"q053",
+      "reference_answer":"144 divided by 12 equals 12.",
+      "required_concepts":[["12"],["144"],["divide","divided"]]
+    },
+    {
+      "id":"q054",
+      "reference_answer":"Two thirds plus one third equals one.",
+      "required_concepts":[["1","one"],["2/3","two thirds"],["1/3","one third"]]
+    },
+    {
+      "id":"q055",
+      "reference_answer":"Five sixths minus one third equals one half.",
+      "required_concepts":[
+        ["1/2","one half"],
+        ["5/6","five sixths"],
+        ["1/3","one third"]
+      ]
+    },
+    {
+      "id":"q056",
+      "reference_answer":"0.75 is equal to 75 percent.",
+      "required_concepts":[["75 percent","75%"],["0.75"]]
+    },
+    {
+      "id":"q057",
+      "reference_answer":"40 percent written as a decimal is 0.4.",
+      "required_concepts":[["0.4","0.40"],["40 percent","40%"]]
+    },
+    {
+      "id":"q058",
+      "reference_answer":"Dividing both sides of 2x = 18 by 2 gives x = 9.",
+      "required_concepts":[["x = 9","x equals 9"],["divide by 2","dividing by 2"]]
+    },
+    {
+      "id":"q059",
+      "reference_answer":"Adding 7 to both sides gives x = 19.",
+      "required_concepts":[["x = 19","x equals 19"],["add 7","adding 7"]]
+    },
+    {
+      "id":"q060",
+      "reference_answer":"Subtract 2 to get 4x = 16, then divide by 4, giving x = 4.",
+      "required_concepts":[
+        ["4x = 16","4x equals 16"],
+        ["x = 4","x equals 4"]
+      ]
+    },
+    {
+      "id":"q061",
+      "reference_answer":"The perimeter is four times the side length, so 4 times 5 equals 20 meters.",
+      "required_concepts":[["20 meters","20 m"],["4","four"],["5 meters","5 m"]]
+    },
+    {
+      "id":"q062",
+      "reference_answer":"Triangle area equals one half times base times height, so the area is 30 square meters.",
+      "required_concepts":[
+        ["30 square meters","30 m2"],
+        ["one half","1/2","half"],
+        ["base","height"]
+      ]
+    },
+    {
+      "id":"q063",
+      "reference_answer":"The circumference is 2 times pi times radius, approximately 18.84.",
+      "required_concepts":[
+        ["18.84"],
+        ["2 pi r","2 times pi","circumference"],
+        ["3","radius"]
+      ]
+    },
+    {
+      "id":"q064",
+      "reference_answer":"The volume is length times width times height, so 2 times 3 times 4 equals 24 cubic meters.",
+      "required_concepts":[
+        ["24 cubic meters","24 m3"],
+        ["length","width","height"],
+        ["multiply","times"]
+      ]
+    },
+    {
+      "id":"q065",
+      "reference_answer":"The average is 25 because the sum is 100 and there are four values.",
+      "required_concepts":[["25"],["100"],["divide by 4","four values"]]
+    },
+    {
+      "id":"q066",
+      "reference_answer":"The median is 7, the middle value of the ordered list.",
+      "required_concepts":[["7"],["middle value","middle number"],["median"]]
+    },
+    {
+      "id":"q067",
+      "reference_answer":"The probability is one sixth because one of the six equally likely outcomes is a 6.",
+      "required_concepts":[
+        ["1/6","one sixth"],
+        ["six outcomes","6 outcomes"],
+        ["probability"]
+      ]
+    },
+    {
+      "id":"q068",
+      "reference_answer":"A 20 percent discount on 50 dollars is 10 dollars, so the final price is 40 dollars.",
+      "required_concepts":[
+        ["40 dollars","$40"],
+        ["10 dollars","$10"],
+        ["20 percent","20%"]
+      ]
+    },
+    {
+      "id":"q069",
+      "reference_answer":"Average speed is distance divided by time, so 120 kilometers divided by 2 hours equals 60 kilometers per hour.",
+      "required_concepts":[
+        ["60 kilometers per hour","60 km/h","60 kph"],
+        ["distance divided by time","distance / time"],
+        ["120","2 hours"]
+      ]
+    },
+    {
+      "id":"q070",
+      "reference_answer":"Two raised to the fifth power equals 32.",
+      "required_concepts":[["32"],["2","two"],["fifth power","power of 5"]]
+    },
+
+    {
+      "id":"q071",
+      "reference_answer":"The CPU executes instructions and performs arithmetic, logic, and control operations.",
+      "required_concepts":[
+        ["executes instructions","processes instructions"],
+        ["arithmetic","calculations"],
+        ["logic"],
+        ["control"]
+      ]
+    },
+    {
+      "id":"q072",
+      "reference_answer":"RAM provides fast temporary storage for data and programs currently being used by the CPU.",
+      "required_concepts":[
+        ["temporary","volatile"],
+        ["data","programs"],
+        ["currently being used","active"],
+        ["cpu"]
+      ]
+    },
+    {
+      "id":"q073",
+      "reference_answer":"RAM is fast, temporary, volatile memory, while storage such as an SSD retains data when power is removed.",
+      "required_concepts":[
+        ["ram","memory"],
+        ["temporary","volatile"],
+        ["storage","ssd","disk"],
+        ["retains data","nonvolatile","power is removed"]
+      ]
+    },
+    {
+      "id":"q074",
+      "reference_answer":"An operating system manages computer hardware and software resources and provides services for applications.",
+      "required_concepts":[
+        ["manages hardware","hardware resources"],
+        ["software resources","software"],
+        ["applications","programs"],
+        ["operating system","os"]
+      ]
+    },
+    {
+      "id":"q075",
+      "reference_answer":"A computer program is a set of instructions that a computer executes to perform tasks.",
+      "required_concepts":[
+        ["set of instructions","instructions"],
+        ["computer"],
+        ["executes","execution"],
+        ["task","tasks"]
+      ]
+    },
+    {
+      "id":"q076",
+      "reference_answer":"An algorithm is a finite sequence of well-defined steps used to solve a problem or perform a computation.",
+      "required_concepts":[
+        ["sequence of steps","set of steps","steps"],
+        ["solve a problem","problem"],
+        ["finite","well defined"],
+        ["algorithm"]
+      ]
+    },
+    {
+      "id":"q077",
+      "reference_answer":"A variable is a named location or identifier used to store a value that a program can access or change.",
+      "required_concepts":[
+        ["name","named"],
+        ["store","holds"],
+        ["value","data"],
+        ["change","access"]
+      ]
+    },
+    {
+      "id":"q078",
+      "reference_answer":"A loop repeatedly executes a block of code while a condition holds or for a specified number of iterations.",
+      "required_concepts":[
+        ["repeatedly","repeat"],
+        ["block of code","code"],
+        ["condition","iterations"],
+        ["loop"]
+      ]
+    },
+    {
+      "id":"q079",
+      "reference_answer":"A conditional statement chooses which code to execute based on whether a condition is true or false.",
+      "required_concepts":[
+        ["condition"],
+        ["true","false"],
+        ["choose","decision","branch"],
+        ["execute","code"]
+      ]
+    },
+    {
+      "id":"q080",
+      "reference_answer":"A function is a reusable block of code designed to perform a particular task, often using inputs and producing outputs.",
+      "required_concepts":[
+        ["reusable","reuse"],
+        ["block of code","code"],
+        ["task","operation"],
+        ["input","output"]
+      ]
+    },
+
+    {
+      "id":"q081",
+      "reference_answer":"An IP address identifies a device or network interface so network packets can be addressed and routed.",
+      "required_concepts":[
+        ["identifies","identifier"],
+        ["device","network interface"],
+        ["network","internet"],
+        ["address","routing","packets"]
+      ]
+    },
+    {
+      "id":"q082",
+      "reference_answer":"DNS translates human-readable domain names into IP addresses.",
+      "required_concepts":[
+        ["domain names","domain name"],
+        ["ip addresses","ip address"],
+        ["translate","resolve","maps"],
+        ["dns"]
+      ]
+    },
+    {
+      "id":"q083",
+      "reference_answer":"A router forwards packets between different networks and chooses paths toward their destinations.",
+      "required_concepts":[
+        ["forwards packets","routes packets"],
+        ["different networks","networks"],
+        ["destination","path"],
+        ["router"]
+      ]
+    },
+    {
+      "id":"q084",
+      "reference_answer":"HTTP transfers web data, while HTTPS protects HTTP communication using TLS encryption and authentication.",
+      "required_concepts":[
+        ["http"],
+        ["https"],
+        ["encryption","encrypted"],
+        ["tls","security","authentication"]
+      ]
+    },
+    {
+      "id":"q085",
+      "reference_answer":"Encryption transforms readable data into a protected form that cannot normally be understood without the appropriate key.",
+      "required_concepts":[
+        ["data","information"],
+        ["protected","ciphertext","unreadable"],
+        ["key","encryption key"],
+        ["encryption"]
+      ]
+    },
+    {
+      "id":"q086",
+      "reference_answer":"A database is an organized collection of data designed for efficient storage, retrieval, and management.",
+      "required_concepts":[
+        ["organized collection","collection"],
+        ["data"],
+        ["storage","store"],
+        ["retrieval","query","management"]
+      ]
+    },
+    {
+      "id":"q087",
+      "reference_answer":"A primary key uniquely identifies each row in a relational database table.",
+      "required_concepts":[
+        ["uniquely identifies","unique"],
+        ["row","record"],
+        ["table"],
+        ["primary key"]
+      ]
+    },
+    {
+      "id":"q088",
+      "reference_answer":"Cloud computing provides computing resources such as servers, storage, or applications over a network, usually the internet.",
+      "required_concepts":[
+        ["computing resources","resources"],
+        ["servers","storage","applications"],
+        ["internet","network"],
+        ["cloud computing","cloud"]
+      ]
+    },
+    {
+      "id":"q089",
+      "reference_answer":"Machine learning is a field in which computational models learn patterns from data to make predictions or decisions.",
+      "required_concepts":[
+        ["learn","learning"],
+        ["patterns"],
+        ["data"],
+        ["predictions","decisions"]
+      ]
+    },
+    {
+      "id":"q090",
+      "reference_answer":"An artificial neural network is a computational model made of interconnected processing units organized in layers and trained by adjusting weights.",
+      "required_concepts":[
+        ["interconnected","connections"],
+        ["neurons","processing units","nodes"],
+        ["layers"],
+        ["weights","trained","training"]
+      ]
+    },
+
+    {
+      "id":"q091",
+      "reference_answer":"Earth has seasons mainly because its rotation axis is tilted relative to its orbit around the Sun.",
+      "required_concepts":[
+        ["axial tilt","axis is tilted","tilted axis"],
+        ["orbit","orbits the sun"],
+        ["sun"],
+        ["seasons"]
+      ]
+    },
+    {
+      "id":"q092",
+      "reference_answer":"Day and night occur because Earth rotates on its axis, causing different regions to face toward or away from the Sun.",
+      "required_concepts":[
+        ["earth rotates","rotation"],
+        ["axis"],
+        ["sun"],
+        ["day","night"]
+      ]
+    },
+    {
+      "id":"q093",
+      "reference_answer":"Weather describes short-term atmospheric conditions, while climate describes long-term patterns of weather in a region.",
+      "required_concepts":[
+        ["weather"],
+        ["short term","short-term"],
+        ["climate"],
+        ["long term","long-term","patterns"]
+      ]
+    },
+    {
+      "id":"q094",
+      "reference_answer":"Ocean tides are caused mainly by the gravitational pull of the Moon, with the Sun also contributing.",
+      "required_concepts":[
+        ["gravity","gravitational"],
+        ["moon"],
+        ["sun"],
+        ["tides"]
+      ]
+    },
+    {
+      "id":"q095",
+      "reference_answer":"The greenhouse effect occurs when gases in the atmosphere absorb and re-emit infrared radiation, warming Earth's surface and lower atmosphere.",
+      "required_concepts":[
+        ["greenhouse gases","gases"],
+        ["infrared","heat radiation"],
+        ["absorb","trap","re emit"],
+        ["warming","warms"]
+      ]
+    },
+    {
+      "id":"q096",
+      "reference_answer":"Renewable energy comes from sources that are naturally replenished, such as sunlight, wind, and flowing water.",
+      "required_concepts":[
+        ["naturally replenished","renewed","replenished"],
+        ["sunlight","solar"],
+        ["wind"],
+        ["water","hydro"]
+      ]
+    },
+    {
+      "id":"q097",
+      "reference_answer":"The ozone layer is important because it absorbs much of the Sun's harmful ultraviolet radiation.",
+      "required_concepts":[
+        ["ozone layer","ozone"],
+        ["absorbs","blocks"],
+        ["ultraviolet","uv"],
+        ["sun","solar radiation"]
+      ]
+    },
+    {
+      "id":"q098",
+      "reference_answer":"Most earthquakes occur when accumulated stress causes rocks to suddenly slip along a fault, releasing seismic energy.",
+      "required_concepts":[
+        ["fault"],
+        ["rocks","tectonic plates","plates"],
+        ["slip","movement","move"],
+        ["energy","seismic waves","seismic energy"]
+      ]
+    },
+    {
+      "id":"q099",
+      "reference_answer":"A volcanic eruption occurs when magma and gases build pressure and rise through weaknesses in Earth's crust.",
+      "required_concepts":[
+        ["magma"],
+        ["gas","gases"],
+        ["pressure"],
+        ["crust","volcano","surface"]
+      ]
+    },
+    {
+      "id":"q100",
+      "reference_answer":"Biodiversity helps ecosystems remain productive, resilient, and capable of providing many ecological functions and services.",
+      "required_concepts":[
+        ["biodiversity","variety of species","variety of life"],
+        ["ecosystem","ecosystems"],
+        ["resilience","stable","stability"],
+        ["functions","services","productivity"]
       ]
     }
   ]

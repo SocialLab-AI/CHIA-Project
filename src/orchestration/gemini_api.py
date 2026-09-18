@@ -417,3 +417,270 @@ class GeminiAPIOptimizer:
             raise error from exc
 
         return candidate, metadata
+
+
+# ---------------------------------------------------------------------------
+# Issue #33: software-only Gemini optimizer
+# ---------------------------------------------------------------------------
+
+def software_proposal_schema() -> dict[str, Any]:
+    """Strict Gemini response schema for software-only optimization."""
+
+    _, software = _active_spaces()
+
+    properties = {
+        name: {"enum": values}
+        for name, values in software.items()
+    }
+
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["software"],
+        "properties": {
+            "software": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": list(software),
+                "properties": properties,
+            }
+        },
+    }
+
+
+def parse_software_proposal(
+    text: str,
+    seen=(),
+    *,
+    software_repetitions: int = 1,
+) -> dict[str, Any]:
+    """Convert one Gemini SW proposal into a complete validated candidate.
+
+    Gemini controls only the reviewed active software knobs.
+    Hardware, workload, model identity and all fixed software fields remain
+    inherited from baseline_candidate().
+    """
+
+    proposal = strict_json(text)
+
+    if (
+        not isinstance(proposal, dict)
+        or set(proposal) != {"software"}
+    ):
+        raise OptimizerError(
+            "Software-only proposal must contain exactly one key: software."
+        )
+
+    _, software_space = _active_spaces()
+    proposed_software = proposal["software"]
+
+    if (
+        not isinstance(proposed_software, dict)
+        or set(proposed_software) != set(software_space)
+    ):
+        raise OptimizerError(
+            "Software proposal must contain exactly all active software knobs."
+        )
+
+    candidate = baseline_candidate()
+
+    candidate["software"].update(proposed_software)
+
+    if (
+        isinstance(software_repetitions, bool)
+        or not isinstance(software_repetitions, int)
+        or software_repetitions < 1
+    ):
+        raise OptimizerError(
+            "software_repetitions must be a positive integer."
+        )
+
+    candidate["measurement"]["software_repetitions"] = (
+        software_repetitions
+    )
+
+    snapshot = Candidate.from_dict(candidate)
+
+    if snapshot.candidate_id in seen:
+        raise OptimizerError(
+            "Duplicate software candidate rejected."
+        )
+
+    return snapshot.config
+
+
+class GeminiSoftwareOptimizer(GeminiAPIOptimizer):
+    """Gemini proposer restricted to Issue #33 software knobs only."""
+
+    def __init__(
+        self,
+        *,
+        model: str,
+        pricing: dict[str, float],
+        timeout_seconds: float = 60,
+        software_repetitions: int = 1,
+    ) -> None:
+        super().__init__(
+            model=model,
+            pricing=pricing,
+            timeout_seconds=timeout_seconds,
+        )
+
+        if (
+            isinstance(software_repetitions, bool)
+            or not isinstance(software_repetitions, int)
+            or software_repetitions < 1
+        ):
+            raise OptimizerError(
+                "software_repetitions must be a positive integer."
+            )
+
+        self.software_repetitions = software_repetitions
+
+    def propose(self, history, seen):
+        """Ask Gemini for one bounded software-only candidate."""
+
+        api_key = os.getenv("GEMINI_API_KEY")
+
+        if not api_key:
+            raise OptimizerError(
+                "GEMINI_API_KEY is not configured."
+            )
+
+        try:
+            from google import genai
+            from google.genai import types
+        except ImportError as exc:
+            raise OptimizerError(
+                "Install the google-genai dependency."
+            ) from exc
+
+        _, software = _active_spaces()
+
+        software_contract = yaml.safe_load(
+            (
+                ROOT
+                / "experiment-contracts"
+                / "testing"
+                / "software-design-space.yaml"
+            ).read_text(encoding="utf-8")
+        )
+
+        # Gemini sees only experiments produced during this Gemini campaign.
+        # It is intentionally NOT given the exhaustive deterministic answer.
+        compact_history = []
+
+        for record in history[-20:]:
+            compact_history.append(
+                {
+                    "candidate_id": record["candidate_id"],
+                    "status": record["status"],
+                    "software": record.get("software"),
+                    "metrics": record.get("metrics"),
+                }
+            )
+
+        prompt = (
+            "You are optimizing the software configuration of a local "
+            "Qwen2.5 AI tutor. "
+            "Propose exactly one NEW software candidate. "
+            "Return JSON only. "
+            "Your JSON must contain exactly one top-level key named "
+            "'software'. "
+            "The software object must contain every active knob exactly "
+            "once and use only the supplied allowed values. "
+            "Do not propose hardware knobs. "
+            "Do not change the model, quantization, backend, CPU threads, "
+            "batch size, workload, or hardware. "
+            "Do not repeat any previous candidate. "
+            "The primary objectives are to maximize answer_quality and "
+            "minimize latency_ms. "
+            "Previous results are experimental measurements and may contain "
+            "noise. Use them to choose the next useful experiment.\n"
+            + canonical(
+                {
+                    "version": "software-candidate-json-v1",
+                    "active_software": software,
+                    "fixed_software": software_contract.get(
+                        "fixed",
+                        {},
+                    ),
+                    "software_repetitions": (
+                        self.software_repetitions
+                    ),
+                    "history": compact_history,
+                }
+            )
+        )
+
+        client = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(
+                timeout=int(
+                    self.timeout_seconds * 1000
+                )
+            ),
+        )
+
+        try:
+            response = client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    temperature=0,
+                    response_mime_type="application/json",
+                    response_json_schema=(
+                        software_proposal_schema()
+                    ),
+                ),
+            )
+        except Exception as exc:
+            raise OptimizerError(
+                "Gemini software proposal request failed."
+            ) from exc
+
+        if (
+            not isinstance(response.text, str)
+            or not response.text.strip()
+        ):
+            raise OptimizerError(
+                "Gemini returned no software proposal."
+            )
+
+        usage = extract_usage(response)
+
+        cost = estimate_cost_usd(
+            usage,
+            **self.pricing,
+        )
+
+        metadata = {
+            "model": self.model,
+            "sdk": "google-genai",
+            "scope": "software_only",
+            "prompt_version": "software-candidate-json-v1",
+            "prompt_sha256": digest(prompt),
+            "usage": usage,
+            "estimated_cost_usd": cost,
+            "raw_proposal": response.text,
+        }
+
+        try:
+            candidate = parse_software_proposal(
+                response.text,
+                seen,
+                software_repetitions=(
+                    self.software_repetitions
+                ),
+            )
+        except Exception as exc:
+            error = OptimizerError(
+                "Gemini software proposal failed "
+                "deterministic validation."
+            )
+
+            error.optimizer_metadata = metadata
+
+            raise error from exc
+
+        return candidate, metadata
