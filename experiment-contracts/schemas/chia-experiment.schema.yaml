@@ -477,6 +477,13 @@ $defs:
         $ref: "#/$defs/nullable_nonnegative_number"
       average_dram_access_latency_ns:
         $ref: "#/$defs/nullable_nonnegative_number"
+      energy_uj:
+        $ref: "#/$defs/nullable_nonnegative_number"
+      energy_scope:
+        type:
+          - string
+          - "null"
+        description: "Components included in the reported energy estimate."
 
   run_metrics:
     type: object
