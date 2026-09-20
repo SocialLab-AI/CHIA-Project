@@ -25,9 +25,12 @@ def execute_runtime(name, mapped, runtime, context, runner):
 
             if remaining <= 0:
                 raise ExecutionTimeout("Node deadline expired before the next attempt.")
+            bounded = {**runtime, "timeout_seconds": remaining}
+            if "deadline_epoch_seconds" in runtime:
+                bounded["deadline_epoch_seconds"] = runtime["deadline_epoch_seconds"]
             return runner(
                 config,
-                {**runtime, "timeout_seconds": remaining},
+                bounded,
                 {
                     **context,
                     "attempt": attempt,

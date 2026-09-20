@@ -3,9 +3,10 @@
 import math
 from src.common.errors import MetricsError
 from src.common.logging import invoke
+from src.common.security import digest
 
 
-def verify_results(config, candidate_id, software, hardware):
+def verify_results(config, candidate_id, software, hardware, energy):
     for name, result in (("software", software), ("hardware", hardware)):
         if (
             not isinstance(result, dict)
@@ -19,6 +20,19 @@ def verify_results(config, candidate_id, software, hardware):
             raise MetricsError(f"{name} executed knobs differ from the candidate.")
         if not result.get("provenance"):
             raise MetricsError(f"{name} runtime provenance is absent.")
+
+    if (
+        not isinstance(energy, dict)
+        or energy.get("status") != "completed"
+        or energy.get("candidate_id") != candidate_id
+        or energy.get("hardware_result_id") != digest(hardware)
+        or (
+            hardware.get("provenance", {}).get("stats_sha256")
+            and energy.get("stats_sha256") != hardware["provenance"]["stats_sha256"]
+        )
+        or not energy.get("provenance")
+    ):
+        raise MetricsError("Energy result is stale or belongs to another hardware run.")
 
     def positive(value):
         return (
@@ -40,6 +54,9 @@ def verify_results(config, candidate_id, software, hardware):
         if not positive(value):
             raise MetricsError("Primary metric is missing, non-finite or nonpositive.")
     quality = sw.get("answer_quality")
+    energy_uj = energy.get("metrics", {}).get("estimated_cache_dynamic_energy_uj")
+    if not positive(energy_uj):
+        raise MetricsError("Energy estimate is missing, nonfinite or nonpositive.")
     question_count = sw.get("question_count")
     if (
         isinstance(quality, bool)
@@ -55,9 +72,10 @@ def verify_results(config, candidate_id, software, hardware):
         raise MetricsError("Software sample count differs from requested repetitions.")
     dataset = software.get("dataset", {})
     if (
-        not dataset.get("dataset_id")
+        dataset.get("dataset_id") != "openstax-college-physics-2e-ch4-concepts-v1"
+        or dataset.get("source_url") != "https://openstax.org/books/college-physics-2e/pages/4-conceptual-questions"
         or dataset.get("reference_visible_to_model") is not False
-        or dataset.get("license") != "CC BY 4.0"
+        or dataset.get("license") != "CC BY-NC-SA 4.0"
     ):
         raise MetricsError("Tutor dataset provenance or reference isolation is absent.")
     if hardware.get("correctness", {}).get("status") != "PASS" or not hardware[
@@ -105,11 +123,12 @@ def verify_results(config, candidate_id, software, hardware):
         "objectives": {
             "native_latency_ms": sw["latency_ms"],
             "proxy_simulated_seconds": hw["simulated_seconds"],
+            "estimated_cache_dynamic_energy_uj": energy_uj,
             "answer_quality_loss": 1.0 - quality,
         },
         "answer_quality": quality,
         "quality_evaluated": True,
-        "scope": "qwen_mixed_qa_quality_plus_attention_proxy",
+        "scope": "openstax_quality_plus_qwen_attention_proxy_plus_cache_dynamic_energy",
         "comparison_group": {
             "context_tokens": config["workload"]["context_tokens"],
             "profile": config["profile"],
@@ -119,12 +138,13 @@ def verify_results(config, candidate_id, software, hardware):
     }
 
 
-def evaluation_node(mapped, software, hardware, context):
+def evaluation_node(mapped, software, hardware, energy, context):
     def evaluate():
         if (
             mapped["event"]["status"] != "completed"
             or software["event"]["status"] != "completed"
             or hardware["event"]["status"] != "completed"
+            or energy["event"]["status"] != "completed"
         ):
             raise MetricsError("A required upstream node did not complete.")
         return verify_results(
@@ -132,6 +152,7 @@ def evaluation_node(mapped, software, hardware, context):
             context["candidate_id"],
             software["value"],
             hardware["value"],
+            energy["value"],
         )
 
     return invoke("evaluation", context, evaluate)

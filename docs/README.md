@@ -1,19 +1,14 @@
-# Project documentation
+# Final project documentation
 
-Start here for the offline AI Tutor and CHIA hardware/software co-design project.
+This index describes the release candidate only.
 
-| Read | Purpose |
-|---|---|
-| [Overview](overview.md) | Project scope, current status, and remaining work |
-| [Architecture](architecture.md) | Components, interfaces, and execution flow |
-| [Configuration](configuration.md) | Where contracts live and how to edit them |
-| [Running](running.md) | Local validation and hardware execution prerequisites |
-| [Knob mapping](knob-mapping.md) | Configuration fields, planned bindings, and metrics |
-| [Glossary](glossary.md) | Terms used in this project |
-| [Experiment evidence](experiments/README.md) | Current Q4 report and historical FP32 evidence |
+- [ARCHITECTURE.md](ARCHITECTURE.md): components, ownership, and resources.
+- [CHIA_LOOP.md](CHIA_LOOP.md): candidate lifecycle and failure boundaries.
+- [EXPERIMENT_METHODOLOGY.md](EXPERIMENT_METHODOLOGY.md): Gemini-versus-random study.
+- [DESIGN_SPACE.md](DESIGN_SPACE.md): fixed fields and legal knobs.
+- [OBJECTIVES.md](OBJECTIVES.md): four Pareto objectives.
+- [RUNNING.md](RUNNING.md): validation, smoke, pilot, and burst commands.
+- [RESULTS.md](RESULTS.md): evidence format and current evidence status.
+- [LIMITATIONS.md](LIMITATIONS.md): claim boundaries and known limits.
 
-The [contract directory](../experiment-contracts/README.md) owns configuration values and validation rules. Link to those inputs instead of maintaining another baseline in documentation.
-
-The [mapping manifest](knob-mapping.manifest.json) is machine-readable documentation used by validation; it is not an executable knob registry.
-
-Keep current behavior separate from planned integration. Historical results describe the run that produced them; do not rewrite their measurements to match a later baseline. Update the relevant guide when code or configuration paths change.
+The authoritative machine-readable contract is `experiment-contracts/campaigns/final-burst.yaml`.

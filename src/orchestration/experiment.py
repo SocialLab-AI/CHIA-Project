@@ -26,6 +26,7 @@ def run_experiment(
     runtime = runtime or {
         "software": {"timeout_seconds": 120, "retries": 0},
         "hardware": {"timeout_seconds": 600, "retries": 0},
+        "energy": {"timeout_seconds": 300, "retries": 0},
     }
     dispatcher = dispatcher or LocalDispatcher()
     results_root = results_root or ROOT / "results/full-loop"
@@ -44,6 +45,7 @@ def run_experiment(
         "status": "failed",
         "software_result": None,
         "hardware_result": None,
+        "energy_result": None,
         "evaluation": None,
         "failure": None,
         "events": [],
@@ -82,20 +84,23 @@ def run_experiment(
         refs.append(sw)
         hw = dispatcher.submit("hardware", mapped, runtime["hardware"], context)
         refs.append(hw)
-        evaluation = dispatcher.submit("evaluation", mapped, sw, hw, context)
+        energy = dispatcher.submit("energy", mapped, hw, runtime["energy"], context)
+        refs.append(energy)
+        evaluation = dispatcher.submit("evaluation", mapped, sw, hw, energy, context)
         refs.append(evaluation)
         for name, reference in (
             ("validation", validated),
             ("mapping", mapped),
             ("software", sw),
             ("hardware", hw),
+            ("energy", energy),
             ("evaluation", evaluation),
         ):
             result = dispatcher.get(
                 reference, timeout=max(0.001, deadline - time.monotonic())
             )
             record["events"].extend(result.get("events", [result["event"]]))
-            if name in {"software", "hardware"}:
+            if name in {"software", "hardware", "energy"}:
                 # Malformed runtime output must not prevent a durable failed record.
                 canonical(result["value"])
                 no_secrets(result["value"])
@@ -116,12 +121,6 @@ def run_experiment(
             except Exception:
                 pass
     record["ended_at"] = utc_now()
-    if record["status"] == "completed":
-        try:
-            reference = dispatcher.submit("record", record, str(results_root))
-            return dispatcher.get(reference, timeout=30)
-        except Exception as error:
-            record["status"] = "failed"
-            record["failure"] = failure(error, "record")
-    # Driver fallback preserves rejected candidates and worker/persistence failures.
+    # The controller is the sole record writer. A worker that finishes after a
+    # timeout can never overwrite the authoritative failure record.
     return persist_record(record, results_root)

@@ -1,8 +1,8 @@
-# Infrastructure-owned Adam control/llama.cpp and YSF gem5 topology.
+# Portable example topology. Render an ignored cluster.local.yaml with operator values.
 cluster_name: chia-full-loop
 
 file_mounts:
-  /tmp/chia-project/: /srv/chia-team/CHIA-Project/
+  /tmp/chia-project/: /srv/chia-project/
 
 rsync_exclude:
   - ".git"
@@ -18,16 +18,16 @@ rsync_exclude:
   - "id_ed25519*"
 
 provider:
-  head_ip: 173.212.217.138
+  head_ip: 192.0.2.10
 
 auth:
-  ssh_user: adam
-  ssh_private_key: /home/adam/.ssh/id_ed25519
+  ssh_user: chia
+  ssh_private_key: /home/chia/.ssh/id_ed25519
 
   overrides:
-    169.58.139.244:
-      ssh_user: ysf
-      ssh_private_key: /home/adam/.ssh/id_ed25519
+    192.0.2.11:
+      ssh_user: chia
+      ssh_private_key: /home/chia/.ssh/id_ed25519
 
 available_node_types:
   gem5_worker:
@@ -37,14 +37,14 @@ available_node_types:
     num_workers: 1
 
     compatible_ips:
-      - 169.58.139.244
+      - 192.0.2.11
 
     worker_env_commands:
-      - source /home/ysf/chia/.venv/bin/activate
+      - source /opt/chia/.venv/bin/activate
       - export PYTHONPATH=/tmp/chia-project
 
 head_env_commands:
-  - source /home/adam/chia/.venv/bin/activate
+  - source /opt/chia/.venv/bin/activate
   - export PYTHONPATH=/tmp/chia-project
 
 head_start_ray_commands:

@@ -284,11 +284,11 @@ def run_semantic_checks(verbose: bool = True) -> bool:
         ok = False
 
     # Evaluation isolation guardrail
-    if tutor_eval.get("reference_source") != "user_curated_mixed_qa":
+    if tutor_eval.get("reference_source") != "OpenStax College Physics 2e, Chapter 4 conceptual questions":
         if verbose:
             print(
                 "[FAIL] Evaluation reference source must be "
-                "'user_curated_mixed_qa', got "
+                "the final OpenStax source, got "
                 f"{tutor_eval.get('reference_source')}"
             )
         ok = False
@@ -387,75 +387,26 @@ def run_negative_tests(master_schema: dict, verbose: bool = True) -> bool:
 
 
 def run_manifest_consistency_checks(verbose: bool = True) -> bool:
-    """Verify that docs/knob-mapping.manifest.json matches active schemas and baseline."""
-    manifest_path = DOCS_DIR / "knob-mapping.manifest.json"
-    if not manifest_path.exists():
-        if verbose:
-            print(f"[FAIL] Missing manifest file: {manifest_path}")
-        return False
-
-    manifest = load_json(manifest_path)
-    fields = manifest.get("fields", [])
-    if not fields:
-        if verbose:
-            print("[FAIL] Manifest contains no fields")
-        return False
-
-    field_map = {f["field"]: f for f in fields}
-    ok = True
-
-    required_in_manifest = [
-        "hardware.cpu_model",
-        "hardware.cores",
-        "hardware.frequency_ghz",
-        "hardware.issue_width",
-        "hardware.l1i_cache_kib",
-        "hardware.l1d_cache_kib",
-        "hardware.l2_cache_kib",
-        "hardware.memory_type",
-        "software.implementation",
-        "software.kv_format",
-        "software.threads",
-        "software.model",
-        "software.quantization",
-        "software.backend",
-        "software.cpu_threads",
-        "software.batch_size",
-        "software.temperature",
-        "software.max_output_tokens",
-        "software.runtime_ready",
-    ]
-
-    wired_tutor_fields = {
-        "software.model",
-        "software.quantization",
-        "software.backend",
-        "software.cpu_threads",
-        "software.batch_size",
-        "software.temperature",
-        "software.max_output_tokens",
-        "software.runtime_ready",
-    }
-
-    for req in required_in_manifest:
-        if req not in field_map:
-            if verbose:
-                print(f"[FAIL] Manifest missing field entry: {req}")
-            ok = False
-        else:
-            entry = field_map[req]
-            expected_status = "WIRED" if req in wired_tutor_fields else "PLANNED"
-            if entry.get("status") != expected_status:
-                if verbose:
-                    print(
-                        f"[FAIL] Manifest field '{req}' status must be "
-                        f"'{expected_status}', got '{entry.get('status')}'"
-                    )
-                ok = False
-
-    if ok and verbose:
-        print("[PASS] Manifest consistency checks passed")
-
+    """Verify agreement among the final campaign, baselines, and design spaces."""
+    campaign = load_yaml(CONTRACTS / "campaigns" / "final-burst.yaml")
+    tutor = load_yaml(BASELINES_DIR / "tutor.yaml")
+    attention = load_yaml(BASELINES_DIR / "attention.yaml")
+    hardware = load_yaml(DESIGN_SPACES_DIR / "hardware.yaml")
+    shared = campaign["study"]["shared_contracts"]
+    ok = (
+        tutor["software"]["model"] == "Qwen2.5 0.5B Instruct"
+        and tutor["software"]["quantization"] == "Q5_K_M"
+        and tutor["workload"]["dataset_id"] == "openstax-college-physics-2e-ch4-concepts-v1"
+        and tutor["evaluation"]["license"] == "CC BY-NC-SA 4.0"
+        and attention["workload"]["query_heads"] == hardware["fixed"]["query_heads"] == 14
+        and attention["workload"]["kv_heads"] == hardware["fixed"]["kv_heads"] == 2
+        and attention["workload"]["head_dimension"] == hardware["fixed"]["head_dimension"] == 64
+        and shared["dataset"] == "data/questions/questions.json"
+        and len(shared["objectives"]) == 4
+        and "energy" in campaign["runtime"]
+    )
+    if verbose:
+        print("[PASS] Final campaign and contract agreement passed" if ok else "[FAIL] Final campaign and contract agreement failed")
     return ok
 
 
@@ -495,7 +446,7 @@ def main() -> None:
     if not run_negative_tests(master_schema):
         all_passed = False
 
-    print("\n--- Manifest & Documentation Agreement ---")
+    print("\n--- Final Campaign Agreement ---")
     if not run_manifest_consistency_checks():
         all_passed = False
 

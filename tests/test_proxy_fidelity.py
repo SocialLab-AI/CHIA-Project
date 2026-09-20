@@ -156,8 +156,14 @@ def test_native_measurement_parsers_keep_units_and_scope():
 def test_calibration_can_collect_finite_error_without_weakening_default_gate():
     output = (
         "status=PASS\n"
+        "kv_mapping=grouped_query\n"
         "max_absolute_error=0.010727912\n"
         "mean_squared_error=0.000012264\n"
+        "root_mean_squared_error=0.003501999\n"
+        "reference_rms=0.250000000\n"
+        "reference_max_absolute=0.500000000\n"
+        "normalized_rmse=0.014007996\n"
+        "normalized_max_error=0.021455824\n"
     )
     tolerance = {"max_absolute_error": 0.01, "mean_squared_error": 0.00001}
 
@@ -167,6 +173,8 @@ def test_calibration_can_collect_finite_error_without_weakening_default_gate():
     observed = parse_correctness(output, tolerance, enforce_tolerance=False)
     assert observed["max_absolute_error"] == pytest.approx(0.010727912)
     assert observed["mean_squared_error"] == pytest.approx(0.000012264)
+    assert observed["normalized_rmse"] == pytest.approx(0.014007996)
+    assert observed["normalized_max_error"] == pytest.approx(0.021455824)
 
 
 def test_analysis_labels_partial_proxy_and_renders_artifacts():

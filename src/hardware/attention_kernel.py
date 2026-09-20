@@ -2,6 +2,11 @@
 
 from src.common.errors import ConfigError
 
+SUPPORTED_ATTENTION_SHAPES = {
+    (4, 2, 32, 1),
+    (14, 2, 64, 1),
+}
+
 
 PROXY_THREADS = 2
 
@@ -19,11 +24,6 @@ def build_attention_kernel_args(config):
     layers = workload["layers"]
     repetitions = measurement["kernel_iterations"]
 
-    if layers != 1:
-        raise ConfigError(
-            "The current attention proxy supports exactly one layer."
-        )
-
     if query_heads < kv_heads:
         raise ConfigError(
             "Query heads must be greater than or equal to KV heads."
@@ -37,6 +37,15 @@ def build_attention_kernel_args(config):
     if head_dimension % 2 != 0:
         raise ConfigError(
             "Head dimension must be even for packed Q4 storage."
+        )
+
+    if layers != 1:
+        raise ConfigError("The reviewed attention proxy executes exactly one layer.")
+
+    shape = (query_heads, kv_heads, head_dimension, layers)
+    if shape not in SUPPORTED_ATTENTION_SHAPES:
+        raise ConfigError(
+            "Attention shape is outside the reviewed original and Qwen-shaped profiles."
         )
 
     return [

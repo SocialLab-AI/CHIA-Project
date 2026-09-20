@@ -1,0 +1,66 @@
+{
+  "schema_version": "0.1.0",
+  "evidence_status": "operator-reported-transcription",
+  "experiment_id": "qwen-proxy-comparison-20260918-01",
+  "status": "completed",
+  "source_revision": "ebbd7c5",
+  "native_model_sha256": "041474553fcabfc2a2d67903f9d2c2e50bd92528e670da4f33b5d0ce6e59fd55",
+  "native_kv_cache_types": {
+    "key": "f16",
+    "value": "f16"
+  },
+  "proxy_kv_cache_type": "Q4",
+  "contexts": [128, 256, 512, 1024, 2048],
+  "trials_per_context": 3,
+  "completed_hardware_jobs": 30,
+  "reviewed_absolute_tolerance": {
+    "max_absolute_error": 0.01,
+    "mean_squared_error": 0.00001
+  },
+  "profiles": {
+    "original-corrected": {
+      "shape": {
+        "query_heads": 4,
+        "kv_heads": 2,
+        "head_dimension": 32,
+        "layers": 1
+      },
+      "spearman_rho": 1.0,
+      "normalized_trend_mape_percent": 3.58,
+      "tolerance_violations": [128],
+      "contexts": [
+        {"context_tokens": 128, "mean_simulated_seconds": 0.002557, "simulated_seconds_stddev": 0.0, "worst_normalized_rmse": 0.012966385, "worst_normalized_max_error": 0.026286831},
+        {"context_tokens": 256, "mean_simulated_seconds": 0.004932, "simulated_seconds_stddev": 0.0, "worst_normalized_rmse": 0.010602555, "worst_normalized_max_error": 0.020245261},
+        {"context_tokens": 512, "mean_simulated_seconds": 0.00947, "simulated_seconds_stddev": 0.0, "worst_normalized_rmse": 0.009314929, "worst_normalized_max_error": 0.019847813},
+        {"context_tokens": 1024, "mean_simulated_seconds": 0.018943, "simulated_seconds_stddev": 0.0, "worst_normalized_rmse": 0.009246765, "worst_normalized_max_error": 0.018456762},
+        {"context_tokens": 2048, "mean_simulated_seconds": 0.037634, "simulated_seconds_stddev": 0.0, "worst_normalized_rmse": 0.009138173, "worst_normalized_max_error": 0.018569234}
+      ]
+    },
+    "qwen-shaped": {
+      "shape": {
+        "query_heads": 14,
+        "kv_heads": 2,
+        "head_dimension": 64,
+        "layers": 1
+      },
+      "spearman_rho": 1.0,
+      "normalized_trend_mape_percent": 3.668,
+      "tolerance_violations": [128, 256, 512, 1024, 2048],
+      "contexts": [
+        {"context_tokens": 128, "mean_simulated_seconds": 0.007636, "simulated_seconds_stddev": 0.0, "worst_normalized_rmse": 0.023581689, "worst_normalized_max_error": 0.041540401},
+        {"context_tokens": 256, "mean_simulated_seconds": 0.014819, "simulated_seconds_stddev": 0.0, "worst_normalized_rmse": 0.012596505, "worst_normalized_max_error": 0.02957489},
+        {"context_tokens": 512, "mean_simulated_seconds": 0.029393, "simulated_seconds_stddev": 0.0, "worst_normalized_rmse": 0.010697379, "worst_normalized_max_error": 0.025396136},
+        {"context_tokens": 1024, "mean_simulated_seconds": 0.058514, "simulated_seconds_stddev": 0.0, "worst_normalized_rmse": 0.009284273, "worst_normalized_max_error": 0.020225868},
+        {"context_tokens": 2048, "mean_simulated_seconds": 0.1167, "simulated_seconds_stddev": 0.0, "worst_normalized_rmse": 0.009301861, "worst_normalized_max_error": 0.020398974}
+      ]
+    }
+  },
+  "reported_artifact_sha256": {
+    "REPORT.md": "ef83a2493b61b4b06e16c07805529ffeabd3a34894afe196f2d044077851d94c",
+    "checkpoint.json": "b251b5b64595f398d645dcd26549bf77f02670c6eea3733ad64160d635fa41c2",
+    "normalized-context-trends-original-corrected.svg": "bbd454b0169543d3e228f10c9fa00babeef443ee61b73b81fa2a2e2a8ab702a0",
+    "normalized-context-trends-qwen-shaped.svg": "fdd0ece0801c45b6ef66bb77ee65304369b69bdfd105cd557ab3b1494eafc8d0",
+    "proxy-comparison.json": "cf012ce53fbbabfbbe704a7cb8863aec77d85f41377095ef93a390234b35826a"
+  },
+  "claim_boundary": "This evidence compares corrected one-layer attention proxies and does not simulate complete Qwen inference."
+}

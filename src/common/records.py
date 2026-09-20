@@ -1,4 +1,4 @@
-"""Integration-owned atomic records; one combined record per candidate attempt on Adam."""
+"""Integration-owned atomic records; one combined record per candidate attempt."""
 
 import importlib.metadata
 import os
@@ -27,6 +27,22 @@ def atomic_json(path, value):
             os.fsync(stream.fileno())
         os.replace(temporary, path)
         os.chmod(path, 0o664)
+    finally:
+        if temporary:
+            temporary.unlink(missing_ok=True)
+
+
+def atomic_text(path, data):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent, delete=False, suffix=".tmp") as stream:
+            temporary = Path(stream.name)
+            stream.write(data)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
     finally:
         if temporary:
             temporary.unlink(missing_ok=True)
@@ -94,6 +110,7 @@ def validate_record(record):
             record["candidate_id"],
             record["software_result"],
             record["hardware_result"],
+            record["energy_result"],
         )
         if actual != record["evaluation"] or record["failure"] is not None:
             raise MetricsError(
@@ -106,9 +123,13 @@ def validate_record(record):
 def persist_record(record, results_root):
     validate_record(record)
     directory = within(results_root, record["campaign_id"])
-    destination = within(directory, record["run_id"] + ".json")
+    destination = within(directory / "runs", record["run_id"] + ".json")
     atomic_json(destination, record)
-    atomic_json(within(directory, record["run_id"] + ".events.json"), record["events"])
+    atomic_json(within(directory / "events", record["run_id"] + ".json"), record["events"])
+    if record.get("software_result"):
+        atomic_json(within(directory / "native", record["run_id"] + ".json"), record["software_result"])
+    if record.get("energy_result"):
+        atomic_json(within(directory / "energy", record["run_id"] + ".json"), record["energy_result"])
     return record
 
 

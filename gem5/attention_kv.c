@@ -1,3 +1,8 @@
+/*
+ * Hardware-owned attention proxy used by the native and gem5 adapters.
+ * It compares packed-Q4 grouped-query attention with an FP32 reference and
+ * emits machine-readable correctness evidence for the orchestration loop.
+ */
 #include <math.h>
 #include <pthread.h>
 #include <stdint.h>
@@ -8,7 +13,7 @@
 #endif
 
 #ifndef QUERY_HEADS
-#define QUERY_HEADS 4
+#define QUERY_HEADS 14
 #endif
 
 #ifndef KV_HEADS
@@ -16,7 +21,7 @@
 #endif
 
 #ifndef HEAD_DIM
-#define HEAD_DIM 32
+#define HEAD_DIM 64
 #endif
 
 #ifndef REPETITIONS
@@ -39,6 +44,32 @@
 #endif
 #define PACKED_DIM (HEAD_DIM / 2)
 #define Q4_MAX 7
+
+#if CONTEXT <= 0
+#error "CONTEXT must be positive"
+#endif
+
+#if QUERY_HEADS <= 0
+#error "QUERY_HEADS must be positive"
+#endif
+
+#if KV_HEADS <= 0
+#error "KV_HEADS must be positive"
+#elif (QUERY_HEADS % KV_HEADS) != 0
+#error "QUERY_HEADS must be divisible by KV_HEADS"
+#endif
+
+#if HEAD_DIM <= 0 || (HEAD_DIM % 2) != 0
+#error "Packed Q4 requires a positive even HEAD_DIM"
+#endif
+
+#if REPETITIONS <= 0
+#error "REPETITIONS must be positive"
+#endif
+
+#if THREADS != 2
+#error "The reviewed proxy currently supports exactly two threads"
+#endif
 
 static float query[QUERY_HEADS][HEAD_DIM];
 
@@ -153,12 +184,18 @@ static float dequantize(
     return (float)quantized * scale;
 }
 
+static int kv_head_for_query(int query_head)
+{
+    int query_heads_per_kv = QUERY_HEADS / KV_HEADS;
+    return query_head / query_heads_per_kv;
+}
+
 static void run_fp32_reference(void)
 {
     const float scale = 1.0f / sqrtf((float)HEAD_DIM);
 
     for (int query_head = 0; query_head < QUERY_HEADS; query_head++) {
-        int kv_head = query_head / (QUERY_HEADS / KV_HEADS);
+        int kv_head = kv_head_for_query(query_head);
         float maximum_score = -INFINITY;
 
         for (int token = 0; token < CONTEXT; token++) {
@@ -211,7 +248,7 @@ static void run_fp32_reference(void)
 static void run_q4_head(int query_head)
 {
     const float scale = 1.0f / sqrtf((float)HEAD_DIM);
-    int kv_head = query_head / (QUERY_HEADS / KV_HEADS);
+    int kv_head = kv_head_for_query(query_head);
     float maximum_score = -INFINITY;
 
     for (int token = 0; token < CONTEXT; token++) {
@@ -277,23 +314,20 @@ static void *attention_worker(void *argument)
 static int run_q4_attention(void)
 {
     pthread_t worker_thread;
-    int worker_id = 1;
-    int main_id = 0;
+    int main_thread_id = 0;
+    int worker_thread_id = 1;
 
     if (pthread_create(
             &worker_thread,
             NULL,
             attention_worker,
-            &worker_id) != 0) {
+            &worker_thread_id) != 0) {
 
         return 0;
     }
 
-    /*
-     * The main thread processes all even query heads while the
-     * worker thread processes all odd query heads.
-     */
-    attention_worker(&main_id);
+    /* Both threads use the same strided dispatcher for every legal head count. */
+    attention_worker(&main_thread_id);
 
     if (pthread_join(worker_thread, NULL) != 0) {
         return 0;
@@ -340,30 +374,56 @@ int main(void)
 
     double maximum_absolute_error = 0.0;
     double squared_error_sum = 0.0;
+    double reference_squared_sum = 0.0;
+    double reference_max_absolute = 0.0;
 
     for (int head = 0; head < QUERY_HEADS; head++) {
         for (int dimension = 0; dimension < HEAD_DIM; dimension++) {
-            double difference =
-                (double)output_q4[head][dimension] -
+            double reference =
                 (double)output_fp32[head][dimension];
+            double difference =
+                (double)output_q4[head][dimension] - reference;
 
             double absolute_error = fabs(difference);
+            double reference_absolute = fabs(reference);
 
             if (absolute_error > maximum_absolute_error) {
                 maximum_absolute_error = absolute_error;
             }
 
+            if (reference_absolute > reference_max_absolute) {
+                reference_max_absolute = reference_absolute;
+            }
+
             squared_error_sum += difference * difference;
+            reference_squared_sum += reference * reference;
         }
     }
 
+    double element_count = (double)(QUERY_HEADS * HEAD_DIM);
     double mean_squared_error =
-        squared_error_sum / (QUERY_HEADS * HEAD_DIM);
+        squared_error_sum / element_count;
+    double root_mean_squared_error = sqrt(mean_squared_error);
+    double reference_rms = sqrt(reference_squared_sum / element_count);
+    double normalized_rmse =
+        reference_rms > 0.0
+            ? root_mean_squared_error / reference_rms
+            : INFINITY;
+    double normalized_max_error =
+        reference_max_absolute > 0.0
+            ? maximum_absolute_error / reference_max_absolute
+            : INFINITY;
 
     int passed =
+        isfinite(fp32_checksum) &&
         isfinite(q4_checksum) &&
         isfinite(maximum_absolute_error) &&
-        isfinite(mean_squared_error);
+        isfinite(mean_squared_error) &&
+        isfinite(root_mean_squared_error) &&
+        isfinite(reference_rms) &&
+        isfinite(reference_max_absolute) &&
+        isfinite(normalized_rmse) &&
+        isfinite(normalized_max_error);
 
     printf("ATTENTION_Q4_RESULT\n");
     printf("context=%d\n", CONTEXT);
@@ -373,10 +433,16 @@ int main(void)
     printf("threads=%d\n", THREADS);
     printf("repetitions=%d\n", REPETITIONS);
     printf("kv_format=Q4\n");
+    printf("kv_mapping=grouped_query\n");
     printf("fp32_checksum=%.9f\n", fp32_checksum);
     printf("q4_checksum=%.9f\n", q4_checksum);
     printf("max_absolute_error=%.9f\n", maximum_absolute_error);
     printf("mean_squared_error=%.9f\n", mean_squared_error);
+    printf("root_mean_squared_error=%.9f\n", root_mean_squared_error);
+    printf("reference_rms=%.9f\n", reference_rms);
+    printf("reference_max_absolute=%.9f\n", reference_max_absolute);
+    printf("normalized_rmse=%.9f\n", normalized_rmse);
+    printf("normalized_max_error=%.9f\n", normalized_max_error);
     printf("status=%s\n", passed ? "PASS" : "FAIL");
 
     return passed ? 0 : 1;

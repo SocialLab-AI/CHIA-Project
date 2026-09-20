@@ -607,8 +607,6 @@ $defs:
           - backend
           - cpu_threads
           - batch_size
-          - temperature
-          - max_output_tokens
           - runtime_ready
           - status
         properties:
@@ -630,8 +628,6 @@ $defs:
           - backend
           - cpu_threads
           - batch_size
-          - temperature
-          - max_output_tokens
         properties:
           model: { type: string }
           quantization: { type: string }
@@ -820,9 +816,9 @@ $defs:
       memory_size_mib: { const: 16 }
       simulation_mode: { const: "SE" }
       context_tokens: { enum: [128, 256, 512, 1024, 2048] }
-      query_heads: { const: 4 }
+      query_heads: { const: 14 }
       kv_heads: { const: 2 }
-      head_dimension: { const: 32 }
+      head_dimension: { const: 64 }
       layers: { const: 1 }
       threads: { enum: [1, 2, 4] }
       repetitions: { type: integer, minimum: 1 }
@@ -861,9 +857,9 @@ $defs:
       memory_type: { const: "DDR3_1600_8x8" }
       memory_size_mib: { const: 16 }
       simulation_mode: { const: "SE" }
-      query_heads: { const: 4 }
+      query_heads: { const: 14 }
       kv_heads: { const: 2 }
-      head_dimension: { const: 32 }
+      head_dimension: { const: 64 }
       layers: { const: 1 }
       threads: { const: 2 }
       repetitions: { const: 10 }
@@ -1184,8 +1180,14 @@ $defs:
         type: string
       reference_source:
         type: string
-        const: "user_curated_mixed_qa"
+        const: "OpenStax College Physics 2e, Chapter 4 conceptual questions"
         description: "Hard guardrail: held out for evaluation only."
+      source_url:
+        type: string
+        const: "https://openstax.org/books/college-physics-2e/pages/4-conceptual-questions"
+      license:
+        type: string
+        const: "CC BY-NC-SA 4.0"
       reference_visible_to_model:
         type: boolean
         const: false
@@ -1274,7 +1276,7 @@ $defs:
       schema_version:
         const: 0.3.0
       profile:
-        const: qwen25-q5-mixed-qa
+        const: qwen25-q5-openstax-14-2-64
       hardware:
         $ref: '#/$defs/hardware'
       workload:
@@ -1328,7 +1330,8 @@ $defs:
             maximum: 10
           kernel_iterations:
             type: integer
-            const: 10
+            minimum: 1
+            maximum: 10
   loop_record:
     type: object
     additionalProperties: false
@@ -1344,6 +1347,7 @@ $defs:
     - ended_at
     - software_result
     - hardware_result
+    - energy_result
     - evaluation
     - failure
     - events
@@ -1375,6 +1379,7 @@ $defs:
       ended_at: *id001
       software_result: *id002
       hardware_result: *id002
+      energy_result: *id002
       evaluation: *id002
       failure: *id002
       events:
@@ -1405,6 +1410,8 @@ $defs:
           software_result:
             type: object
           hardware_result:
+            type: object
+          energy_result:
             type: object
           evaluation:
             type: object

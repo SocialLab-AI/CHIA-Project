@@ -32,8 +32,8 @@ def _active_spaces() -> tuple[
     software_path = (
         ROOT
         / "experiment-contracts"
-        / "testing"
-        / "software-design-space.yaml"
+        / "design-spaces"
+        / "software.yaml"
     )
 
     software = yaml.safe_load(
@@ -306,8 +306,8 @@ class GeminiAPIOptimizer:
             (
                 ROOT
                 / "experiment-contracts"
-                / "testing"
-                / "software-design-space.yaml"
+                / "design-spaces"
+                / "software.yaml"
             ).read_text(encoding="utf-8")
         )
 
@@ -371,17 +371,17 @@ class GeminiAPIOptimizer:
                 ),
             )
         except Exception as exc:
-            raise OptimizerError(
-                "Gemini API proposal request failed."
-            ) from exc
-
-        if (
-            not isinstance(response.text, str)
-            or not response.text.strip()
-        ):
-            raise OptimizerError(
-                "Gemini returned no proposal text."
-            )
+            error = OptimizerError("Gemini API proposal request failed.")
+            error.optimizer_metadata = {
+                "model": self.model,
+                "sdk": "google-genai",
+                "prompt_version": PROMPT_VERSION,
+                "prompt_sha256": digest(prompt),
+                "usage": None,
+                "estimated_cost_usd": None,
+                "outcome": "request_failure",
+            }
+            raise error from exc
 
         usage = extract_usage(response)
 
@@ -397,7 +397,14 @@ class GeminiAPIOptimizer:
             "prompt_sha256": digest(prompt),
             "usage": usage,
             "estimated_cost_usd": cost,
+            "raw_proposal": response.text,
         }
+
+        if not isinstance(response.text, str) or not response.text.strip():
+            error = OptimizerError("Gemini returned no proposal text.")
+            metadata["outcome"] = "malformed"
+            error.optimizer_metadata = metadata
+            raise error
 
         try:
             candidate = parse_proposal(
@@ -412,6 +419,12 @@ class GeminiAPIOptimizer:
 
             # Preserve usage and cost even when the proposal
             # is rejected after the API request was billed.
+            message = str(exc).lower()
+            metadata["outcome"] = (
+                "duplicate" if "duplicate" in message
+                else "malformed" if "json" in message
+                else "rejected"
+            )
             error.optimizer_metadata = metadata
 
             raise error from exc
@@ -566,8 +579,8 @@ class GeminiSoftwareOptimizer(GeminiAPIOptimizer):
             (
                 ROOT
                 / "experiment-contracts"
-                / "testing"
-                / "software-design-space.yaml"
+                / "design-spaces"
+                / "software.yaml"
             ).read_text(encoding="utf-8")
         )
 

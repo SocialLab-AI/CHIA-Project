@@ -16,8 +16,31 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path)
     parser.add_argument("--validate-only", action="store_true")
+    parser.add_argument("--smoke", action="store_true")
+    parser.add_argument("--method", choices=("gemini", "random"))
     args = parser.parse_args()
     config = yaml.safe_load(args.config.read_text()) if args.config else {}
+    if args.smoke:
+        config["campaign_id"] = "final-burst-smoke"
+        config["iterations"] = 1
+        config["optimizer"] = {"enabled": False}
+    elif args.method:
+        config["campaign_id"] = "final-burst-" + args.method
+        config["iterations"] = config["study"]["candidate_budget_per_method"]
+        if args.method == "random":
+            config["optimizer"] = {
+                "enabled": True, "policy": "random",
+                "max_calls": config["iterations"],
+                "seed": config["study"]["random_seed"],
+            }
+        else:
+            config["optimizer"] = {
+                "enabled": True, "policy": "gemini_api",
+                "model": "gemini-3.1-flash-lite",
+                "max_calls": config["iterations"],
+                "budget_usd": 10.0,
+                "timeout_seconds": 60,
+            }
     if args.validate_only:
         checked = validate_campaign_config(config)
         candidates = checked.get("candidates", deterministic_candidates())

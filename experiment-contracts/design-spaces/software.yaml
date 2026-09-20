@@ -27,8 +27,6 @@ fixed:
 
   cpu_threads: 4
   batch_size: 1
-  temperature: 0.0
-  max_output_tokens: 384
 
 active_candidates:
   temperature: [0.0, 0.2, 0.5]
@@ -61,6 +59,10 @@ optimization_metrics:
   latency_ms:
     direction: "minimize"
     intended_purpose: "Application response latency"
+
+  energy_uj:
+    direction: "minimize"
+    intended_purpose: "Estimated proxy cache dynamic energy"
 
 
 unresolved_runtime_items: []

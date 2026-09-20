@@ -2,15 +2,15 @@
 schema_version: "0.2.0"
 
 metadata:
-  experiment_id: attn-q4-baseline-001
-  campaign_id: attention-baseline-v1
-  description: "Verified two-core Q4 KV-cache attention baseline in gem5."
+  experiment_id: qwen25-attention-proxy-14-2-64
+  campaign_id: final-burst
+  description: "Production Qwen-shaped packed-Q4 attention proxy for comparative gem5 exploration."
 
 workload:
   context_tokens: 512
-  query_heads: 4
+  query_heads: 14
   kv_heads: 2
-  head_dimension: 32
+  head_dimension: 64
   layers: 1
 
 software:
@@ -42,24 +42,24 @@ measurement:
   max_simulation_instructions: null
 
 metrics:
-  sim_ticks: 16120761000
-  simulated_seconds: 0.016121
-  latency_ms: 16.121
-  host_seconds: 181.29
-  instructions: 31245140
-  cycles_per_core: [16109101, 7571222]
-  cpi_per_core: [0.898906, 0.568224]
-  ipc_per_core: [1.112463, 1.759869]
-  aggregate_ipc: 1.939595511878658
-  l1i_miss_rate_per_core: [0.000594, 0.000182]
-  l1d_miss_rate_per_core: [0.016808, 0.019031]
-  l2_miss_rate: 0.699803
-  dram_bytes_read: 182016
-  dram_bytes_written: 0
-  dram_bandwidth_bytes_per_second: 11290782
-  dram_bandwidth_utilization_percent: 0.088209
-  average_dram_access_latency_ns: 29.39592
+  sim_ticks: null
+  simulated_seconds: null
+  latency_ms: null
+  host_seconds: null
+  instructions: null
+  cycles_per_core: null
+  cpi_per_core: null
+  ipc_per_core: null
+  aggregate_ipc: null
+  l1i_miss_rate_per_core: null
+  l1d_miss_rate_per_core: null
+  l2_miss_rate: null
+  dram_bytes_read: null
+  dram_bytes_written: null
+  dram_bandwidth_bytes_per_second: null
+  dram_bandwidth_utilization_percent: null
+  average_dram_access_latency_ns: null
 
 status:
-  state: completed
-  message: "Verified gem5 baseline execution."
+  state: planned
+  message: "Selected production geometry; final integrated smoke evidence is pending."

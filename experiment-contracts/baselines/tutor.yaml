@@ -7,9 +7,9 @@ metadata:
   artifact_manifest: "server-local artifact verified by SHA-256 at runtime"
 
 workload:
-  dataset_id: "edge-ai-tutor-mixed-qa-v2-100q"
-  evaluation_protocol: "required-concept-coverage-v1"
-  num_questions: 100
+  dataset_id: "openstax-college-physics-2e-ch4-concepts-v1"
+  evaluation_protocol: "openstax-required-concept-coverage-v1"
+  num_questions: 3
   seed: 42
 
 software:
@@ -37,7 +37,9 @@ evaluation:
   questions_file: "data/questions/questions.json"
   references_file: "data/references/openstax.json"
 
-  reference_source: "user_curated_mixed_qa"
+  reference_source: "OpenStax College Physics 2e, Chapter 4 conceptual questions"
+  source_url: "https://openstax.org/books/college-physics-2e/pages/4-conceptual-questions"
+  license: "CC BY-NC-SA 4.0"
   reference_visible_to_model: false
 
   comparison_method: "required_concept_coverage"
@@ -47,8 +49,8 @@ evaluation:
 
 proxy_evaluation:
   type: "attention_kernel"
-  mapping_id: "placeholder:tutor-to-attention-v1"
-  attention_experiment_ref: null
+  mapping_id: "qwen25-gqa-14-2-64-q4-v1"
+  attention_experiment_ref: "experiment-contracts/baselines/attention.yaml"
 
 metrics:
   application:
@@ -58,7 +60,7 @@ metrics:
     throughput_qps: null
 
 status:
-  state: "planned"
+  state: "validated"
   message: >
     Software baseline values are resolved.
     Runtime adapter and mixed educational QA evaluation set are implemented.

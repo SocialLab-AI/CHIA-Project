@@ -161,7 +161,9 @@ def _normalize(values: list[float]) -> list[float]:
     return [value / values[0] for value in values]
 
 
-def analyze_fidelity(model: dict, native: dict, hardware: dict) -> dict:
+def analyze_fidelity(
+    model: dict, native: dict, hardware: dict, proxy: dict | None = None
+) -> dict:
     """Combine measured evidence without claiming unavailable native cache rankings."""
 
     contexts, native_latency = _by_context(
@@ -173,7 +175,7 @@ def analyze_fidelity(model: dict, native: dict, hardware: dict) -> dict:
     if contexts != hardware_contexts:
         raise MetricsError("Native and proxy context axes differ.")
     rho = spearman_rank_correlation(native_latency, proxy_latency)
-    comparison = architecture_comparison(model)
+    comparison = architecture_comparison(model, proxy)
     mismatches = sum(row["match"] == "no" for row in comparison)
     missing = sum(row["match"] in {"not_modeled", "unknown"} for row in comparison)
     sensitivity = sorted(
@@ -192,7 +194,7 @@ def analyze_fidelity(model: dict, native: dict, hardware: dict) -> dict:
     ]
 
     # A full calibration claim requires a native platform exposing equivalent
-    # cache/memory configurations. Adam cannot change its physical L1/L2 design.
+    # cache/memory configurations. The current native host cannot do that.
     conclusion = (
         "C_PROXY_NEEDS_REVISION"
         if rho <= 0 or context_tolerance_violations
@@ -233,7 +235,7 @@ def analyze_fidelity(model: dict, native: dict, hardware: dict) -> dict:
         "native_hardware_ranking": None,
         "configuration_rank_correlation": None,
         "configuration_rank_limitation": (
-            "The Adam host cannot expose gem5-equivalent L1/L2 sizes, associativity, "
+            "The native host cannot expose gem5-equivalent L1/L2 sizes, associativity, "
             "issue width or memory controller settings. A native Qwen ranking over those "
             "configurations is therefore not identifiable on the current cluster."
         ),

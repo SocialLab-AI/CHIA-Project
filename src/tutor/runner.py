@@ -1,6 +1,7 @@
-"""Qwen Tutor candidate runner used locally and by the Adam CHIA software node."""
+"""Qwen Tutor candidate runner used locally and by the CHIA software node."""
 
 import hashlib
+import os
 import time
 
 from src.common.candidate import Candidate, ROOT
@@ -76,6 +77,12 @@ def run_software_candidate(config, runtime=None, context=None):
 
     runtime = runtime or {}
 
+    permission_env = runtime.get("dataset_permission_env")
+    if permission_env and os.getenv(permission_env) != "1":
+        raise ConfigError(
+            f"OpenStax LLM-use permission is not attested; set {permission_env}=1 only after permission is confirmed."
+        )
+
     # ---------------------------------------------------------
     # Timeout configuration
     # ---------------------------------------------------------
@@ -123,10 +130,12 @@ def run_software_candidate(config, runtime=None, context=None):
             "Software request retries must be an integer between zero and two."
         )
 
-    candidate_deadline = (
-        time.monotonic()
-        + candidate_timeout_seconds
+    effective_timeout = min(
+        candidate_timeout_seconds,
+        runtime.get("timeout_seconds", candidate_timeout_seconds),
+        max(0.0, runtime.get("deadline_epoch_seconds", time.time() + candidate_timeout_seconds) - time.time()),
     )
+    candidate_deadline = time.monotonic() + effective_timeout
 
     # ---------------------------------------------------------
     # Convert the canonical software config into llama.cpp

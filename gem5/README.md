@@ -4,9 +4,15 @@ This directory contains the gem5 proxy workload for the Edge AI Tutor project. I
 
 ## Files
 
-- `attention_kv.c` — Q4 KV-cache attention kernel with FP32 validation
+- `attention_kv.c` — reviewed shared Q4 attention implementation with grouped-query mapping, generic head dispatch and FP32 validation
+- `attention_kv_original_proxy.c` — frozen 4-query/2-KV/32-dimension entry profile from the repeated comparison
+- `attention_kv_qwen_proxy.c` — frozen 14-query/2-KV/64-dimension Qwen-shaped entry profile from the repeated comparison
 - `attention-riscv.py` — two-core RISC-V gem5 configuration
-- `baseline-results.md` — verified baseline results
+
+The two named proxy files include the same corrected shared implementation and
+lock only the compared attention shape. The production path uses 14/2/64. The pre-correction kernel contained a
+known KV mapping and head-dispatch defect, so it remains available through Git
+history as evidence rather than as a selectable implementation. The recorded comparison supports trend fidelity, not full-model latency equivalence; see the [recorded comparison](../docs/experiments/proxy-comparison-results-20260918.md).
 
 ## Configuration
 
@@ -34,3 +40,15 @@ docker run --rm \
   -static -O2 -std=c11 -pthread \
   -o /gem5-src/attention_kv_q4 \
   attention_kv.c -lm
+```
+
+To reproduce either reviewed comparison profile, replace `attention_kv.c` in
+the final command with `attention_kv_original_proxy.c` or
+`attention_kv_qwen_proxy.c`. Set `CONTEXT` at compile time, for example:
+
+```bash
+riscv64-linux-gnu-gcc -static -O2 -std=c11 -pthread \
+  -DCONTEXT=512 \
+  -o /gem5-src/attention_kv_qwen \
+  attention_kv_qwen_proxy.c -lm
+```

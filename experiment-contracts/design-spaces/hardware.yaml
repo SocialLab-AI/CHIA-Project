@@ -22,9 +22,9 @@ baseline:
   memory_size_mib: 16
   simulation_mode: SE
   context_tokens: 512
-  query_heads: 4
+  query_heads: 14
   kv_heads: 2
-  head_dimension: 32
+  head_dimension: 64
   layers: 1
   threads: 2
   repetitions: 10
@@ -56,9 +56,9 @@ fixed:
   memory_type: DDR3_1600_8x8
   memory_size_mib: 16
   simulation_mode: SE
-  query_heads: 4
+  query_heads: 14
   kv_heads: 2
-  head_dimension: 32
+  head_dimension: 64
   layers: 1
   threads: 2
   repetitions: 10

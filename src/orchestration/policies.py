@@ -29,8 +29,8 @@ def deterministic_software_candidates():
     path = (
         ROOT
         / "experiment-contracts"
-        / "testing"
-        / "software-design-space.yaml"
+        / "design-spaces"
+        / "software.yaml"
     )
 
     design = yaml.safe_load(path.read_text(encoding="utf-8"))

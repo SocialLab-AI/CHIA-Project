@@ -32,26 +32,60 @@ def validate_schema(value, name):
         raise ConfigError(f"{name} schema rejected field {path}.")
 
 
-def validate_candidate(value):
+CALIBRATION_WORKLOADS = {
+    (4, 2, 32, 1),
+    (14, 2, 64, 1),
+}
+
+
+def normalize_candidate(value):
+    """Normalize JSON numeric representations before validation and hashing."""
+
+    if isinstance(value, dict):
+        return {
+            key: normalize_candidate(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [normalize_candidate(item) for item in value]
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    return value
+
+
+def validate_candidate(value, *, calibration=False):
+    if not isinstance(calibration, bool):
+        raise ConfigError("calibration must be boolean.")
     no_secrets(value)
     canonical(value)
     validate_schema(value, "loop_candidate")
     design = load_design_space()
     validate_hardware_candidate(value["hardware"], design)
     work = value["workload"]
-    for field in ("query_heads", "kv_heads", "head_dimension", "layers"):
-        if work[field] != design["fixed"][field]:
-            raise ConfigError(f"workload.{field} is fixed by this campaign.")
+    shape = tuple(
+        work[field] for field in ("query_heads", "kv_heads", "head_dimension", "layers")
+    )
+    if calibration:
+        if shape not in CALIBRATION_WORKLOADS:
+            raise ConfigError("Workload shape is outside the calibration protocol.")
+    else:
+        for field in ("query_heads", "kv_heads", "head_dimension", "layers"):
+            if work[field] != design["fixed"][field]:
+                raise ConfigError(f"workload.{field} is fixed by this campaign.")
     if work["context_tokens"] not in design["evaluation_axes"]["context_tokens"]:
         raise ConfigError("Context is outside the approved evaluation axes.")
-    if work["query_heads"] != 4 or work["kv_heads"] != 2 or work["head_dimension"] % 2:
+    if work["query_heads"] % work["kv_heads"] or work["head_dimension"] % 2:
         raise ConfigError(
-            "Current packed-Q4 kernel requires the validated four-query/two-KV shape."
+            "Packed-Q4 grouped-query attention requires divisible heads and even dimensions."
         )
-    if value["measurement"]["kernel_iterations"] != design["fixed"]["repetitions"]:
+    iterations = value["measurement"]["kernel_iterations"]
+    if calibration:
+        if iterations != 1:
+            raise ConfigError("Proxy comparison uses one kernel iteration per trial.")
+    elif iterations != design["fixed"]["repetitions"]:
         raise ConfigError("Kernel iterations are fixed by the hardware campaign.")
     space = yaml.safe_load(
-        (ROOT / "experiment-contracts/testing/software-design-space.yaml").read_text()
+        (ROOT / "experiment-contracts/design-spaces/software.yaml").read_text()
     )
     software = value["software"]
     for field, choices in space["active_candidates"].items():
@@ -70,9 +104,11 @@ class Candidate:
     payload: str
 
     @classmethod
-    def from_dict(cls, value):
-        snapshot = json.loads(canonical(value))
-        validate_candidate(snapshot)
+    def from_dict(cls, value, *, calibration=False):
+        snapshot = normalize_candidate(
+            json.loads(canonical(value))
+        )
+        validate_candidate(snapshot, calibration=calibration)
         return cls(canonical(snapshot))
 
     @property
@@ -90,7 +126,7 @@ def baseline_candidate():
     )
     return {
         "schema_version": "0.3.0",
-        "profile": "qwen25-q5-mixed-qa",
+        "profile": "qwen25-q5-openstax-14-2-64",
         "hardware": attention["hardware"],
         "software": {
             "model": "Qwen2.5 0.5B Instruct",

@@ -80,13 +80,10 @@ def test_kernel_uses_grouped_query_mapping():
         ROOT / "gem5" / "attention_kv.c"
     ).read_text(encoding="utf-8")
 
-    correct_mapping = (
-        "query_head / "
-        "(QUERY_HEADS / KV_HEADS)"
-    )
-
     assert "query_head % KV_HEADS" not in source
-    assert source.count(correct_mapping) == 2
+    assert "static int kv_head_for_query" in source
+    assert "query_head / query_heads_per_kv" in source
+    assert source.count("kv_head_for_query(query_head)") == 2
     assert (
         "#if QUERY_HEADS % KV_HEADS != 0"
         in source
@@ -97,7 +94,7 @@ def test_kernel_distributes_all_heads():
     ).read_text(encoding="utf-8")
 
     assert "query_head += THREADS" in source
-    assert "int main_id = 0;" in source
-    assert "attention_worker(&main_id);" in source
+    assert "int main_thread_id = 0;" in source
+    assert "attention_worker(&main_thread_id);" in source
     assert "run_q4_head(0);" not in source
     assert "run_q4_head(2);" not in source

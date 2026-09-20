@@ -30,9 +30,9 @@ hardware:
 
 attention_proxy:
   context_tokens: 512
-  query_heads: 4
+  query_heads: 14
   kv_heads: 2
-  head_dimension: 32
+  head_dimension: 64
   layers: 1
   kv_format: Q4
   threads: 2

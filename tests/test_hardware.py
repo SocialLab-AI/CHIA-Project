@@ -77,7 +77,7 @@ def test_q4_campaign_restrictions():
     assert hw["memory_type"] == "DDR3_1600_8x8"
     assert hw["memory_size_mib"] == 16
     assert hw["simulation_mode"] == "SE"
-    assert baseline["status"]["state"] == "completed"
+    assert baseline["status"]["state"] == "planned"
 
 
 def test_timing_simple_cpu_issue_width_constraint(hw_validator):
@@ -140,30 +140,12 @@ def test_active_hardware_knobs(hw_ds_validator):
     assert ds["fixed"]["kv_format"] == "Q4"
 
 
-def test_emitted_hardware_metrics_preserved():
-    """Verify actual emitted per-core and DRAM metrics are preserved."""
+def test_production_profile_does_not_reuse_calibration_metrics():
+    """The selected profile must not claim measurements before its smoke."""
     baseline = load_yaml(BASELINES_DIR / "attention.yaml")
     metrics = baseline["metrics"]
 
-    # Per-core array metrics
-    assert isinstance(metrics["cycles_per_core"], list)
-    assert len(metrics["cycles_per_core"]) == 2
-    assert isinstance(metrics["ipc_per_core"], list)
-    assert len(metrics["ipc_per_core"]) == 2
-    assert isinstance(metrics["cpi_per_core"], list)
-    assert len(metrics["cpi_per_core"]) == 2
-    assert isinstance(metrics["l1d_miss_rate_per_core"], list)
-    assert len(metrics["l1d_miss_rate_per_core"]) == 2
-    assert isinstance(metrics["l1i_miss_rate_per_core"], list)
-    assert len(metrics["l1i_miss_rate_per_core"]) == 2
-
-    # Aggregate and DRAM metrics
-    assert "aggregate_ipc" in metrics
-    assert "dram_bytes_read" in metrics
-    assert "dram_bytes_written" in metrics
-    assert "dram_bandwidth_bytes_per_second" in metrics
-    assert "dram_bandwidth_utilization_percent" in metrics
-    assert "average_dram_access_latency_ns" in metrics
+    assert all(value is None for value in metrics.values())
 
 
 def test_hardware_runner_rejects_invalid_candidate():

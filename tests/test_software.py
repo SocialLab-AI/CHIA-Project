@@ -83,17 +83,12 @@ def test_removed_retrieval_knob_is_rejected(master_schema):
 
 
 def test_manifest_consistency():
-    """Verify that docs/knob-mapping.manifest.json is consistent with active fields and statuses."""
-    manifest = load_json(DOCS_DIR / "knob-mapping.manifest.json")
-    fields = manifest["fields"]
-    assert len(fields) >= 20
-
-    field_map = {f["field"]: f for f in fields}
-    assert "software.model" in field_map
-    assert field_map["software.model"]["baseline"] == "Qwen2.5 0.5B Instruct"
-    assert field_map["software.quantization"]["baseline"] == "Q5_K_M"
-    assert field_map["software.cpu_threads"]["baseline"] == 4
-    assert field_map["software.runtime_ready"]["baseline"] is True
+    """The final campaign references the two canonical design spaces."""
+    campaign = load_yaml(CONTRACTS / "campaigns" / "final-burst.yaml")
+    shared = campaign["study"]["shared_contracts"]
+    assert shared["software_design_space"] == "experiment-contracts/design-spaces/software.yaml"
+    assert shared["hardware_design_space"] == "experiment-contracts/design-spaces/hardware.yaml"
+    assert len(shared["objectives"]) == 4
 
 
 def test_no_stale_active_configs_references():

@@ -1,4 +1,4 @@
-"""Opt-in real local CHIA/Ray scheduling test; does not claim Adam/YSF deployment."""
+"""Opt-in real local CHIA/Ray scheduling test; it does not claim remote deployment."""
 
 import os
 import socket
@@ -76,7 +76,7 @@ def test_real_chia_full_graph_with_mocked_runtimes(tmp_path):
                     },
                     "dataset": {
                         "dataset_id": "fixture-openstax",
-                        "license": "CC BY 4.0",
+                        "license": "CC BY-NC-SA 4.0",
                         "reference_visible_to_model": False,
                     },
                     "provenance": {"runtime_version": "mocked-on-real-Ray"},
@@ -118,12 +118,32 @@ def test_real_chia_full_graph_with_mocked_runtimes(tmp_path):
                 },
             )
 
+        def en(mapped, hardware, runtime, context):
+            from src.common.logging import invoke
+            from src.common.security import digest
+
+            value = hardware["value"]
+            return invoke(
+                "energy",
+                context,
+                lambda: {
+                    "candidate_id": context["candidate_id"],
+                    "status": "completed",
+                    "hardware_result_id": digest(value),
+                    "metrics": {"estimated_cache_dynamic_energy_uj": 5.0},
+                    "provenance": {"estimator": "mocked-on-real-Ray"},
+                },
+            )
+
         dispatcher.nodes["software"] = ChiaFunction(
             resources=RESOURCES["software"], num_cpus=4, max_retries=0
         )(sw)
         dispatcher.nodes["hardware"] = ChiaFunction(
             resources=RESOURCES["hardware"], num_cpus=1, max_retries=0
         )(hw)
+        dispatcher.nodes["energy"] = ChiaFunction(
+            resources=RESOURCES["energy"], num_cpus=1, max_retries=0
+        )(en)
         record = run_experiment(
             baseline_candidate(), dispatcher=dispatcher, results_root=tmp_path
         )
@@ -133,9 +153,9 @@ def test_real_chia_full_graph_with_mocked_runtimes(tmp_path):
             "mapping",
             "software",
             "hardware",
+            "energy",
             "evaluation",
-            "record",
         } == {e["node"] for e in record["events"]}
-        assert (tmp_path / "local" / f"{record['run_id']}.json").is_file()
+        assert (tmp_path / "local" / "runs" / f"{record['run_id']}.json").is_file()
     finally:
         ray.shutdown()

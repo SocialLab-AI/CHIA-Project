@@ -235,9 +235,9 @@ def evaluate_required_concepts(
                 "Each required concept group must be nonempty."
             )
 
+        padded_answer = f" {normalized} "
         group_match = any(
-            _normalize(term)
-            in normalized
+            f" {_normalize(term)} " in padded_answer
             for term in alternatives
         )
 

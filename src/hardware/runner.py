@@ -1,4 +1,4 @@
-"""Hardware-owned isolated Docker runner; used by the YSF node and local diagnostics."""
+"""Hardware-owned isolated Docker runner used by the gem5 worker and diagnostics."""
 
 import hashlib
 import importlib.util
@@ -40,39 +40,48 @@ def parse_correctness(stdout, tolerance, *, enforce_tolerance=True):
 
     if not isinstance(enforce_tolerance, bool):
         raise ConfigError("enforce_tolerance must be boolean.")
+    shape_fields = {
+        "context",
+        "query_heads",
+        "kv_heads",
+        "head_dimension",
+        "threads",
+        "repetitions",
+    }
+    numerical_fields = {
+        "max_absolute_error",
+        "mean_squared_error",
+        "root_mean_squared_error",
+        "reference_rms",
+        "reference_max_absolute",
+        "normalized_rmse",
+        "normalized_max_error",
+    }
+    accepted_fields = {"status", "kv_mapping", *shape_fields, *numerical_fields}
     values = {}
     for line in stdout.splitlines():
         if "=" in line:
             key, value = line.split("=", 1)
-            if key in {
-                "status",
-                "max_absolute_error",
-                "mean_squared_error",
-                "context",
-                "query_heads",
-                "kv_heads",
-                "head_dimension",
-                "threads",
-                "repetitions",
-            }:
+            if key in accepted_fields:
                 values[key] = value.strip()
     if values.get("status") != "PASS":
         raise MetricsError("Attention workload did not report PASS.")
-    for name in ("max_absolute_error", "mean_squared_error"):
+    if values.get("kv_mapping") != "grouped_query":
+        raise MetricsError("Attention workload did not report grouped-query mapping.")
+    for name in numerical_fields:
         try:
             value = float(values[name])
-            limit = finite_number(tolerance[name], name)
         except (KeyError, ValueError, TypeError) as exc:
-            raise MetricsError(
-                "Numerical correctness evidence or approved tolerance is missing."
-            ) from exc
+            raise MetricsError(f"Numerical correctness metric {name} is missing.") from exc
         if not math.isfinite(value) or value < 0:
-            raise MetricsError("Attention workload reported invalid numerical error.")
-        if enforce_tolerance and value > limit:
+            raise MetricsError(f"Attention workload reported invalid {name}.")
+        values[name] = value
+    for name in ("max_absolute_error", "mean_squared_error"):
+        limit = finite_number(tolerance[name], name)
+        if enforce_tolerance and values[name] > limit:
             raise MetricsError(
                 "Attention error exceeds the configured numerical tolerance."
             )
-        values[name] = value
     return values
 
 
@@ -129,10 +138,13 @@ def verify_resolved(config_json, config):
 
 
 def run_gem5_candidate(config, runtime=None, context=None):
-    candidate = Candidate.from_dict(config)
-    config = candidate.config
     runtime = runtime or {}
     context = context or {}
+    calibration_mode = runtime.get("calibration_mode", False)
+    if not isinstance(calibration_mode, bool):
+        raise ConfigError("calibration_mode must be boolean.")
+    candidate = Candidate.from_dict(config, calibration=calibration_mode)
+    config = candidate.config
     tolerance = runtime.get("correctness_tolerance")
     if not isinstance(tolerance, dict) or set(tolerance) != {
         "max_absolute_error",
@@ -152,7 +164,11 @@ def run_gem5_candidate(config, runtime=None, context=None):
     image = runtime.get("image", "ghcr.io/gem5/devcontainer:v25-1")
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/@:-]+", image):
         raise ConfigError("Invalid operator-provided Docker image reference.")
-    deadline = time.monotonic() + runtime.get("timeout_seconds", 600)
+    effective_timeout = min(
+        runtime.get("timeout_seconds", 600),
+        max(0.0, runtime.get("deadline_epoch_seconds", time.time() + 600) - time.time()),
+    )
+    deadline = time.monotonic() + effective_timeout
 
     def run(args, stage):
         try:
@@ -297,6 +313,7 @@ def run_gem5_candidate(config, runtime=None, context=None):
                 ).hexdigest(),
                 "correctness_tolerance": tolerance,
                 "resolved_config_verified": True,
+                "stats_sha256": hashlib.sha256((directory / "m5out/stats.txt").read_bytes()).hexdigest(),
             },
             "artifacts": {
                 "directory": str(directory),

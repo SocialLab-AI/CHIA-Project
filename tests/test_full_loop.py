@@ -12,6 +12,7 @@ from src.common.errors import (
     MetricsError,
 )
 from src.common.security import safe_id, within, strict_json, local_endpoint
+from src.common.security import digest
 from src.orchestration.chia import chia_entrypoint, validate_campaign_config
 from src.orchestration.experiment import run_experiment
 from src.orchestration.nodes.validation import validation_node, mapping_node
@@ -34,8 +35,9 @@ def software(config, runtime, context):
             "question_count": 3,
         },
         "dataset": {
-            "dataset_id": "fixture-openstax",
-            "license": "CC BY 4.0",
+            "dataset_id": "openstax-college-physics-2e-ch4-concepts-v1",
+            "source_url": "https://openstax.org/books/college-physics-2e/pages/4-conceptual-questions",
+            "license": "CC BY-NC-SA 4.0",
             "reference_visible_to_model": False,
         },
         "provenance": {"runtime_build": "test-only", "model_sha256": "a" * 64},
@@ -72,6 +74,18 @@ def hardware(config, runtime, context):
     }
 
 
+def energy(config, hardware_result, runtime, context):
+    return {
+        "candidate_id": Candidate.from_dict(config).candidate_id,
+        "status": "completed",
+        "hardware_result_id": digest(hardware_result),
+        "stats_sha256": "b" * 64,
+        "metrics": {"estimated_cache_dynamic_energy_uj": 12.5},
+        "scope": "test cache dynamic energy",
+        "provenance": {"estimator": "fixture"},
+    }
+
+
 @pytest.fixture
 def mocked_runtimes():
     with (
@@ -82,8 +96,11 @@ def mocked_runtimes():
         patch(
             "src.orchestration.nodes.hardware.run_gem5_candidate", side_effect=hardware
         ) as hw,
+        patch(
+            "src.orchestration.nodes.energy.run_energy_candidate", side_effect=energy
+        ) as en,
     ):
-        yield sw, hw
+        yield sw, hw, en
 
 
 def test_three_candidate_full_loop(tmp_path, mocked_runtimes):
@@ -95,7 +112,7 @@ def test_three_candidate_full_loop(tmp_path, mocked_runtimes):
     for record in result["experiments"]:
         validate_record(record)
         saved = json.loads(
-            (tmp_path / "three" / f"{record['run_id']}.json").read_text()
+            (tmp_path / "three" / "runs" / f"{record['run_id']}.json").read_text()
         )
         assert saved["candidate"]["software"] == saved["software_result"]["software"]
         assert saved["candidate"]["hardware"] == saved["hardware_result"]["hardware"]
@@ -104,8 +121,8 @@ def test_three_candidate_full_loop(tmp_path, mocked_runtimes):
             "mapping",
             "software",
             "hardware",
+            "energy",
             "evaluation",
-            "record",
         }
 
 
@@ -197,6 +214,21 @@ def test_candidate_is_immutable_snapshot():
     assert c.candidate_id == before and c.config["hardware"]["issue_width"] == 2
 
 
+def test_production_shape_requires_production_repetitions():
+    candidate = baseline_candidate()
+    candidate["workload"].update(
+        {"query_heads": 14, "kv_heads": 2, "head_dimension": 64, "layers": 1}
+    )
+    candidate["measurement"]["kernel_iterations"] = 1
+
+    with pytest.raises(ConfigError, match="fixed by the hardware campaign"):
+        Candidate.from_dict(candidate)
+
+    calibrated = Candidate.from_dict(candidate, calibration=True)
+    assert calibrated.config["workload"]["query_heads"] == 14
+    assert calibrated.config["measurement"]["kernel_iterations"] == 1
+
+
 @pytest.mark.parametrize(
     "mutate",
     [
@@ -273,7 +305,15 @@ def test_retry_only_transient():
 def test_finite_but_inaccurate_is_rejected():
     with pytest.raises(MetricsError):
         parse_correctness(
-            "status=PASS\nmax_absolute_error=100\nmean_squared_error=100",
+            "status=PASS\n"
+            "kv_mapping=grouped_query\n"
+            "max_absolute_error=100\n"
+            "mean_squared_error=100\n"
+            "root_mean_squared_error=10\n"
+            "reference_rms=1\n"
+            "reference_max_absolute=1\n"
+            "normalized_rmse=10\n"
+            "normalized_max_error=100\n",
             {"max_absolute_error": 0.1, "mean_squared_error": 0.1},
         )
 

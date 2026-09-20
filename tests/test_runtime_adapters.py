@@ -1,10 +1,12 @@
 """Software/hardware-owned runtime boundary tests; no production model or simulator required."""
 
 import json
+import shutil
+import subprocess
 import sys
 from unittest.mock import patch
 import pytest
-from src.common.candidate import baseline_candidate
+from src.common.candidate import ROOT, baseline_candidate
 from src.common.errors import (
     MetricsError,
     PreflightError,
@@ -15,7 +17,7 @@ from src.common.errors import (
 from src.common.process import run_process
 from src.hardware.attention_kernel import build_attention_kernel_args
 from src.hardware.gem5 import build_gem5_command
-from src.hardware.runner import verify_resolved, parse_gem5_version
+from src.hardware.runner import parse_correctness, parse_gem5_version, verify_resolved
 from src.tutor.runner import run_software_candidate
 from src.tutor.llama_cpp_runtime import call_llama_cpp, extract_generation, preflight
 
@@ -63,7 +65,7 @@ def test_software_runner_repetitions_and_no_reference_leak():
     evaluation = {
         "dataset_id": "fixture",
         "source_url": "https://openstax.org/fixture",
-        "license": "CC BY 4.0",
+        "license": "CC BY-NC-SA 4.0",
         "items": [
             {
                 "question": {"id": "q1", "question": "Question?"},
@@ -157,6 +159,119 @@ def test_hardware_cli_and_build_define_mapping():
     assert args[args.index("--cores") + 1] == "2"
     assert "-DTHREADS=2" in build_attention_kernel_args(c)
     assert "-DREPETITIONS=10" in build_attention_kernel_args(c)
+
+    qwen_shape = baseline_candidate()
+    qwen_shape["workload"].update(
+        {
+            "query_heads": 14,
+            "kv_heads": 2,
+            "head_dimension": 64,
+            "layers": 1,
+        }
+    )
+    qwen_shape["measurement"]["kernel_iterations"] = 1
+    qwen_args = build_attention_kernel_args(qwen_shape)
+    assert "-DQUERY_HEADS=14" in qwen_args
+    assert "-DKV_HEADS=2" in qwen_args
+    assert "-DHEAD_DIM=64" in qwen_args
+    assert "-DREPETITIONS=1" in qwen_args
+
+
+@pytest.mark.skipif(shutil.which("gcc") is None, reason="gcc is unavailable")
+@pytest.mark.parametrize("query_heads,head_dimension", [(4, 32), (14, 64)])
+def test_attention_proxy_compiles_and_runs_both_reviewed_shapes(
+    tmp_path, query_heads, head_dimension
+):
+    executable = tmp_path / f"attention-{query_heads}-{head_dimension}"
+    compile_result = subprocess.run(
+        [
+            shutil.which("gcc"),
+            "-O2",
+            "-std=c11",
+            "-pthread",
+            "-DCONTEXT=16",
+            f"-DQUERY_HEADS={query_heads}",
+            "-DKV_HEADS=2",
+            f"-DHEAD_DIM={head_dimension}",
+            "-DTHREADS=2",
+            "-DREPETITIONS=1",
+            str(ROOT / "gem5/attention_kv.c"),
+            "-lm",
+            "-o",
+            str(executable),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert compile_result.returncode == 0, compile_result.stderr
+
+    execution = subprocess.run(
+        [str(executable)],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert execution.returncode == 0, execution.stderr
+    correctness = parse_correctness(
+        execution.stdout,
+        {"max_absolute_error": 0.0, "mean_squared_error": 0.0},
+        enforce_tolerance=False,
+    )
+    assert correctness["query_heads"] == str(query_heads)
+    assert correctness["head_dimension"] == str(head_dimension)
+    assert correctness["kv_mapping"] == "grouped_query"
+
+
+@pytest.mark.skipif(shutil.which("gcc") is None, reason="gcc is unavailable")
+@pytest.mark.parametrize(
+    "source_name,query_heads,head_dimension",
+    [
+        ("attention_kv_original_proxy.c", 4, 32),
+        ("attention_kv_qwen_proxy.c", 14, 64),
+    ],
+)
+def test_frozen_proxy_entry_files_compile_and_report_locked_shapes(
+    tmp_path, source_name, query_heads, head_dimension
+):
+    executable = tmp_path / source_name.removesuffix(".c")
+    compile_result = subprocess.run(
+        [
+            shutil.which("gcc"),
+            "-O2",
+            "-std=c11",
+            "-pthread",
+            "-DCONTEXT=16",
+            str(ROOT / "gem5" / source_name),
+            "-lm",
+            "-o",
+            str(executable),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert compile_result.returncode == 0, compile_result.stderr
+
+    execution = subprocess.run(
+        [str(executable)],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert execution.returncode == 0, execution.stderr
+    correctness = parse_correctness(
+        execution.stdout,
+        {"max_absolute_error": 0.0, "mean_squared_error": 0.0},
+        enforce_tolerance=False,
+    )
+    assert correctness["query_heads"] == str(query_heads)
+    assert correctness["head_dimension"] == str(head_dimension)
+    assert correctness["repetitions"] == "1"
 
 
 def resolved(c):
