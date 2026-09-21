@@ -347,7 +347,7 @@ cp experiment-contracts/campaigns/final-burst.yaml "$CHIA_CONFIG"
 
 sed -i \
   -e 's/^tier: pilot$/tier: integration/' \
-  -e 's/^backend: contabo$/backend: local/' \
+  -e 's/^backend: gcp$/backend: local/' \
   -e "s|^results_root: results$|results_root: $HOME/CHIA-Project/results|" \
   -e 's|^ray_address: auto$|ray_address: ray://127.0.0.1:10011|' \
   -e 's|endpoint: http://127.0.0.1:8081|endpoint: http://127.0.0.1:8082|' \
@@ -484,6 +484,11 @@ compact reviewed evidence summaries instead of simulator binaries or
 machine-specific work directories. The first verified smoke is documented in
 [`docs/RESULTS.md`](docs/RESULTS.md) and its
 [machine-readable summary](docs/experiments/evidence/final-burst-smoke-20260921/summary.json).
+
+The already-completed GCP smoke recorded `backend: contabo` incorrectly. Its
+artifacts and published evidence remain immutable historical evidence; that
+label does not identify the actual deployment provider. The canonical
+`final-burst` campaign now uses `backend: gcp` for subsequent runs.
 
 ## 13. Run equal three-candidate pilots
 

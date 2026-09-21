@@ -28,6 +28,7 @@ tiers:
   pilot:
     backends:
       - contabo
+      - gcp
     max_parallel_jobs: 4
     gemini_allowed: true
     organizer_burst_allowed: false
