@@ -299,3 +299,16 @@ def test_release_preflight_checks_reviewed_head_identity(tmp_path, monkeypatch):
     assert result["role"] == "CHIA head node"
     assert result["model_path"] == str(model)
     assert result["context_tokens"] == 2048
+
+
+def test_release_preflight_packages_checkout_for_repository_free_worker():
+    from scripts.preflight_release import initialize_ray
+
+    fake_ray = SimpleNamespace(is_initialized=lambda: False, init=Mock())
+    with patch.dict(sys.modules, {"ray": fake_ray}):
+        assert initialize_ray({"ray_address": "auto"}) is fake_ray
+
+    fake_ray.init.assert_called_once_with(
+        address="auto",
+        runtime_env={"working_dir": str(ROOT)},
+    )

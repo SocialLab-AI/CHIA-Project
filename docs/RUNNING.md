@@ -20,7 +20,9 @@ uv run python scripts/preflight_release.py --config experiment-contracts/campaig
 This checks the reviewed local GGUF and live llama.cpp identity, required Ray
 resources, worker Python/uv/Docker availability, both pinned container images,
 and a short synthetic Accelergy energy-estimation round trip. It does not run
-gem5, call Gemini, or create campaign evidence.
+gem5, call Gemini, or create campaign evidence. Ray transfers the release
+checkout as a temporary working package; the gem5 worker does not need a
+persistent repository clone.
 
 Before starting Ray, every cluster machine must report the same Python and Ray
 versions. A campaign started with `uv run` also requires `uv` on the `PATH`

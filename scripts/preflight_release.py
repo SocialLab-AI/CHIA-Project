@@ -15,7 +15,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src.common.candidate import baseline_candidate
+from src.common.candidate import ROOT, baseline_candidate
 from src.common.errors import ConfigError, PreflightError
 from src.hardware.energy_estimator import (
     build_accelergy_inputs,
@@ -154,6 +154,18 @@ def check_worker(config):
     return ray.get(worker_probe.remote(hardware_image, energy_image), timeout=180)
 
 
+def initialize_ray(config):
+    """Connect and package this checkout for repository-free workers."""
+    import ray
+
+    if not ray.is_initialized():
+        ray.init(
+            address=config.get("ray_address", "auto"),
+            runtime_env={"working_dir": str(ROOT)},
+        )
+    return ray
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -170,10 +182,7 @@ def main():
     result = {"status": "passed", "head": check_head(config)}
 
     if not args.head_only:
-        import ray
-
-        if not ray.is_initialized():
-            ray.init(address=config.get("ray_address", "auto"))
+        ray = initialize_ray(config)
         try:
             result["worker"] = check_worker(config)
         finally:
