@@ -393,6 +393,9 @@ def run_manifest_consistency_checks(verbose: bool = True) -> bool:
     attention = load_yaml(BASELINES_DIR / "attention.yaml")
     hardware = load_yaml(DESIGN_SPACES_DIR / "hardware.yaml")
     shared = campaign["study"]["shared_contracts"]
+    reviewed_model_sha256 = (
+        "041474553fcabfc2a2d67903f9d2c2e50bd92528e670da4f33b5d0ce6e59fd55"
+    )
     ok = (
         tutor["software"]["model"] == "Qwen2.5 0.5B Instruct"
         and tutor["software"]["quantization"] == "Q5_K_M"
@@ -404,6 +407,9 @@ def run_manifest_consistency_checks(verbose: bool = True) -> bool:
         and shared["dataset"] == "data/questions/questions.json"
         and len(shared["objectives"]) == 4
         and "energy" in campaign["runtime"]
+        and campaign["runtime"]["software"]["assets_root"] == "/opt/chia/models"
+        and campaign["runtime"]["software"]["model_sha256"]
+        == reviewed_model_sha256
     )
     if verbose:
         print("[PASS] Final campaign and contract agreement passed" if ok else "[FAIL] Final campaign and contract agreement failed")

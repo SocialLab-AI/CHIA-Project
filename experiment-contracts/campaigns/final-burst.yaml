@@ -12,7 +12,7 @@ runtime:
     endpoint: http://127.0.0.1:8081
     assets_root: /opt/chia/models
     gguf: qwen2.5-0.5b-instruct-q5_k_m.gguf
-    model_sha256: 041474b052eb318a1630d35caf8eeba17fa3efb0d63b28a6fef87826a281fd55
+    model_sha256: 041474553fcabfc2a2d67903f9d2c2e50bd92528e670da4f33b5d0ce6e59fd55
     context_tokens: 2048
     parallel_slots: 1
     timeout_seconds: 3600

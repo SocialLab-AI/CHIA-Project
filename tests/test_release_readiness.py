@@ -66,6 +66,20 @@ def test_real_openstax_metadata_is_accepted():
     assert dataset["license"] == "CC BY-NC-SA 4.0" and len(dataset["items"]) == 3
 
 
+def test_final_campaign_pins_the_runtime_verified_qwen_artifact():
+    campaign = yaml.safe_load(
+        (ROOT / "experiment-contracts/campaigns/final-burst.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+    software = campaign["runtime"]["software"]
+    assert software["assets_root"] == "/opt/chia/models"
+    assert software["gguf"] == "qwen2.5-0.5b-instruct-q5_k_m.gguf"
+    assert software["model_sha256"] == (
+        "041474553fcabfc2a2d67903f9d2c2e50bd92528e670da4f33b5d0ce6e59fd55"
+    )
+
+
 def test_production_proxy_accepted_and_old_proxy_rejected():
     assert Candidate.from_dict(baseline_candidate()).config["workload"] == {
         "context_tokens": 512, "query_heads": 14, "kv_heads": 2, "head_dimension": 64, "layers": 1
