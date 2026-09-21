@@ -122,7 +122,7 @@ def build_accelergy_inputs(mapping: dict) -> tuple[dict, dict]:
     )
 
     architecture = {
-        "architecture_description": {
+        "architecture": {
             "version": 0.3,
             "subtree": [
                 {
@@ -204,7 +204,7 @@ def run_accelergy(
         "-w",
         "/work",
         image_id,
-        "accelergy",
+        "chia-accelergy",
         "-o",
         "output",
         "architecture.yaml",
@@ -386,7 +386,7 @@ def run_energy_candidate(config: dict, hardware_result: dict, runtime=None, cont
     (workdir / "mapping.json").write_text(json.dumps(mapping, indent=2) + "\n", encoding="utf-8")
     image_identity = run_accelergy(
         workdir,
-        runtime.get("image", "chia-energy-tools:0.2"),
+        runtime.get("image", "chia-energy-tools:0.3"),
         timeout_seconds=runtime.get("timeout_seconds", 300),
     )
     result_path = workdir / "output/energy_estimation.yaml"
@@ -422,7 +422,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--image",
-        default="chia-energy-tools:0.2",
+        default="chia-energy-tools:0.3",
     )
     args = parser.parse_args()
 

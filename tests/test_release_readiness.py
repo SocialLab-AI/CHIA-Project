@@ -78,6 +78,9 @@ def test_final_campaign_pins_the_runtime_verified_qwen_artifact():
     assert software["model_sha256"] == (
         "041474553fcabfc2a2d67903f9d2c2e50bd92528e670da4f33b5d0ce6e59fd55"
     )
+    assert campaign["runtime"]["energy"]["image"] == (
+        "chia-energy-tools:0.3"
+    )
 
 
 def test_production_proxy_accepted_and_old_proxy_rejected():

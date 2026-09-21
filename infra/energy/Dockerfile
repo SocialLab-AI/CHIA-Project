@@ -70,10 +70,16 @@ RUN test -x /usr/local/bin/mcpat \
         "import accelergy; print('Accelergy import: OK')" \
     && accelergy -h > /tmp/accelergy-help.txt
 
+COPY run-accelergy.sh /usr/local/bin/chia-accelergy
+
+RUN chmod 0755 /usr/local/bin/chia-accelergy \
+    && /bin/sh -n /usr/local/bin/chia-accelergy
+
 LABEL org.chia.toolchain="accelergy-mcpat"
 LABEL org.chia.accelergy.commit="${ACCELERGY_REF}"
 LABEL org.chia.accelergy-mcpat-plugin.commit="${PLUGIN_REF}"
 LABEL org.chia.mcpat.commit="${MCPAT_REF}"
+LABEL org.chia.runtime-wrapper="ephemeral-unprivileged-v1"
 
 WORKDIR /work
 

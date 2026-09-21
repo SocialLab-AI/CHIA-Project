@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -69,7 +70,7 @@ def test_builds_all_five_cache_components():
     )
 
     architecture_local = architecture[
-        "architecture_description"
+        "architecture"
     ]["subtree"][0]["local"]
 
     action_local = actions[
@@ -100,7 +101,7 @@ def test_architecture_uses_mapping_assumptions():
         sample_mapping()
     )
 
-    root = architecture["architecture_description"]["subtree"][0]
+    root = architecture["architecture"]["subtree"][0]
 
     assert root["attributes"] == {
         "technology": "45nm",
@@ -217,11 +218,11 @@ def test_accelergy_uses_the_pinned_v03_output_flag(tmp_path):
             {"stdout": ""},
         ],
     ) as process:
-        run_accelergy(tmp_path, "chia-energy-tools:0.2")
+        run_accelergy(tmp_path, "chia-energy-tools:0.3")
 
     container_command = process.call_args_list[1].args[0]
     assert container_command[-5:] == [
-        "accelergy",
+        "chia-accelergy",
         "-o",
         "output",
         "architecture.yaml",
@@ -249,8 +250,20 @@ def test_accelergy_rejects_success_without_estimate(tmp_path):
         ],
     ):
         with pytest.raises(EnergyEstimatorError) as caught:
-            run_accelergy(tmp_path, "chia-energy-tools:0.2")
+            run_accelergy(tmp_path, "chia-energy-tools:0.3")
 
     assert "without creating" in str(caught.value)
     assert caught.value.stdout_summary == "no output generated"
+
+
+def test_energy_image_stages_writable_ephemeral_plugin_copy():
+    wrapper = (
+        Path(__file__).resolve().parents[1]
+        / "infra/energy/run-accelergy.sh"
+    ).read_text(encoding="utf-8")
+
+    assert "mktemp -d /tmp/chia-accelergy." in wrapper
+    assert "cp -R /opt/energy-venv/share/accelergy/estimation_plug_ins/." in wrapper
+    assert "export HOME=" in wrapper
+    assert 'exec accelergy "$@"' in wrapper
 

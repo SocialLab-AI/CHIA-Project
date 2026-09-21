@@ -31,7 +31,7 @@ runtime:
       max_absolute_error: 0.1
       mean_squared_error: 0.01
   energy:
-    image: chia-energy-tools:0.2
+    image: chia-energy-tools:0.3
     timeout_seconds: 600
     retries: 0
     artifacts_root: results/final-burst/energy-work
