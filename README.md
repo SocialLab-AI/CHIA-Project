@@ -1,31 +1,38 @@
 # CHIA Qwen hardware/software co-design
 
-This repository contains a bounded CHIA loop for comparing Gemini-guided and
-seeded-random search over one shared hardware/software design space. This guide
-installs and runs the complete project on **one Ubuntu server**: the controller,
-Ray resources, native Qwen service, gem5 proxy, cache-energy estimator,
-evaluation, Pareto logic, and evidence writer.
+This repository implements a bounded CHIA loop that compares Gemini-guided and
+seeded-random search over one shared hardware/software design space. A single
+candidate is evaluated by native Qwen inference, a gem5 attention proxy, an
+Accelergy + McPAT cache-energy estimator, and an OpenStax quality evaluator.
+The four measurements remain separate Pareto objectives.
 
-> **Release gate:** do not run a pilot or burst until configuration validation,
-> the release preflight, and the one-candidate smoke all pass on the target
-> server. A full burst is never started automatically by this repository.
+This README explains the project and reproduces the complete loop on one
+Ubuntu server without administrator access. It covers installation, the native
+model service, Ray resources, Docker images, configuration, validation,
+preflight, one-candidate smoke testing, evidence verification, and the equal
+three-candidate pilots.
 
-## Locked experiment profile
+> **Release gate:** do not run a pilot or burst until contract validation,
+> release preflight, and the deterministic one-candidate smoke all pass on the
+> target server. This repository never starts a large paid campaign
+> automatically.
+
+## What the project measures
 
 | Item | Release value |
 | --- | --- |
 | Native model | Qwen2.5-0.5B-Instruct Q5_K_M |
-| Model file | `/opt/chia/models/qwen2.5-0.5b-instruct-q5_k_m.gguf` |
+| Model file | `qwen2.5-0.5b-instruct-q5_k_m.gguf` |
 | Model SHA-256 | `041474553fcabfc2a2d67903f9d2c2e50bd92528e670da4f33b5d0ce6e59fd55` |
 | Dataset | Repository OpenStax questions only |
-| Proxy | packed-Q4 attention, 14 query heads / 2 KV heads / 64 head dimension |
+| Proxy | packed-Q4 attention with 14 query heads, 2 KV heads, and head dimension 64 |
 | gem5 image | `ghcr.io/gem5/devcontainer:v25-1` |
 | Energy image | `chia-energy-tools:0.3` |
 | Objectives | native latency, proxy simulated time, estimated cache dynamic energy, quality loss |
-| Campaign contract | `experiment-contracts/campaigns/final-burst.yaml` |
+| Canonical contract | `experiment-contracts/campaigns/final-burst.yaml` |
 
 The 14/2/64 proxy represents Qwen attention geometry for comparative hardware
-design-space exploration. Its validation supports context-scaling trend
+design-space exploration. Proxy validation supports context-scaling trend
 fidelity, not absolute full-model latency equivalence. gem5 does not simulate
 the entire Qwen model.
 
@@ -33,14 +40,18 @@ The energy objective covers dynamic access energy for two L1 instruction
 caches, two L1 data caches, and one shared L2 cache. It excludes processor-core
 logic, DRAM, interconnect, TLBs, static/leakage energy, and native Qwen energy.
 
-## Single-server execution flow
+The quality metric is required-concept coverage over repository OpenStax
+questions. It uses token-aware matching and isolated references. It is not a
+claim of complete factual correctness.
+
+## Execution flow
 
 ```mermaid
 flowchart LR
-  P[Gemini or seeded random proposer] --> V[Validation and canonical candidate ID]
+  P[Gemini or seeded-random proposer] --> V[Validation and canonical candidate ID]
   V --> M[Deterministic software and hardware mapping]
-  M --> N[Native Qwen task]
-  M --> H[One hardware task on gem5 resource]
+  M --> N[Native Qwen on llama_cpp resource]
+  M --> H[Hardware task on gem5 resource]
   H --> G[gem5 14/2/64 proxy]
   G --> E[Accelergy and McPAT cache energy]
   N --> Q[Four-objective evaluation]
@@ -51,121 +62,137 @@ flowchart LR
 ```
 
 One Ray node advertises `control`, `llama_cpp`, and `gem5`. gem5 and energy run
-sequentially inside the same hardware task and share one total hardware
-deadline. The controller is the only authoritative run-record writer.
+sequentially inside the same hardware task and share one hardware deadline.
+The controller is the only authoritative run-record writer.
 
-## 1. Server requirements
+## Validated single-server profile
 
-The release is designed for Linux x86-64 and has been prepared around Ubuntu
-24.04. A practical starting point is at least 8 logical CPU threads, 16 GiB RAM,
-and 40 GiB free disk. These are deployment recommendations, not measured
-performance guarantees.
+The no-sudo procedure below was validated on Ubuntu 22.04 x86-64 with 8 logical
+CPUs and about 20 GiB usable memory. The observed one-candidate smoke took
+895.99 seconds. That is evidence from one run, not a runtime guarantee.
 
-Install the host tools:
+The default ports deliberately avoid common shared-server services:
 
-```bash
-sudo apt-get update
-sudo apt-get install -y \
-  build-essential \
-  ca-certificates \
-  cmake \
-  curl \
-  docker.io \
-  git \
-  libssl-dev \
-  ninja-build \
-  python3 \
-  python3-venv
+| Service | Address |
+| --- | --- |
+| Native Qwen | `127.0.0.1:8082` |
+| Ray GCS | `127.0.0.1:6380` |
+| Ray Client | `127.0.0.1:10011` |
+| Ray dashboard | `127.0.0.1:8266` |
 
-sudo systemctl enable --now docker
-sudo usermod -aG docker "$USER"
-```
+All project-owned software, state, and results live under the operator's home
+directory. The only host-level prerequisite is usable Docker access. If
+`docker version` fails with a permission error, an administrator must install
+Docker and authorize the account before continuing.
 
-Log out and back in after adding the Docker group, then verify:
+## 1. Verify host prerequisites
+
+The account needs outbound HTTPS, Docker access, Git, CMake, and a C/C++
+compiler. No project command below uses `sudo`.
 
 ```bash
 docker version
 git --version
 cmake --version
+g++ --version
+curl --version
 ```
 
-Install `uv` for the operator account:
+Recommended capacity is at least 8 logical CPUs, 16 GiB RAM, and 40 GiB free
+disk. Check the server:
+
+```bash
+nproc
+free -h
+df -h "$HOME"
+```
+
+## 2. Install uv and clone the repository
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 source "$HOME/.local/bin/env"
-uv --version
-```
 
-## 2. Clone the project and install Python dependencies
+export CHIA_REF="${CHIA_REF:-release/final-burst}"
+export CHIA_REPO="$HOME/CHIA-Project"
 
-After the release PR is merged, use `main`. To test the release branch before
-merge, set `CHIA_REF=release/final-burst` before this block.
-
-```bash
-export CHIA_REF="${CHIA_REF:-main}"
-export CHIA_ROOT=/opt/chia
-export CHIA_REPO="$CHIA_ROOT/CHIA-Project"
-
-sudo install -d -m 0755 -o "$USER" -g "$USER" "$CHIA_ROOT"
 git clone --branch "$CHIA_REF" \
   https://github.com/SocialLab-AI/CHIA-Project.git \
   "$CHIA_REPO"
 
 cd "$CHIA_REPO"
 uv python install 3.10
-uv sync --frozen --python 3.10 --extra dev --extra cluster --extra calibration
+uv sync --frozen --python 3.10 \
+  --extra dev \
+  --extra cluster \
+  --extra calibration
 source .venv/bin/activate
+
+# Ninja is a user-level build tool; no apt or sudo is required.
+uv tool install ninja
+export PATH="$HOME/.local/bin:$PATH"
 
 python --version
-ray --version
 uv --version
+ray --version
+ninja --version
 ```
 
-For an existing checkout:
+After the release branch is merged, use `CHIA_REF=main`. For an existing
+checkout:
 
 ```bash
-cd /opt/chia/CHIA-Project
+cd "$HOME/CHIA-Project"
 git fetch --prune origin
-git switch main
-git pull --ff-only origin main
-uv sync --frozen --python 3.10 --extra dev --extra cluster --extra calibration
+git switch release/final-burst
+git pull --ff-only origin release/final-burst
+source "$HOME/.local/bin/env"
+uv sync --frozen --python 3.10 \
+  --extra dev \
+  --extra cluster \
+  --extra calibration
 source .venv/bin/activate
 ```
 
-## 3. Install and verify the model
-
-The official Qwen GGUF repository publishes the required Q5_K_M file. The
-campaign refuses a model whose content hash differs from the reviewed value.
+## 3. Download and verify Qwen
 
 ```bash
-export MODEL_NAME=qwen2.5-0.5b-instruct-q5_k_m.gguf
-export MODEL_PATH="/opt/chia/models/$MODEL_NAME"
-export MODEL_SHA256=041474553fcabfc2a2d67903f9d2c2e50bd92528e670da4f33b5d0ce6e59fd55
+export CHIA_HOME="$HOME/.local/share/chia"
+export MODEL_NAME="qwen2.5-0.5b-instruct-q5_k_m.gguf"
+export MODEL_PATH="$CHIA_HOME/models/$MODEL_NAME"
+export MODEL_SHA256="041474553fcabfc2a2d67903f9d2c2e50bd92528e670da4f33b5d0ce6e59fd55"
 export MODEL_URL="https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/$MODEL_NAME?download=true"
 
+mkdir -p "$CHIA_HOME/models"
+
 curl --fail --location --retry 3 \
-  --output "/tmp/$MODEL_NAME" \
+  --output "$MODEL_PATH.part" \
   "$MODEL_URL"
 
-printf '%s  %s\n' "$MODEL_SHA256" "/tmp/$MODEL_NAME" | sha256sum --check -
+printf '%s  %s\n' "$MODEL_SHA256" "$MODEL_PATH.part" | \
+  sha256sum --check -
 
-sudo install -d -m 0755 /opt/chia/models
-sudo install -m 0644 "/tmp/$MODEL_NAME" "$MODEL_PATH"
-printf '%s  %s\n' "$MODEL_SHA256" "$MODEL_PATH" | sha256sum --check -
+mv "$MODEL_PATH.part" "$MODEL_PATH"
+printf '%s  %s\n' "$MODEL_SHA256" "$MODEL_PATH" | \
+  sha256sum --check -
 ```
 
-## 4. Build and install llama.cpp
+Do not continue if the checksum differs.
 
-The ref below matches the runtime build used during release preparation. The
-complete `build/bin` directory is installed because `llama-server` depends on
-the shared libraries built beside it.
+## 4. Build llama.cpp in the home directory
+
+The pinned llama.cpp commit matches the reviewed runtime build. The entire
+`bin` directory is retained because `llama-server` uses the shared libraries
+beside it.
 
 ```bash
-export LLAMA_CPP_REF=543158132
+export LLAMA_CPP_REF="543158132"
 export LLAMA_SRC="$HOME/.cache/chia/llama.cpp"
+export LLAMA_BUILD="$LLAMA_SRC/build-chia"
+export LLAMA_BIN_DIR="$HOME/.local/share/chia/llama.cpp/bin"
 
 mkdir -p "$HOME/.cache/chia"
+
 if [ ! -d "$LLAMA_SRC/.git" ]; then
   git clone https://github.com/ggml-org/llama.cpp.git "$LLAMA_SRC"
 fi
@@ -173,93 +200,80 @@ fi
 git -C "$LLAMA_SRC" fetch --tags --prune
 git -C "$LLAMA_SRC" checkout --detach "$LLAMA_CPP_REF"
 
-cmake -S "$LLAMA_SRC" -B "$LLAMA_SRC/build-chia" \
+cmake \
+  -S "$LLAMA_SRC" \
+  -B "$LLAMA_BUILD" \
   -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DGGML_NATIVE=ON
-cmake --build "$LLAMA_SRC/build-chia" \
+
+cmake --build "$LLAMA_BUILD" \
   --target llama-server \
   --parallel "$(nproc)"
 
-sudo install -d -m 0755 /opt/chia/llama.cpp/bin
-sudo cp -a "$LLAMA_SRC/build-chia/bin/." /opt/chia/llama.cpp/bin/
-sudo chown -R root:root /opt/chia/llama.cpp
-sudo chmod 0755 /opt/chia/llama.cpp /opt/chia/llama.cpp/bin
-sudo chmod 0755 /opt/chia/llama.cpp/bin/llama-server
+mkdir -p "$LLAMA_BIN_DIR"
+cp -a "$LLAMA_BUILD/bin/." "$LLAMA_BIN_DIR/"
 
-LD_LIBRARY_PATH=/opt/chia/llama.cpp/bin \
-  ldd /opt/chia/llama.cpp/bin/llama-server
-LD_LIBRARY_PATH=/opt/chia/llama.cpp/bin \
-  /opt/chia/llama.cpp/bin/llama-server --version
+LD_LIBRARY_PATH="$LLAMA_BIN_DIR" \
+  ldd "$LLAMA_BIN_DIR/llama-server"
+
+LD_LIBRARY_PATH="$LLAMA_BIN_DIR" \
+  "$LLAMA_BIN_DIR/llama-server" --version
 ```
 
-## 5. Run the native Qwen service
+The expected build identity is `b10984-543158132`. HTTPS support in
+llama.cpp is unnecessary because the service listens only on localhost HTTP.
 
-Create a non-login service account and a localhost-only system service:
+## 5. Start the native Qwen service
 
 ```bash
-if ! getent group chia-runtime >/dev/null; then
-  sudo groupadd --system chia-runtime
-fi
+cd "$HOME/CHIA-Project"
+source "$HOME/.local/bin/env"
+source .venv/bin/activate
 
-if ! id chia-runtime >/dev/null 2>&1; then
-  sudo useradd \
-    --system \
-    --gid chia-runtime \
-    --home-dir /nonexistent \
-    --shell /usr/sbin/nologin \
-    chia-runtime
-fi
+export CHIA_HOME="$HOME/.local/share/chia"
+export CHIA_STATE="$HOME/.local/state/chia"
+export MODEL_PATH="$CHIA_HOME/models/qwen2.5-0.5b-instruct-q5_k_m.gguf"
+export LLAMA_BIN_DIR="$CHIA_HOME/llama.cpp/bin"
 
-sudo -u chia-runtime test -x /opt/chia/llama.cpp/bin/llama-server
-sudo -u chia-runtime test -r /opt/chia/models/qwen2.5-0.5b-instruct-q5_k_m.gguf
+mkdir -p "$CHIA_STATE"
 
-sudo tee /etc/systemd/system/chia-llama.service >/dev/null <<'EOF'
-[Unit]
-Description=CHIA Qwen llama.cpp service
-After=network.target
+nohup env LD_LIBRARY_PATH="$LLAMA_BIN_DIR" \
+  "$LLAMA_BIN_DIR/llama-server" \
+  --model "$MODEL_PATH" \
+  --alias qwen2.5-0.5b-instruct-q5_k_m \
+  --host 127.0.0.1 \
+  --port 8082 \
+  --threads 4 \
+  --ctx-size 2048 \
+  --parallel 1 \
+  >"$CHIA_STATE/llama-server-8082.log" 2>&1 &
 
-[Service]
-Type=simple
-User=chia-runtime
-Group=chia-runtime
-WorkingDirectory=/opt/chia
-Environment=LD_LIBRARY_PATH=/opt/chia/llama.cpp/bin
-ExecStart=/opt/chia/llama.cpp/bin/llama-server --model /opt/chia/models/qwen2.5-0.5b-instruct-q5_k_m.gguf --alias qwen2.5-0.5b-instruct-q5_k_m --host 127.0.0.1 --port 8081 --threads 4 --ctx-size 2048 --parallel 1
-Restart=on-failure
-RestartSec=3
-NoNewPrivileges=true
-PrivateTmp=true
-ProtectHome=true
-ProtectSystem=strict
-ReadOnlyPaths=/opt/chia/models /opt/chia/llama.cpp
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-sudo systemctl daemon-reload
-sudo systemctl enable --now chia-llama.service
-sudo systemctl status --no-pager chia-llama.service
+printf '%s\n' "$!" >"$CHIA_STATE/llama-server-8082.pid"
 ```
 
-Verify the live service identity:
+Wait for readiness and verify the live identity:
 
 ```bash
-curl --fail --silent http://127.0.0.1:8081/health
-curl --fail --silent http://127.0.0.1:8081/props |
+for attempt in $(seq 1 60); do
+  curl -fsS 127.0.0.1:8082/health >/dev/null && break
+  sleep 2
+done
+
+curl -fsS 127.0.0.1:8082/health
+echo
+
+curl -fsS 127.0.0.1:8082/props |
 python -c 'import json,sys; p=json.load(sys.stdin); s=p.get("default_generation_settings",{}); print({"model_path":p.get("model_path"),"context_tokens":s.get("n_ctx"),"parallel_slots":p.get("total_slots"),"build_info":p.get("build_info")})'
-
-sha256sum /opt/chia/models/qwen2.5-0.5b-instruct-q5_k_m.gguf
 ```
 
-The output must show the exact model path, context `2048`, one parallel slot,
-and the locked model hash.
+The response must show the selected model path, context `2048`, one parallel
+slot, and build `b10984-543158132`.
 
-## 6. Install the gem5 and energy images
+## 6. Install the hardware images
 
 ```bash
-cd /opt/chia/CHIA-Project
+cd "$HOME/CHIA-Project"
 docker pull ghcr.io/gem5/devcontainer:v25-1
 
 cd infra/energy
@@ -274,92 +288,130 @@ docker build \
   --tag chia-energy-tools:0.3 \
   .
 
-cd /opt/chia/CHIA-Project
+cd "$HOME/CHIA-Project"
 docker image inspect ghcr.io/gem5/devcontainer:v25-1 >/dev/null
 docker image inspect chia-energy-tools:0.3 >/dev/null
-echo "Both hardware images are available"
+
+docker image inspect chia-energy-tools:0.3 \
+  --format '{{json .Config.Labels}}'
 ```
 
-## 7. Start the one-node Ray cluster
+## 7. Start an isolated one-node Ray cluster
 
-Run Ray from the project environment so every task inherits the matching Python,
-Ray, `uv`, and project paths:
+The separate ports and home-directory temporary path allow this deployment to
+coexist with another account's services on a shared server.
 
 ```bash
-cd /opt/chia/CHIA-Project
+cd "$HOME/CHIA-Project"
 source "$HOME/.local/bin/env"
 source .venv/bin/activate
 
-ray stop
+export CHIA_STATE="$HOME/.local/state/chia"
+export RAY_TMP="$CHIA_STATE/ray-single-server"
+mkdir -p "$RAY_TMP"
+
 ray start \
   --head \
-  --port=6379 \
-  --include-dashboard=true \
+  --port=6380 \
+  --ray-client-server-port=10011 \
+  --dashboard-port=8266 \
   --dashboard-host=127.0.0.1 \
   --dashboard-agent-listen-port=0 \
+  --min-worker-port=20000 \
+  --max-worker-port=29999 \
+  --temp-dir="$RAY_TMP" \
+  --disable-usage-stats \
   --resources='{"control":1,"llama_cpp":1,"gem5":1}'
 
-ray status
+sleep 10
+ray status --address=127.0.0.1:6380
 ```
 
-`ray status` must show at least one each of `control`, `llama_cpp`, and `gem5`.
-The repository's multi-server `infra/chia/cluster.yaml` is not needed for this
-single-server deployment.
+The status must show one each of `control`, `llama_cpp`, and `gem5` with no
+pending nodes or recent failures.
 
-## 8. Validate the checkout
+## 8. Create the no-sudo deployment configuration
+
+The canonical YAML defines the experiment methodology. This ignored local copy
+records server-specific paths, ports, and the truthful integration backend.
 
 ```bash
-cd /opt/chia/CHIA-Project
+cd "$HOME/CHIA-Project"
+
+export CHIA_HOME="$HOME/.local/share/chia"
+export CHIA_STATE="$HOME/.local/state/chia"
+export CHIA_CONFIG="$CHIA_STATE/final-burst.single-server.local.yaml"
+
+mkdir -p "$CHIA_STATE"
+cp experiment-contracts/campaigns/final-burst.yaml "$CHIA_CONFIG"
+
+sed -i \
+  -e 's/^tier: pilot$/tier: integration/' \
+  -e 's/^backend: contabo$/backend: local/' \
+  -e "s|^results_root: results$|results_root: $HOME/CHIA-Project/results|" \
+  -e 's|^ray_address: auto$|ray_address: ray://127.0.0.1:10011|' \
+  -e 's|endpoint: http://127.0.0.1:8081|endpoint: http://127.0.0.1:8082|' \
+  -e "s|assets_root: /opt/chia/models|assets_root: $CHIA_HOME/models|" \
+  "$CHIA_CONFIG"
+
+grep -E \
+  '^(tier|backend|results_root|ray_address):|^[[:space:]]+(endpoint|assets_root):' \
+  "$CHIA_CONFIG"
+```
+
+The generated file is intentionally ignored by Git. It contains no secrets.
+It preserves the model, dataset, 14/2/64 proxy, design spaces, objectives,
+timeouts, stopping rules, and candidate budgets from the canonical contract.
+
+## 9. Validate the checkout
+
+```bash
+cd "$HOME/CHIA-Project"
 source "$HOME/.local/bin/env"
 source .venv/bin/activate
+export CHIA_CONFIG="$HOME/.local/state/chia/final-burst.single-server.local.yaml"
 
 uv run python scripts/validate_configs.py
+
 uv run python scripts/run_experiment.py \
-  --config experiment-contracts/campaigns/final-burst.yaml \
+  --config "$CHIA_CONFIG" \
   --validate-only
+
 uv run pytest -q -m "not scheduling"
 git diff --check
 ```
 
-These checks validate contracts and deterministic code. They do not prove that
-the model, gem5, or energy container works on this server.
+These checks validate contracts and deterministic code. They do not execute
+the real native, gem5, or energy workloads.
 
-## 9. Run the release preflight
+## 10. Run the release preflight
 
 OpenStax permission is an operator attestation. Set the variable only after the
-required LLM-use permission has been confirmed for this campaign.
+required LLM-use permission is confirmed for the campaign.
 
 ```bash
-cd /opt/chia/CHIA-Project
+cd "$HOME/CHIA-Project"
 source "$HOME/.local/bin/env"
 source .venv/bin/activate
-
+export CHIA_CONFIG="$HOME/.local/state/chia/final-burst.single-server.local.yaml"
 export OPENSTAX_LLM_PERMISSION_CONFIRMED=1
 
 uv run python scripts/preflight_release.py \
-  --config experiment-contracts/campaigns/final-burst.yaml
+  --config "$CHIA_CONFIG"
 ```
 
-A passing preflight verifies:
+A passing preflight verifies the model path, hash, context, slots, runtime
+build, Ray resources, Docker access, pinned images, and a real bounded
+Accelergy + McPAT round trip with five cache components. It does not run gem5
+or call Gemini. The energy stage can use the configured 600-second limit.
 
-- the live llama.cpp model path, hash, context, slots, and build identity;
-- all three Ray resource labels;
-- Docker and `uv` on the hardware worker;
-- both required images;
-- a bounded synthetic Accelergy + McPAT round trip with five cache components.
-
-It does not run gem5, call Gemini, or create campaign evidence. Energy preflight
-can use up to the configured 600-second cap.
-
-## 10. Run exactly one deterministic smoke candidate
-
-The results writer refuses to overwrite an existing campaign directory. Preserve
-an earlier smoke before rerunning:
+## 11. Run one deterministic smoke candidate
 
 ```bash
-cd /opt/chia/CHIA-Project
+cd "$HOME/CHIA-Project"
 source "$HOME/.local/bin/env"
 source .venv/bin/activate
+export CHIA_CONFIG="$HOME/.local/state/chia/final-burst.single-server.local.yaml"
 export OPENSTAX_LLM_PERMISSION_CONFIRMED=1
 
 if [ -d results/final-burst-smoke ]; then
@@ -368,14 +420,28 @@ if [ -d results/final-burst-smoke ]; then
 fi
 
 uv run python scripts/run_experiment.py \
-  --config experiment-contracts/campaigns/final-burst.yaml \
+  --config "$CHIA_CONFIG" \
   --smoke
 ```
 
-Verify the evidence:
+`--smoke` evaluates exactly one candidate and disables both proposers. It does
+not perform multiple CHIA iterations or call Gemini. Software measurement may
+still contain multiple question samples inside that single candidate.
+
+The smoke is complete only when the whole chain succeeds:
+
+```text
+candidate -> validation -> native Qwen -> gem5 14/2/64
+          -> cache-energy estimate -> evaluation -> Pareto -> persistence
+```
+
+## 12. Verify smoke evidence
 
 ```bash
-export RESULT_DIR=results/final-burst-smoke
+cd "$HOME/CHIA-Project"
+source "$HOME/.local/bin/env"
+source .venv/bin/activate
+export RESULT_DIR="$HOME/CHIA-Project/results/final-burst-smoke"
 
 test -f "$RESULT_DIR/campaign.yaml"
 test -f "$RESULT_DIR/environment.json"
@@ -392,40 +458,52 @@ uv run python - <<'PY'
 import json
 from pathlib import Path
 
-root = Path("results/final-burst-smoke")
+root = Path.home() / "CHIA-Project" / "results" / "final-burst-smoke"
 summary = json.loads((root / "summary.json").read_text())
 run_path = next((root / "runs").glob("run-*.json"))
 record = json.loads(run_path.read_text())
 
 assert summary["state"] == "completed", summary
 assert record["status"] == "completed", record.get("failure")
+assert len(record["energy_result"]["components"]) == 5
+assert record["hardware_result"]["correctness"]["status"] == "PASS"
 assert record["hardware_result"]["metrics"]["energy_uj"] > 0
-assert record["hardware_result"]["metrics"]["energy_scope"]
 assert record["energy_result"]["provenance"]["energy_result_sha256"]
-assert record["evaluation"]["objectives"]["estimated_cache_dynamic_energy_uj"] > 0
+assert set(record["evaluation"]["objectives"]) == {
+    "native_latency_ms",
+    "proxy_simulated_seconds",
+    "estimated_cache_dynamic_energy_uj",
+    "answer_quality_loss",
+}
 print("One-candidate chain verified:", run_path)
 PY
 ```
 
-The smoke is complete only when the whole chain succeeds:
+Generated evidence remains under `results/` and is excluded from Git. Publish
+compact reviewed evidence summaries instead of simulator binaries or
+machine-specific work directories. The first verified smoke is documented in
+[`docs/RESULTS.md`](docs/RESULTS.md) and its
+[machine-readable summary](docs/experiments/evidence/final-burst-smoke-20260921/summary.json).
 
-```text
-candidate -> validation -> native Qwen -> gem5 14/2/64
-          -> cache-energy estimate -> evaluation -> Pareto -> persistence
-```
+## 13. Run equal three-candidate pilots
 
-## 11. Run the equal three-candidate pilots
-
-Run the random pilot first because it makes no paid API calls:
+Use the measured smoke runtime to reserve adequate time. Run random first
+because it makes no paid API calls:
 
 ```bash
+cd "$HOME/CHIA-Project"
+source "$HOME/.local/bin/env"
+source .venv/bin/activate
+export CHIA_CONFIG="$HOME/.local/state/chia/final-burst.single-server.local.yaml"
+export OPENSTAX_LLM_PERMISSION_CONFIRMED=1
+
 uv run python scripts/run_experiment.py \
-  --config experiment-contracts/campaigns/final-burst.yaml \
+  --config "$CHIA_CONFIG" \
   --method random
 ```
 
-Run Gemini only after approving API use and setting the key in the shell. Never
-write the key into YAML, `.env`, commands committed to Git, logs, or results.
+Run Gemini only after explicitly approving API use. Enter the key without
+placing it in YAML, `.env`, shell history, logs, or results:
 
 ```bash
 read -rsp "Gemini API key: " GEMINI_API_KEY
@@ -433,68 +511,68 @@ echo
 export GEMINI_API_KEY
 
 uv run python scripts/run_experiment.py \
-  --config experiment-contracts/campaigns/final-burst.yaml \
+  --config "$CHIA_CONFIG" \
   --method gemini
 
 unset GEMINI_API_KEY
 ```
 
 Both methods use the same candidate budget, model, dataset, design spaces,
-14/2/64 proxy, estimator, evaluator, stopping rules, resources, and persistence
-path. The pilot determines whether Gemini finds better observed or Pareto
-candidates more efficiently; the project does not assume that Gemini wins.
-Estimated Gemini cost in the usage ledger is not verified live billing.
+14/2/64 proxy, estimator, evaluator, stopping rules, resources, metrics, and
+persistence path. The experiment determines whether Gemini finds better
+observed or Pareto candidates more efficiently; it does not assume Gemini
+wins. Estimated API cost in the usage ledger is not verified live billing.
 
-Do not increase the candidate budget or launch the burst until pilot wall time,
-failure rate, disk use, artifact size, and Gemini usage have been reviewed.
+Do not increase the candidate budget or launch a burst until pilot wall time,
+failure rate, disk use, artifact size, and Gemini usage are reviewed.
 
-## 12. Stop or restart the local services
+## 14. Stop and restart the rootless services
+
+Stop the native server owned by the current account:
 
 ```bash
-ray stop
-sudo systemctl stop chia-llama.service
+kill "$(cat "$HOME/.local/state/chia/llama-server-8082.pid")"
+rm -f "$HOME/.local/state/chia/llama-server-8082.pid"
 ```
 
-Restart later with:
+Stop Ray only when this account owns no other Ray cluster:
 
 ```bash
-sudo systemctl start chia-llama.service
-
-cd /opt/chia/CHIA-Project
-source "$HOME/.local/bin/env"
+cd "$HOME/CHIA-Project"
 source .venv/bin/activate
-ray start \
-  --head \
-  --port=6379 \
-  --include-dashboard=true \
-  --dashboard-host=127.0.0.1 \
-  --dashboard-agent-listen-port=0 \
-  --resources='{"control":1,"llama_cpp":1,"gem5":1}'
+ray stop --force
 ```
+
+Restart by repeating steps 5 and 7. Model, build, images, environment, and local
+configuration persist across restarts.
 
 ## Troubleshooting
 
 | Symptom | Action |
 | --- | --- |
-| `pytest: command not found` | Use `uv run pytest ...`; do not install a system pytest. |
-| `iterations must equal stopping.max_evaluated_candidates` | Use the repository CLI with `--smoke` or `--method`; it keeps both limits synchronized. |
-| Ray cannot find `gem5`, `llama_cpp`, or `control` | Restart Ray with the exact resource command in step 7. |
-| Model hash or path mismatch | Re-run the two `sha256sum --check` commands and inspect `/props`. |
-| `No such image: chia-energy-tools:0.3` | Rebuild step 6 on the same server running the `gem5` Ray task. |
-| Energy preflight times out | Allow the configured 600-second bound, inspect the failed runtime stage, and do not bypass the preflight. |
+| SSH disconnects after a failed command | Do not run `set -e` in the interactive shell. Put strict commands inside `( set -euo pipefail; ... )`. |
+| `python: command not found` | `cd "$HOME/CHIA-Project"` and activate `.venv` before project commands. |
+| `ninja: command not found` | Run `uv tool install ninja`, source `$HOME/.local/bin/env`, and refresh with `hash -r`. |
+| Port `8081` or `6379` belongs to another account | Use the isolated ports in this README; do not stop another account's processes. |
+| Ray reports an old persisted session | Use port `6380` and the home-directory `--temp-dir` from step 7. |
+| Ray initially says no cluster status | Wait ten seconds and run `ray status --address=127.0.0.1:6380`. |
+| `pytest: command not found` | Use `uv run pytest ...`; do not install system pytest. |
+| Model hash or path mismatch | Re-run `sha256sum --check` and inspect the live `/props` response. |
+| `No such image: chia-energy-tools:0.3` | Rebuild step 6 under the same Docker daemon used by the `gem5` Ray task. |
+| Energy preflight appears idle | It may use up to 600 seconds. Inspect `docker ps` and container logs without interrupting it. |
 | `results/<campaign>` already exists | Move the existing directory to a timestamped evidence directory before retrying. |
-| A candidate fails in `energy_*` | Inspect the run record's `failure.runtime_stage`; a completed record is intentionally impossible without verified energy. |
+| A candidate fails in `energy_*` | Inspect `failure.runtime_stage`; a completed record cannot exist without verified energy. |
 
-## Repository map and authoritative documents
+## Repository map and canonical documentation
 
 ```text
-experiment-contracts/  schemas, final campaign, design spaces, policy
+experiment-contracts/  schemas, campaign, design spaces, policy
 src/                   validation, CHIA graph, runtimes, evaluation, records
 gem5/                  attention proxy and gem5 configuration
 data/                  OpenStax questions and isolated evaluator references
 infra/energy/          pinned Accelergy + McPAT image and wrapper
 scripts/               validation, preflight, and campaign entry points
-docs/                  final architecture, methodology, operations, results, limits
+docs/                  architecture, methodology, operations, results, limits
 results/               generated evidence; never source data
 ```
 
@@ -504,8 +582,10 @@ results/               generated evidence; never source data
 - [Design space](docs/DESIGN_SPACE.md)
 - [Objectives](docs/OBJECTIVES.md)
 - [Running stages](docs/RUNNING.md)
-- [Result structure](docs/RESULTS.md)
+- [Results and evidence](docs/RESULTS.md)
 - [Limitations](docs/LIMITATIONS.md)
 
-The authoritative machine-readable campaign is
+The authoritative machine-readable methodology is
 [`experiment-contracts/campaigns/final-burst.yaml`](experiment-contracts/campaigns/final-burst.yaml).
+Server-specific deployment copies must remain uncommitted and must preserve all
+scientific fields that are not paths, ports, or truthful infrastructure labels.
