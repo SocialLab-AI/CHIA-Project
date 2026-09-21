@@ -205,10 +205,10 @@ def run_accelergy(
         "/work",
         image_id,
         "accelergy",
-        "architecture.yaml",
-        "action_counts.yaml",
         "-o",
         "output",
+        "architecture.yaml",
+        "action_counts.yaml",
     ]
 
     if os.name != "nt":

@@ -215,10 +215,10 @@ def test_accelergy_uses_the_pinned_v03_output_flag(tmp_path):
     container_command = process.call_args_list[1].args[0]
     assert container_command[-5:] == [
         "accelergy",
-        "architecture.yaml",
-        "action_counts.yaml",
         "-o",
         "output",
+        "architecture.yaml",
+        "action_counts.yaml",
     ]
     assert "--outdir" not in container_command
 
