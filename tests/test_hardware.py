@@ -1,5 +1,7 @@
 from pathlib import Path
 import json
+import time
+from unittest.mock import patch
 import pytest
 import yaml
 
@@ -154,3 +156,72 @@ def test_hardware_runner_rejects_invalid_candidate():
 
     with pytest.raises(ValueError):
         run_hardware({})
+
+
+def test_hardware_runner_executes_energy_inside_shared_deadline():
+    from src.common.candidate import Candidate, baseline_candidate
+    from src.common.security import digest
+    from src.hardware.energy_mapping import ENERGY_SCOPE
+    from src.hardware.runner import run_gem5_candidate
+
+    config = baseline_candidate()
+    candidate_id = Candidate.from_dict(config).candidate_id
+    gem5_result = {
+        "candidate_id": candidate_id,
+        "status": "completed",
+        "hardware": config["hardware"],
+        "workload": config["workload"],
+        "metrics": {"simulated_seconds": 1.0},
+        "correctness": {"status": "PASS"},
+        "provenance": {"stats_sha256": "a" * 64},
+        "artifacts": {"directory": "/tmp/gem5/run-a", "stats": "stats.txt"},
+    }
+    gem5_result_id = digest(gem5_result)
+    energy_result = {
+        "candidate_id": candidate_id,
+        "status": "completed",
+        "hardware_result_id": gem5_result_id,
+        "stats_sha256": "a" * 64,
+        "metrics": {"estimated_cache_dynamic_energy_uj": 4.5},
+        "scope": ENERGY_SCOPE,
+        "provenance": {"estimator": "fixture"},
+    }
+    runtime = {
+        "timeout_seconds": 10,
+        "correctness_tolerance": {
+            "max_absolute_error": 0.1,
+            "mean_squared_error": 0.01,
+        },
+        "artifacts_root": "/tmp/gem5",
+        "energy": {
+            "image": "chia-energy-tools:0.3",
+            "timeout_seconds": 300,
+            "artifacts_root": "/tmp/energy",
+        },
+        "deadline_epoch_seconds": time.time() + 10,
+    }
+    preflight = {"docker": "docker", "image": "chia-energy-tools:0.3"}
+    # Imports occur inside the runner, so patch the defining estimator module.
+    with patch(
+        "src.hardware.energy_estimator.preflight_energy_runtime",
+        return_value=preflight,
+    ) as energy_preflight, patch(
+        "src.hardware.runner._run_gem5_only",
+        return_value=gem5_result,
+    ) as gem5, patch(
+        "src.hardware.energy_estimator.run_energy_candidate",
+        return_value=energy_result,
+    ) as energy:
+        result = run_gem5_candidate(config, runtime, {"run_id": "run-a"})
+
+    assert gem5.call_count == 1 and energy.call_count == 1
+    assert energy_preflight.call_count == 1
+    energy_runtime = energy.call_args.args[2]
+    assert 0 < energy_runtime["timeout_seconds"] <= 10
+    assert energy_runtime["deadline_epoch_seconds"] <= runtime[
+        "deadline_epoch_seconds"
+    ]
+    assert energy_runtime["hardware_artifacts_root"] == "/tmp/gem5"
+    assert result["metrics"]["energy_uj"] == 4.5
+    assert result["metrics"]["energy_scope"] == ENERGY_SCOPE
+    assert result["energy_evidence"] == energy_result

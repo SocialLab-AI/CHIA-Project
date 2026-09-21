@@ -15,7 +15,8 @@ from src.common.candidate import Candidate, ROOT, baseline_candidate
 from src.common.errors import ConfigError, MetricsError, OptimizerError, RuntimeExecutionError
 from src.common.security import digest
 from src.hardware.energy_estimator import read_energy_uj
-from src.orchestration.dispatch import FUNCTIONS
+from src.hardware.energy_mapping import ENERGY_SCOPE
+from src.orchestration.dispatch import FUNCTIONS, RESOURCES
 from src.orchestration.experiment import run_experiment
 from src.orchestration.nodes.evaluation import verify_results
 from src.orchestration.nodes.shared import execute_runtime
@@ -46,7 +47,7 @@ def _hardware(config, runtime, context):
         "hardware": config["hardware"],
         "metrics": {"simulated_seconds": 0.01, "sim_ticks": 10, "instructions": 10, "cycles_per_core": [10, 10], "ipc_per_core": [1.0, 1.0], "l1d_miss_rate_per_core": [0.1, 0.1], "l2_miss_rate": 0.1},
         "correctness": {"status": "PASS", "max_absolute_error": 0.01, "mean_squared_error": 0.001},
-        "provenance": {"resolved_config_verified": True, "correctness_tolerance": {"max_absolute_error": 0.1, "mean_squared_error": 0.01}},
+        "provenance": {"resolved_config_verified": True, "stats_sha256": "b" * 64, "correctness_tolerance": {"max_absolute_error": 0.1, "mean_squared_error": 0.01}},
     }
 
 
@@ -55,9 +56,47 @@ def _energy(config, hardware, runtime, context):
         "candidate_id": Candidate.from_dict(config).candidate_id,
         "status": "completed",
         "hardware_result_id": digest(hardware),
+        "stats_sha256": "b" * 64,
         "metrics": {"estimated_cache_dynamic_energy_uj": 5.0},
-        "provenance": {"estimator": "fixture"},
+        "scope": ENERGY_SCOPE,
+        "components": [
+            {"name": name, "energy": 1.0}
+            for name in (
+                "cpu0_l1i", "cpu0_l1d", "cpu1_l1i", "cpu1_l1d", "shared_l2"
+            )
+        ],
+        "provenance": {
+            "estimator": "fixture",
+            "container_image_digest": "sha256:" + "a" * 64,
+            "accelergy_version": "0.3",
+            "accelergy_commit": "a" * 40,
+            "mcpat_version": "1.3",
+            "mcpat_commit": "b" * 40,
+            "plugin_commit": "c" * 40,
+            "mapping_sha256": "d" * 64,
+            "architecture_sha256": "e" * 64,
+            "action_counts_sha256": "f" * 64,
+            "energy_result_sha256": "1" * 64,
+            "execution_duration_seconds": 1.0,
+            "energy_scope": ENERGY_SCOPE,
+        },
     }
+
+
+def _combined_hardware(config, runtime, context):
+    result = _hardware(config, runtime, context)
+    evidence = _energy(config, result, runtime.get("energy", {}), context)
+    energy_uj = evidence["metrics"]["estimated_cache_dynamic_energy_uj"]
+    result["metrics"].update(
+        energy_uj=energy_uj,
+        estimated_cache_dynamic_energy_uj=energy_uj,
+        energy_scope=evidence["scope"],
+    )
+    result["provenance"]["gem5_result_sha256"] = evidence[
+        "hardware_result_id"
+    ]
+    result["energy_evidence"] = evidence
+    return result
 
 
 def test_real_openstax_metadata_is_accepted():
@@ -123,8 +162,10 @@ def test_billed_rejected_gemini_calls_are_accounted(tmp_path, outcome, counter):
     with (
         patch("src.orchestration.gemini_api.GeminiAPIOptimizer") as cls,
         patch("src.orchestration.nodes.software.run_software_candidate", side_effect=_software),
-        patch("src.orchestration.nodes.hardware.run_gem5_candidate", side_effect=_hardware),
-        patch("src.orchestration.nodes.energy.run_energy_candidate", side_effect=_energy),
+        patch(
+            "src.orchestration.nodes.hardware.run_gem5_candidate",
+            side_effect=_combined_hardware,
+        ),
     ):
         cls.return_value.timeout_seconds = 60
         cls.return_value.propose.side_effect = error
@@ -141,8 +182,10 @@ def test_gemini_request_failure_is_counted_without_fabricated_tokens(tmp_path):
     with (
         patch("src.orchestration.gemini_api.GeminiAPIOptimizer") as cls,
         patch("src.orchestration.nodes.software.run_software_candidate", side_effect=_software),
-        patch("src.orchestration.nodes.hardware.run_gem5_candidate", side_effect=_hardware),
-        patch("src.orchestration.nodes.energy.run_energy_candidate", side_effect=_energy),
+        patch(
+            "src.orchestration.nodes.hardware.run_gem5_candidate",
+            side_effect=_combined_hardware,
+        ),
     ):
         cls.return_value.timeout_seconds = 60
         cls.return_value.propose.side_effect = error
@@ -154,10 +197,14 @@ def test_gemini_request_failure_is_counted_without_fabricated_tokens(tmp_path):
 
 def test_single_writer_prevents_delayed_worker_overwrite(tmp_path):
     assert "record" not in FUNCTIONS
+    assert "energy" not in FUNCTIONS
+    assert "energy" not in RESOURCES
     with (
         patch("src.orchestration.nodes.software.run_software_candidate", side_effect=_software),
-        patch("src.orchestration.nodes.hardware.run_gem5_candidate", side_effect=_hardware),
-        patch("src.orchestration.nodes.energy.run_energy_candidate", side_effect=_energy),
+        patch(
+            "src.orchestration.nodes.hardware.run_gem5_candidate",
+            side_effect=_combined_hardware,
+        ),
         patch("src.orchestration.experiment.persist_record", wraps=__import__("src.common.records", fromlist=["persist_record"]).persist_record) as writer,
     ):
         record = run_experiment(baseline_candidate(), results_root=tmp_path)
@@ -167,8 +214,8 @@ def test_single_writer_prevents_delayed_worker_overwrite(tmp_path):
 def test_wrong_energy_join_and_nonfinite_energy_are_rejected():
     config = baseline_candidate()
     cid = Candidate.from_dict(config).candidate_id
-    sw, hw = _software(config, {}, {}), _hardware(config, {}, {})
-    en = _energy(config, hw, {}, {})
+    sw, hw = _software(config, {}, {}), _combined_hardware(config, {}, {})
+    en = hw["energy_evidence"]
     forged = copy.deepcopy(en)
     forged["hardware_result_id"] = "0" * 64
     with pytest.raises(MetricsError, match="stale"):
@@ -176,6 +223,18 @@ def test_wrong_energy_join_and_nonfinite_energy_are_rejected():
     en["metrics"]["estimated_cache_dynamic_energy_uj"] = math.nan
     with pytest.raises(MetricsError, match="Energy estimate"):
         verify_results(config, cid, sw, hw, en)
+
+
+def test_evaluation_rejects_hardware_without_energy_evidence():
+    config = baseline_candidate()
+    candidate_id = Candidate.from_dict(config).candidate_id
+    with pytest.raises(MetricsError, match="Energy result"):
+        verify_results(
+            config,
+            candidate_id,
+            _software(config, {}, {}),
+            _hardware(config, {}, {}),
+        )
 
 
 def test_nonfinite_energy_file_rejected(tmp_path):
@@ -222,6 +281,13 @@ def test_cli_profiles_keep_execution_and_stopping_budgets_equal(cli_args, expect
     effective = entrypoint.call_args.args[0]
     assert effective["iterations"] == expected_budget
     assert effective["stopping"]["max_evaluated_candidates"] == expected_budget
+    campaign_root = f"results/{effective['campaign_id']}"
+    assert effective["runtime"]["hardware"]["artifacts_root"].replace("\\", "/") == (
+        campaign_root + "/gem5"
+    )
+    assert effective["runtime"]["energy"]["artifacts_root"].replace("\\", "/") == (
+        campaign_root + "/energy-work"
+    )
 
 
 def test_openstax_attestation_is_propagated_to_ray_workers(monkeypatch):

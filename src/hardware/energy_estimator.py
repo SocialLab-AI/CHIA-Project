@@ -9,7 +9,7 @@ import math
 import os
 import re
 import shutil
-import subprocess
+import time
 from pathlib import Path
 
 import yaml
@@ -22,18 +22,76 @@ from src.common.errors import (
     RuntimeExecutionError,
 )
 from src.common.process import run_process
-from src.common.security import digest, safe_id, within
+from src.common.security import safe_id, within
+from src.hardware.energy_mapping import ENERGY_SCOPE, build_energy_mapping
 
 
-ENERGY_SCOPE = (
-    "Dynamic cache energy for two L1I caches, two L1D caches, "
-    "and one shared L2 cache. Excludes processor-core logic, "
-    "DRAM, interconnect, TLB, and static/leakage energy."
-)
+REQUIRED_COMPONENTS = {
+    "cpu0_l1i",
+    "cpu0_l1d",
+    "cpu1_l1i",
+    "cpu1_l1d",
+    "shared_l2",
+}
 
 
 class EnergyEstimatorError(RuntimeExecutionError):
     """Raised when energy estimation cannot be completed."""
+
+
+def preflight_energy_runtime(runtime: dict, timeout_seconds: float) -> dict:
+    """Validate the local Docker image and writable artifact root before gem5."""
+    if not isinstance(timeout_seconds, (int, float)) or timeout_seconds <= 0:
+        error = PreflightError("Energy timeout must be positive.")
+        error.runtime_stage = "energy_preflight"
+        raise error
+    image = runtime.get("image", "chia-energy-tools:0.3")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/@:-]+", image):
+        error = ConfigError("Invalid energy container image reference.")
+        error.runtime_stage = "energy_preflight"
+        raise error
+    docker = shutil.which("docker")
+    if not docker:
+        error = PreflightError("Docker is not installed on the hardware worker.")
+        error.runtime_stage = "energy_preflight"
+        raise error
+    root = Path(runtime.get("artifacts_root", ROOT / "results/energy")).resolve()
+    try:
+        root.mkdir(parents=True, exist_ok=True)
+        probe = root / ".chia-energy-write-probe"
+        probe.write_text("ok\n", encoding="utf-8")
+        probe.unlink()
+    except OSError as exc:
+        error = PreflightError("Energy artifact root is not writable.")
+        error.runtime_stage = "energy_preflight"
+        raise error from exc
+    try:
+        inspected = json.loads(
+            run_process(
+                [docker, "image", "inspect", image],
+                cwd=ROOT,
+                timeout=min(timeout_seconds, 30),
+            )["stdout"]
+        )[0]
+    except Exception as exc:
+        error = PreflightError(f"Required energy image is unavailable: {image}")
+        error.runtime_stage = "energy_preflight"
+        raise error from exc
+    labels = inspected.get("Config", {}).get("Labels") or {}
+    required_labels = {
+        "org.chia.accelergy.version",
+        "org.chia.accelergy.commit",
+        "org.chia.accelergy-mcpat-plugin.commit",
+        "org.chia.mcpat.version",
+        "org.chia.mcpat.commit",
+    }
+    if any(not labels.get(name) for name in required_labels):
+        error = PreflightError(
+            "Energy image is missing required pinned tool provenance labels."
+        )
+        error.runtime_stage = "energy_preflight"
+        raise error
+    return {"docker": docker, "image": image, "inspection": inspected}
 
 
 def cache_component(
@@ -176,15 +234,33 @@ def run_accelergy(
     work_directory: Path,
     image: str,
     timeout_seconds: float = 300,
-) -> str:
-    docker = shutil.which("docker")
-    if not docker:
-        raise PreflightError("Docker is not installed on the energy worker.")
-    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/@:-]+", image):
-        raise ConfigError("Invalid energy container image reference.")
-    inspected = json.loads(
-        run_process([docker, "image", "inspect", image], cwd=ROOT, timeout=min(timeout_seconds, 30))["stdout"]
-    )[0]
+    image_preflight: dict | None = None,
+) -> dict:
+    if not isinstance(timeout_seconds, (int, float)) or timeout_seconds <= 0:
+        raise ConfigError("Energy timeout must be positive.")
+    deadline = time.monotonic() + timeout_seconds
+
+    def remaining() -> float:
+        value = deadline - time.monotonic()
+        if value <= 0:
+            from src.common.errors import ExecutionTimeout
+
+            error = ExecutionTimeout("Energy-estimation deadline expired.")
+            error.runtime_stage = "energy_execution"
+            raise error
+        return value
+
+    if image_preflight is None:
+        image_preflight = preflight_energy_runtime(
+            {"image": image, "artifacts_root": work_directory.parent},
+            remaining(),
+        )
+    if image_preflight.get("image") != image:
+        error = PreflightError("Energy image preflight does not match execution.")
+        error.runtime_stage = "energy_preflight"
+        raise error
+    docker = image_preflight["docker"]
+    inspected = image_preflight["inspection"]
     image_id = inspected["Id"]
     image_identity = (inspected.get("RepoDigests") or [image_id])[0]
     name = "chia-energy-" + safe_id(work_directory.name)
@@ -216,8 +292,13 @@ def run_accelergy(
             "--user", f"{os.getuid()}:{os.getgid()}"
         ]
     result = None
+    started = time.monotonic()
     try:
-        result = run_process(command, cwd=ROOT, timeout=timeout_seconds)
+        try:
+            result = run_process(command, cwd=ROOT, timeout=remaining())
+        except Exception as error:
+            error.runtime_stage = "energy_execution"
+            raise
     finally:
         try:
             run_process([docker, "rm", "-f", name], cwd=ROOT, timeout=10)
@@ -228,26 +309,68 @@ def run_accelergy(
         error = EnergyEstimatorError(
             "Accelergy completed without creating energy_estimation.yaml."
         )
+        error.runtime_stage = "energy_verification"
         error.stdout_summary = result["stdout_summary"]
         error.stderr_summary = result["stderr_summary"]
         raise error
-    return image_identity
+    labels = inspected.get("Config", {}).get("Labels") or {}
+    return {
+        "container_image_digest": image_identity,
+        "container_image_id": image_id,
+        "accelergy_version": labels.get("org.chia.accelergy.version"),
+        "accelergy_commit": labels.get("org.chia.accelergy.commit"),
+        "mcpat_version": labels.get("org.chia.mcpat.version"),
+        "mcpat_commit": labels.get("org.chia.mcpat.commit"),
+        "plugin_commit": labels.get("org.chia.accelergy-mcpat-plugin.commit"),
+        "execution_duration_seconds": time.monotonic() - started,
+    }
 
 
 def read_energy_uj(path: Path) -> tuple[float, list[dict]]:
-    result = yaml.safe_load(
-        path.read_text(encoding="utf-8")
-    )
-
-    estimate = result["energy_estimation"]
-    total_pj = float(estimate["Total"])
+    try:
+        result = yaml.safe_load(path.read_text(encoding="utf-8"))
+        estimate = result["energy_estimation"]
+        total_pj = float(estimate["Total"])
+        components = estimate["components"]
+    except (OSError, KeyError, TypeError, ValueError) as exc:
+        raise EnergyEstimatorError(
+            "Accelergy output is missing required total or component evidence."
+        ) from exc
 
     if not math.isfinite(total_pj) or total_pj <= 0:
         raise EnergyEstimatorError(
             "Accelergy returned nonfinite or nonpositive energy."
         )
 
-    return total_pj / 1_000_000.0, estimate["components"]
+    if not isinstance(components, list):
+        raise EnergyEstimatorError("Accelergy components must be a list.")
+    return total_pj / 1_000_000.0, components
+
+
+def verify_components(components: list[dict]) -> None:
+    if len(components) != len(REQUIRED_COMPONENTS):
+        raise EnergyEstimatorError(
+            "Accelergy output must contain exactly five cache components."
+        )
+    names = set()
+    for component in components:
+        if not isinstance(component, dict) or not isinstance(component.get("name"), str):
+            raise EnergyEstimatorError("Accelergy returned a malformed component.")
+        try:
+            value = float(component["energy"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise EnergyEstimatorError(
+                "Accelergy component energy is missing or malformed."
+            ) from exc
+        if not math.isfinite(value) or value < 0:
+            raise EnergyEstimatorError(
+                "Accelergy component energy is negative or nonfinite."
+            )
+        names.add(component["name"].split(".")[-1])
+    if names != REQUIRED_COMPONENTS:
+        raise EnergyEstimatorError(
+            "Accelergy output does not contain the five required cache components."
+        )
 
 
 def update_metrics(
@@ -273,100 +396,21 @@ def update_metrics(
     )
 
 
-def _stats(path: Path) -> dict[str, float]:
-    values = {}
-    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
-        fields = line.split()
-        if len(fields) >= 2:
-            try:
-                value = float(fields[1])
-            except ValueError:
-                continue
-            if math.isfinite(value):
-                values[fields[0]] = value
-    return values
-
-
-def _counter(stats: dict[str, float], prefix: str, suffix: str) -> int:
-    names = [
-        f"{prefix}.{suffix}::total",
-        f"{prefix}.{suffix}",
-    ]
-    for name in names:
-        if name in stats:
-            value = stats[name]
-            if value < 0 or not value.is_integer():
-                break
-            return int(value)
-    raise MetricsError(f"Required gem5 energy counter is missing: {prefix}.{suffix}.")
-
-
-def build_energy_mapping(config: dict, hardware_result: dict, stats_path: Path) -> dict:
-    """Join reviewed cache configuration to counters from this exact hardware run."""
-    candidate = Candidate.from_dict(config)
-    if (
-        hardware_result.get("candidate_id") != candidate.candidate_id
-        or hardware_result.get("hardware") != candidate.config["hardware"]
-        or hardware_result.get("status") != "completed"
-    ):
-        raise MetricsError("Energy input does not belong to this completed candidate.")
-    stats = _stats(stats_path)
-    stats_sha256 = hashlib.sha256(stats_path.read_bytes()).hexdigest()
-    expected_stats_sha256 = hardware_result.get("provenance", {}).get("stats_sha256")
-    if expected_stats_sha256 and expected_stats_sha256 != stats_sha256:
-        raise MetricsError("Hardware stats artifact changed after the gem5 run.")
-    hw = candidate.config["hardware"]
-
-    def cache(prefix: str, size: int, assoc: int, latency: int) -> dict:
-        hits = _counter(stats, prefix, "overallHits")
-        misses = _counter(stats, prefix, "overallMisses")
-        return {
-            "configuration": {
-                "size_bytes": size * 1024,
-                "associativity": assoc,
-                "block_size_bytes": 64,
-                "data_latency_cycles": latency,
-                "tag_latency_cycles": latency,
-                "response_latency_cycles": latency,
-                "mshr_entries": 8,
-                "write_buffer_entries": 8,
-            },
-            # gem5's aggregate counters do not distinguish reads from writes.
-            # The estimator therefore models aggregate cache lookups as reads.
-            "actions": {"read_hit": hits, "read_miss": misses, "write_hit": 0, "write_miss": 0},
-        }
-
-    cores = []
-    for index in range(hw["cores"]):
-        cpu = f"system.cpu{index}"
-        cores.append({
-            "core_id": index,
-            "caches": {
-                "l1i": cache(f"{cpu}.icache", hw["l1i_cache_kib"], hw["l1i_associativity"], hw["l1i_latency_cycles"]),
-                "l1d": cache(f"{cpu}.dcache", hw["l1d_cache_kib"], hw["l1d_associativity"], hw["l1d_latency_cycles"]),
-            },
-        })
-    return {
-        "candidate_id": candidate.candidate_id,
-        "hardware_result_id": digest(hardware_result),
-        "stats_sha256": stats_sha256,
-        "mcpat_assumptions": {
-            "technology_nm": 45,
-            "device_type": "lop",
-            "clockrate_mhz": int(hw["frequency_ghz"] * 1000),
-            "datawidth_bits": 64,
-        },
-        "cores": cores,
-        "shared_l2": cache("system.l2cache", hw["l2_cache_kib"], hw["l2_associativity"], hw["l2_latency_cycles"]),
-    }
-
-
 def run_energy_candidate(config: dict, hardware_result: dict, runtime=None, context=None) -> dict:
     runtime = runtime or {}
     context = context or {}
     candidate = Candidate.from_dict(config)
     artifacts = hardware_result.get("artifacts", {})
     hardware_directory = Path(artifacts.get("directory", "")).resolve()
+    allowed_hardware_root = Path(
+        runtime.get("hardware_artifacts_root", hardware_directory.parent)
+    ).resolve()
+    try:
+        hardware_directory.relative_to(allowed_hardware_root)
+    except ValueError as exc:
+        error = MetricsError("Hardware artifact directory escapes its allowed root.")
+        error.runtime_stage = "energy_preflight"
+        raise error from exc
     stats_path = (hardware_directory / artifacts.get("stats", "")).resolve()
     try:
         stats_path.relative_to(hardware_directory)
@@ -374,25 +418,65 @@ def run_energy_candidate(config: dict, hardware_result: dict, runtime=None, cont
         raise MetricsError("Hardware stats path escapes its run directory.") from exc
     if not stats_path.is_file():
         raise MetricsError("Hardware stats artifact is missing.")
-    mapping = build_energy_mapping(config, hardware_result, stats_path)
+    try:
+        mapping = build_energy_mapping(config, hardware_result, stats_path)
+    except Exception as error:
+        error.runtime_stage = "energy_mapping"
+        raise
     run_id = safe_id(context.get("run_id", "local-" + candidate.candidate_id[:16]))
     root = Path(runtime.get("artifacts_root", ROOT / "results/energy")).resolve()
     root.mkdir(parents=True, exist_ok=True)
+    if not root.is_dir():
+        error = PreflightError("Energy artifact root is not a directory.")
+        error.runtime_stage = "energy_preflight"
+        raise error
     workdir = within(root, run_id)
     workdir.mkdir(exist_ok=False)
+    try:
+        probe = workdir / ".write-probe"
+        probe.write_text("ok\n", encoding="utf-8")
+        probe.unlink()
+    except OSError as exc:
+        error = PreflightError("Energy artifact directory is not writable.")
+        error.runtime_stage = "energy_preflight"
+        raise error from exc
     architecture, actions = build_accelergy_inputs(mapping)
     write_yaml(workdir / "architecture.yaml", architecture)
     write_yaml(workdir / "action_counts.yaml", actions)
     (workdir / "mapping.json").write_text(json.dumps(mapping, indent=2) + "\n", encoding="utf-8")
-    image_identity = run_accelergy(
+    timeout = runtime.get("timeout_seconds", 300)
+    if "deadline_epoch_seconds" in runtime:
+        timeout = min(timeout, runtime["deadline_epoch_seconds"] - time.time())
+    if timeout <= 0:
+        from src.common.errors import ExecutionTimeout
+
+        error = ExecutionTimeout("Hardware deadline expired before Accelergy.")
+        error.runtime_stage = "energy_execution"
+        raise error
+    image_provenance = run_accelergy(
         workdir,
         runtime.get("image", "chia-energy-tools:0.3"),
-        timeout_seconds=runtime.get("timeout_seconds", 300),
+        timeout_seconds=timeout,
+        image_preflight=runtime.get("_image_preflight"),
     )
     result_path = workdir / "output/energy_estimation.yaml"
     if not result_path.is_file():
         raise EnergyEstimatorError("Accelergy result is missing.")
-    energy_uj, components = read_energy_uj(result_path)
+    try:
+        energy_uj, components = read_energy_uj(result_path)
+        verify_components(components)
+    except Exception as error:
+        error.runtime_stage = "energy_verification"
+        raise
+    hashes = {
+        name: hashlib.sha256((workdir / relative).read_bytes()).hexdigest()
+        for name, relative in {
+            "mapping_sha256": "mapping.json",
+            "architecture_sha256": "architecture.yaml",
+            "action_counts_sha256": "action_counts.yaml",
+            "energy_result_sha256": "output/energy_estimation.yaml",
+        }.items()
+    }
     return {
         "candidate_id": candidate.candidate_id,
         "status": "completed",
@@ -402,8 +486,10 @@ def run_energy_candidate(config: dict, hardware_result: dict, runtime=None, cont
         "scope": ENERGY_SCOPE,
         "provenance": {
             "estimator": "Accelergy with cache model inputs",
-            "container_image_digest": image_identity,
+            **image_provenance,
+            **hashes,
             "assumptions": mapping["mcpat_assumptions"],
+            "energy_scope": ENERGY_SCOPE,
         },
         "artifacts": {"directory": str(workdir), "mapping": "mapping.json", "estimate": "output/energy_estimation.yaml"},
         "components": components,

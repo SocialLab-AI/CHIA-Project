@@ -85,12 +85,13 @@ def test_real_chia_full_graph_with_mocked_runtimes(tmp_path):
 
         def hw(mapped, runtime, context):
             from src.common.logging import invoke
+            from src.common.security import digest
+            from src.hardware.energy_mapping import ENERGY_SCOPE
 
             config = mapped["value"]["candidate"]
-            return invoke(
-                "hardware",
-                context,
-                lambda: {
+
+            def completed():
+                result = {
                     "candidate_id": context["candidate_id"],
                     "status": "completed",
                     "hardware": config["hardware"],
@@ -110,29 +111,56 @@ def test_real_chia_full_graph_with_mocked_runtimes(tmp_path):
                     },
                     "provenance": {
                         "resolved_config_verified": True,
+                        "stats_sha256": "a" * 64,
                         "correctness_tolerance": {
                             "max_absolute_error": 0.1,
                             "mean_squared_error": 0.01,
                         },
                     },
-                },
-            )
-
-        def en(mapped, hardware, runtime, context):
-            from src.common.logging import invoke
-            from src.common.security import digest
-
-            value = hardware["value"]
-            return invoke(
-                "energy",
-                context,
-                lambda: {
+                }
+                gem5_result_id = digest(result)
+                evidence = {
                     "candidate_id": context["candidate_id"],
                     "status": "completed",
-                    "hardware_result_id": digest(value),
+                    "hardware_result_id": gem5_result_id,
+                    "stats_sha256": "a" * 64,
                     "metrics": {"estimated_cache_dynamic_energy_uj": 5.0},
-                    "provenance": {"estimator": "mocked-on-real-Ray"},
-                },
+                    "scope": ENERGY_SCOPE,
+                    "components": [
+                        {"name": name, "energy": 1.0}
+                        for name in (
+                            "cpu0_l1i", "cpu0_l1d", "cpu1_l1i", "cpu1_l1d", "shared_l2"
+                        )
+                    ],
+                    "provenance": {
+                        "estimator": "mocked-on-real-Ray",
+                        "container_image_digest": "sha256:" + "a" * 64,
+                        "accelergy_version": "0.3",
+                        "accelergy_commit": "a" * 40,
+                        "mcpat_version": "1.3",
+                        "mcpat_commit": "b" * 40,
+                        "plugin_commit": "c" * 40,
+                        "mapping_sha256": "d" * 64,
+                        "architecture_sha256": "e" * 64,
+                        "action_counts_sha256": "f" * 64,
+                        "energy_result_sha256": "1" * 64,
+                        "execution_duration_seconds": 1.0,
+                        "energy_scope": ENERGY_SCOPE,
+                    },
+                }
+                result["metrics"].update(
+                    energy_uj=5.0,
+                    estimated_cache_dynamic_energy_uj=5.0,
+                    energy_scope=evidence["scope"],
+                )
+                result["provenance"]["gem5_result_sha256"] = gem5_result_id
+                result["energy_evidence"] = evidence
+                return result
+
+            return invoke(
+                "hardware",
+                context,
+                completed,
             )
 
         dispatcher.nodes["software"] = ChiaFunction(
@@ -141,9 +169,6 @@ def test_real_chia_full_graph_with_mocked_runtimes(tmp_path):
         dispatcher.nodes["hardware"] = ChiaFunction(
             resources=RESOURCES["hardware"], num_cpus=1, max_retries=0
         )(hw)
-        dispatcher.nodes["energy"] = ChiaFunction(
-            resources=RESOURCES["energy"], num_cpus=1, max_retries=0
-        )(en)
         record = run_experiment(
             baseline_candidate(), dispatcher=dispatcher, results_root=tmp_path
         )
@@ -153,7 +178,6 @@ def test_real_chia_full_graph_with_mocked_runtimes(tmp_path):
             "mapping",
             "software",
             "hardware",
-            "energy",
             "evaluation",
         } == {e["node"] for e in record["events"]}
         assert (tmp_path / "local" / "runs" / f"{record['run_id']}.json").is_file()

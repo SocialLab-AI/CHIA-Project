@@ -79,6 +79,8 @@ LABEL org.chia.toolchain="accelergy-mcpat"
 LABEL org.chia.accelergy.commit="${ACCELERGY_REF}"
 LABEL org.chia.accelergy-mcpat-plugin.commit="${PLUGIN_REF}"
 LABEL org.chia.mcpat.commit="${MCPAT_REF}"
+LABEL org.chia.accelergy.version="0.3"
+LABEL org.chia.mcpat.version="1.3"
 LABEL org.chia.runtime-wrapper="ephemeral-unprivileged-v1"
 
 WORKDIR /work

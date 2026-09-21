@@ -137,7 +137,7 @@ def verify_resolved(config_json, config):
     return True
 
 
-def run_gem5_candidate(config, runtime=None, context=None):
+def _run_gem5_only(config, runtime=None, context=None):
     runtime = runtime or {}
     context = context or {}
     calibration_mode = runtime.get("calibration_mode", False)
@@ -326,6 +326,79 @@ def run_gem5_candidate(config, runtime=None, context=None):
         # Keep evidence and executable; remove only known temporary compilation source copies.
         for filename in ("attention_kv.c", "attention-riscv.py"):
             (directory / filename).unlink(missing_ok=True)
+
+
+def run_gem5_candidate(config, runtime=None, context=None):
+    """Run gem5 and required cache-energy estimation on one hardware worker."""
+    runtime = runtime or {}
+    context = context or {}
+    Candidate.from_dict(config, calibration=runtime.get("calibration_mode", False))
+    energy_runtime = runtime.get("energy")
+    if not isinstance(energy_runtime, dict):
+        raise PreflightError("Hardware runtime requires an energy configuration.")
+
+    timeout = runtime.get("timeout_seconds", 600)
+    deadline_epoch = min(
+        runtime.get("deadline_epoch_seconds", time.time() + timeout),
+        time.time() + timeout,
+    )
+    gem5_runtime = {key: value for key, value in runtime.items() if key != "energy"}
+    gem5_runtime["deadline_epoch_seconds"] = deadline_epoch
+
+    from src.hardware.energy_estimator import (
+        preflight_energy_runtime,
+        run_energy_candidate,
+    )
+
+    energy_preflight = preflight_energy_runtime(
+        energy_runtime,
+        min(
+            energy_runtime.get("timeout_seconds", timeout),
+            deadline_epoch - time.time(),
+        ),
+    )
+    gem5_result = _run_gem5_only(config, gem5_runtime, context)
+
+    remaining = deadline_epoch - time.time()
+    if remaining <= 0:
+        error = ExecutionTimeout(
+            "Hardware deadline expired before energy estimation."
+        )
+        error.runtime_stage = "energy_execution"
+        raise error
+
+    bounded_energy = {
+        **energy_runtime,
+        "timeout_seconds": min(
+            energy_runtime.get("timeout_seconds", remaining),
+            remaining,
+        ),
+        "deadline_epoch_seconds": deadline_epoch,
+        "hardware_artifacts_root": gem5_runtime.get(
+            "artifacts_root", ROOT / "results/hardware"
+        ),
+        "_image_preflight": energy_preflight,
+    }
+    energy_result = run_energy_candidate(
+        config,
+        gem5_result,
+        bounded_energy,
+        context,
+    )
+
+    gem5_result_id = energy_result["hardware_result_id"]
+    metrics = gem5_result["metrics"]
+    energy_uj = energy_result["metrics"]["estimated_cache_dynamic_energy_uj"]
+    metrics.update(
+        {
+            "energy_uj": energy_uj,
+            "estimated_cache_dynamic_energy_uj": energy_uj,
+            "energy_scope": energy_result["scope"],
+        }
+    )
+    gem5_result["provenance"]["gem5_result_sha256"] = gem5_result_id
+    gem5_result["energy_evidence"] = energy_result
+    return gem5_result
 
 
 def run_hardware(config, runtime=None, context=None):

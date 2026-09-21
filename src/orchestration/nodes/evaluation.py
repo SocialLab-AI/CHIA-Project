@@ -1,12 +1,25 @@
 """Evaluation-owned verification node; keeps native latency distinct from simulation time."""
 
 import math
+import re
 from src.common.errors import MetricsError
 from src.common.logging import invoke
-from src.common.security import digest
+from src.hardware.energy_mapping import ENERGY_SCOPE
 
 
-def verify_results(config, candidate_id, software, hardware, energy):
+REQUIRED_ENERGY_COMPONENTS = {
+    "cpu0_l1i",
+    "cpu0_l1d",
+    "cpu1_l1i",
+    "cpu1_l1d",
+    "shared_l2",
+}
+
+
+def verify_results(config, candidate_id, software, hardware, energy=None):
+    energy = energy or (
+        hardware.get("energy_evidence") if isinstance(hardware, dict) else None
+    )
     for name, result in (("software", software), ("hardware", hardware)):
         if (
             not isinstance(result, dict)
@@ -21,15 +34,16 @@ def verify_results(config, candidate_id, software, hardware, energy):
         if not result.get("provenance"):
             raise MetricsError(f"{name} runtime provenance is absent.")
 
+    hardware_stats_sha256 = hardware.get("provenance", {}).get("stats_sha256")
     if (
         not isinstance(energy, dict)
         or energy.get("status") != "completed"
         or energy.get("candidate_id") != candidate_id
-        or energy.get("hardware_result_id") != digest(hardware)
-        or (
-            hardware.get("provenance", {}).get("stats_sha256")
-            and energy.get("stats_sha256") != hardware["provenance"]["stats_sha256"]
-        )
+        or energy.get("hardware_result_id")
+        != hardware.get("provenance", {}).get("gem5_result_sha256")
+        or not isinstance(hardware_stats_sha256, str)
+        or not re.fullmatch(r"[0-9a-f]{64}", hardware_stats_sha256)
+        or energy.get("stats_sha256") != hardware_stats_sha256
         or not energy.get("provenance")
     ):
         raise MetricsError("Energy result is stale or belongs to another hardware run.")
@@ -57,6 +71,55 @@ def verify_results(config, candidate_id, software, hardware, energy):
     energy_uj = energy.get("metrics", {}).get("estimated_cache_dynamic_energy_uj")
     if not positive(energy_uj):
         raise MetricsError("Energy estimate is missing, nonfinite or nonpositive.")
+    if (
+        hw.get("energy_uj") != energy_uj
+        or hw.get("estimated_cache_dynamic_energy_uj") != energy_uj
+        or hw.get("energy_scope") != energy.get("scope")
+        or energy.get("scope") != ENERGY_SCOPE
+    ):
+        raise MetricsError("Hardware result does not preserve verified energy evidence.")
+    component_names = {
+        component.get("name", "").split(".")[-1]
+        for component in energy.get("components", [])
+        if isinstance(component, dict)
+    }
+    if (
+        len(energy.get("components", [])) != 5
+        or component_names != REQUIRED_ENERGY_COMPONENTS
+    ):
+        raise MetricsError("Energy result lacks the five verified cache components.")
+    provenance = energy["provenance"]
+    for field in (
+        "container_image_digest",
+        "accelergy_version",
+        "accelergy_commit",
+        "mcpat_version",
+        "mcpat_commit",
+        "plugin_commit",
+        "mapping_sha256",
+        "architecture_sha256",
+        "action_counts_sha256",
+        "energy_result_sha256",
+    ):
+        if not isinstance(provenance.get(field), str) or not provenance[field]:
+            raise MetricsError(f"Energy provenance is missing {field}.")
+    for field in (
+        "mapping_sha256",
+        "architecture_sha256",
+        "action_counts_sha256",
+        "energy_result_sha256",
+    ):
+        if not re.fullmatch(r"[0-9a-f]{64}", provenance[field]):
+            raise MetricsError(f"Energy provenance has an invalid {field}.")
+    duration = provenance.get("execution_duration_seconds")
+    if (
+        isinstance(duration, bool)
+        or not isinstance(duration, (int, float))
+        or not math.isfinite(duration)
+        or duration < 0
+        or provenance.get("energy_scope") != ENERGY_SCOPE
+    ):
+        raise MetricsError("Energy execution provenance is missing or invalid.")
     question_count = sw.get("question_count")
     if (
         isinstance(quality, bool)
@@ -138,13 +201,12 @@ def verify_results(config, candidate_id, software, hardware, energy):
     }
 
 
-def evaluation_node(mapped, software, hardware, energy, context):
+def evaluation_node(mapped, software, hardware, context):
     def evaluate():
         if (
             mapped["event"]["status"] != "completed"
             or software["event"]["status"] != "completed"
             or hardware["event"]["status"] != "completed"
-            or energy["event"]["status"] != "completed"
         ):
             raise MetricsError("A required upstream node did not complete.")
         return verify_results(
@@ -152,7 +214,7 @@ def evaluation_node(mapped, software, hardware, energy, context):
             context["candidate_id"],
             software["value"],
             hardware["value"],
-            energy["value"],
+            hardware["value"].get("energy_evidence"),
         )
 
     return invoke("evaluation", context, evaluate)

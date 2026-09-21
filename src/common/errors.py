@@ -55,6 +55,10 @@ def failure(error, stage):
         "compiler_version",
         "compile_kernel",
         "gem5_simulation",
+        "energy_preflight",
+        "energy_mapping",
+        "energy_execution",
+        "energy_verification",
     }:
         result["runtime_stage"] = runtime_stage
     for name in ("stdout_summary", "stderr_summary"):

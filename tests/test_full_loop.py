@@ -10,6 +10,7 @@ from src.common.errors import (
     TransientRuntimeError,
     RuntimeExecutionError,
     MetricsError,
+    ExecutionTimeout,
 )
 from src.common.security import safe_id, within, strict_json, local_endpoint
 from src.common.security import digest
@@ -19,6 +20,7 @@ from src.orchestration.nodes.validation import validation_node, mapping_node
 from src.orchestration.nodes.shared import execute_runtime
 from src.common.records import validate_record
 from src.hardware.runner import parse_correctness
+from src.hardware.energy_mapping import ENERGY_SCOPE
 from src.tutor.llama_cpp_runtime import extract_generation
 
 
@@ -66,6 +68,7 @@ def hardware(config, runtime, context):
         "provenance": {
             "resolved_config_verified": True,
             "gem5_version": "fixture",
+            "stats_sha256": "b" * 64,
             "correctness_tolerance": {
                 "max_absolute_error": 0.1,
                 "mean_squared_error": 0.01,
@@ -75,15 +78,56 @@ def hardware(config, runtime, context):
 
 
 def energy(config, hardware_result, runtime, context):
+    components = [
+        {"name": name, "energy": 1.0}
+        for name in (
+            "cpu0_l1i",
+            "cpu0_l1d",
+            "cpu1_l1i",
+            "cpu1_l1d",
+            "shared_l2",
+        )
+    ]
     return {
         "candidate_id": Candidate.from_dict(config).candidate_id,
         "status": "completed",
         "hardware_result_id": digest(hardware_result),
         "stats_sha256": "b" * 64,
         "metrics": {"estimated_cache_dynamic_energy_uj": 12.5},
-        "scope": "test cache dynamic energy",
-        "provenance": {"estimator": "fixture"},
+        "scope": ENERGY_SCOPE,
+        "components": components,
+        "provenance": {
+            "estimator": "fixture",
+            "container_image_digest": "sha256:" + "a" * 64,
+            "accelergy_version": "0.3",
+            "accelergy_commit": "a" * 40,
+            "mcpat_version": "1.3",
+            "mcpat_commit": "b" * 40,
+            "plugin_commit": "c" * 40,
+            "mapping_sha256": "d" * 64,
+            "architecture_sha256": "e" * 64,
+            "action_counts_sha256": "f" * 64,
+            "energy_result_sha256": "1" * 64,
+            "execution_duration_seconds": 1.0,
+            "energy_scope": ENERGY_SCOPE,
+        },
     }
+
+
+def combined_hardware(config, runtime, context):
+    result = hardware(config, runtime, context)
+    evidence = energy(config, result, runtime.get("energy", {}), context)
+    energy_uj = evidence["metrics"]["estimated_cache_dynamic_energy_uj"]
+    result["metrics"].update(
+        energy_uj=energy_uj,
+        estimated_cache_dynamic_energy_uj=energy_uj,
+        energy_scope=evidence["scope"],
+    )
+    result["provenance"]["gem5_result_sha256"] = evidence[
+        "hardware_result_id"
+    ]
+    result["energy_evidence"] = evidence
+    return result
 
 
 @pytest.fixture
@@ -94,13 +138,11 @@ def mocked_runtimes():
             side_effect=software,
         ) as sw,
         patch(
-            "src.orchestration.nodes.hardware.run_gem5_candidate", side_effect=hardware
+            "src.orchestration.nodes.hardware.run_gem5_candidate",
+            side_effect=combined_hardware,
         ) as hw,
-        patch(
-            "src.orchestration.nodes.energy.run_energy_candidate", side_effect=energy
-        ) as en,
     ):
-        yield sw, hw, en
+        yield sw, hw
 
 
 def test_three_candidate_full_loop(tmp_path, mocked_runtimes):
@@ -111,6 +153,11 @@ def test_three_candidate_full_loop(tmp_path, mocked_runtimes):
     assert len({r["candidate_id"] for r in result["experiments"]}) == 3
     for record in result["experiments"]:
         validate_record(record)
+        assert record["hardware_result"]["metrics"]["energy_uj"] == 12.5
+        assert record["energy_result"]["scope"] == ENERGY_SCOPE
+        assert record["hardware_result"]["energy_evidence"] == record[
+            "energy_result"
+        ]
         saved = json.loads(
             (tmp_path / "three" / "runs" / f"{record['run_id']}.json").read_text()
         )
@@ -121,9 +168,9 @@ def test_three_candidate_full_loop(tmp_path, mocked_runtimes):
             "mapping",
             "software",
             "hardware",
-            "energy",
             "evaluation",
         }
+    assert "energy" in mocked_runtimes[1].call_args.args[1]
 
 
 @pytest.mark.parametrize(
@@ -186,6 +233,20 @@ def test_failed_node_preserves_other_result(tmp_path, mocked_runtimes):
     result = run_experiment(baseline_candidate(), results_root=tmp_path)
     assert result["status"] == "failed" and result["software_result"] is not None
     assert result["failure"]["stage"] == "hardware"
+    validate_record(result)
+
+
+def test_energy_timeout_is_a_durable_hardware_failure(tmp_path, mocked_runtimes):
+    error = ExecutionTimeout("Subprocess exceeded its deadline.")
+    error.runtime_stage = "energy_execution"
+    mocked_runtimes[1].side_effect = error
+
+    result = run_experiment(baseline_candidate(), results_root=tmp_path)
+
+    assert result["status"] == "failed"
+    assert result["failure"]["stage"] == "hardware"
+    assert result["failure"]["runtime_stage"] == "energy_execution"
+    assert result["energy_result"] is None
     validate_record(result)
 
 
@@ -331,8 +392,6 @@ def test_completed_record_detects_forged_metrics(tmp_path, mocked_runtimes):
 
 
 def test_runtime_deadline_does_not_retry_timeout():
-    from src.common.errors import ExecutionTimeout
-
     context = {"run_id": "timeout"}
     mapped = mapping_node(validation_node(baseline_candidate(), context), context)
     with patch(

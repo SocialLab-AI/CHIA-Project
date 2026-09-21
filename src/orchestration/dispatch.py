@@ -6,7 +6,6 @@ from src.common.errors import (
     PreflightError,
 )
 from src.orchestration.nodes.evaluation import evaluation_node
-from src.orchestration.nodes.energy import energy_node
 from src.orchestration.nodes.hardware import hardware_node
 from src.orchestration.nodes.shared import execute_runtime
 from src.orchestration.nodes.software import software_node
@@ -21,7 +20,6 @@ FUNCTIONS = {
     "mapping": mapping_node,
     "software": software_node,
     "hardware": hardware_node,
-    "energy": energy_node,
     "evaluation": evaluation_node,
 }
 
@@ -31,7 +29,6 @@ RESOURCES = {
     "evaluation": {"control": 0.01},
     "software": {"llama_cpp": 1},
     "hardware": {"gem5": 1},
-    "energy": {"gem5": 1},
 }
 
 

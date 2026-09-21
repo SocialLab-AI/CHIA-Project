@@ -27,3 +27,9 @@ runtime:
     correctness_tolerance:
       max_absolute_error: 0.01
       mean_squared_error: 0.00001
+    artifacts_root: results/deterministic-local-review/gem5
+  energy:
+    image: chia-energy-tools:0.3
+    timeout_seconds: 300 # cap inside the shared hardware deadline
+    retries: 0
+    artifacts_root: results/deterministic-local-review/energy-work

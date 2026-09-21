@@ -21,6 +21,7 @@ from src.hardware.energy_estimator import (
     build_accelergy_inputs,
     read_energy_uj,
     run_accelergy,
+    verify_components,
     write_yaml,
 )
 from src.orchestration.chia import validate_campaign_config
@@ -104,7 +105,7 @@ def check_worker(config):
     energy_image = config["runtime"]["energy"]["image"]
 
     @ray.remote(resources={"gem5": 1}, num_cpus=1)
-    def worker_probe(hardware_image, energy_image):
+    def worker_probe(hardware_image, energy_image, energy_timeout):
         docker = shutil.which("docker")
         uv = shutil.which("uv")
         if not docker or not uv:
@@ -134,12 +135,13 @@ def check_worker(config):
             energy_identity = run_accelergy(
                 workdir,
                 energy_image,
-                timeout_seconds=120,
+                timeout_seconds=energy_timeout,
             )
             result_path = workdir / "output/energy_estimation.yaml"
             if not result_path.is_file():
                 raise RuntimeError("Energy preflight did not create its estimate.")
-            energy_uj, _components = read_energy_uj(result_path)
+            energy_uj, components = read_energy_uj(result_path)
+            verify_components(components)
 
         return {
             "role": "gem5 worker",
@@ -151,7 +153,11 @@ def check_worker(config):
             "synthetic_cache_dynamic_energy_uj": energy_uj,
         }
 
-    return ray.get(worker_probe.remote(hardware_image, energy_image), timeout=180)
+    wait_timeout = config["runtime"]["energy"]["timeout_seconds"] + 60
+    return ray.get(
+        worker_probe.remote(hardware_image, energy_image, config["runtime"]["energy"]["timeout_seconds"]),
+        timeout=wait_timeout,
+    )
 
 
 def initialize_ray(config):

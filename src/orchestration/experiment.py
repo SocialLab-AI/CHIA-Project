@@ -82,29 +82,34 @@ def run_experiment(
         stage = "execution"
         sw = dispatcher.submit("software", mapped, runtime["software"], context)
         refs.append(sw)
-        hw = dispatcher.submit("hardware", mapped, runtime["hardware"], context)
+        hardware_runtime = {
+            **runtime["hardware"],
+            "energy": runtime["energy"],
+        }
+        hw = dispatcher.submit("hardware", mapped, hardware_runtime, context)
         refs.append(hw)
-        energy = dispatcher.submit("energy", mapped, hw, runtime["energy"], context)
-        refs.append(energy)
-        evaluation = dispatcher.submit("evaluation", mapped, sw, hw, energy, context)
+        evaluation = dispatcher.submit("evaluation", mapped, sw, hw, context)
         refs.append(evaluation)
         for name, reference in (
             ("validation", validated),
             ("mapping", mapped),
             ("software", sw),
             ("hardware", hw),
-            ("energy", energy),
             ("evaluation", evaluation),
         ):
             result = dispatcher.get(
                 reference, timeout=max(0.001, deadline - time.monotonic())
             )
             record["events"].extend(result.get("events", [result["event"]]))
-            if name in {"software", "hardware", "energy"}:
+            if name in {"software", "hardware"}:
                 # Malformed runtime output must not prevent a durable failed record.
                 canonical(result["value"])
                 no_secrets(result["value"])
                 record[name + "_result"] = result["value"]
+                if name == "hardware" and result["value"] is not None:
+                    record["energy_result"] = result["value"].get(
+                        "energy_evidence"
+                    )
             if name == "evaluation":
                 record["evaluation"] = result["value"]
             if result["event"]["status"] == "failed" and record["failure"] is None:

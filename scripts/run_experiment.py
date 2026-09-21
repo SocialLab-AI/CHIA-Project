@@ -18,6 +18,14 @@ def _set_candidate_budget(config, candidate_budget):
     config.setdefault("stopping", {})["max_evaluated_candidates"] = candidate_budget
 
 
+def _set_campaign_id(config, campaign_id):
+    """Keep raw runtime artifacts inside the effective campaign evidence root."""
+    config["campaign_id"] = campaign_id
+    root = Path(config.get("results_root", "results")) / campaign_id
+    config["runtime"]["hardware"]["artifacts_root"] = str(root / "gem5")
+    config["runtime"]["energy"]["artifacts_root"] = str(root / "energy-work")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path)
@@ -27,11 +35,11 @@ def main():
     args = parser.parse_args()
     config = yaml.safe_load(args.config.read_text()) if args.config else {}
     if args.smoke:
-        config["campaign_id"] = "final-burst-smoke"
+        _set_campaign_id(config, "final-burst-smoke")
         _set_candidate_budget(config, 1)
         config["optimizer"] = {"enabled": False}
     elif args.method:
-        config["campaign_id"] = "final-burst-" + args.method
+        _set_campaign_id(config, "final-burst-" + args.method)
         _set_candidate_budget(config, config["study"]["candidate_budget_per_method"])
         if args.method == "random":
             config["optimizer"] = {

@@ -1,58 +1,24 @@
 # Running
 
-Install and validate:
+The root [README](../README.md) is the authoritative single-server installation
+and command guide. The release sequence is deliberately staged:
 
-```bash
-uv sync --frozen --extra dev --extra cluster --extra calibration
-uv run python scripts/validate_configs.py
-uv run python scripts/run_experiment.py --config experiment-contracts/campaigns/final-burst.yaml --validate-only
-uv run pytest -q -m "not scheduling"
-```
+1. Install the repository, reviewed model, llama.cpp service, gem5 image, and
+   energy image on one server.
+2. Start one Ray node with `control`, `llama_cpp`, and `gem5` resources.
+3. Run contract validation, validate-only, non-scheduling tests, and
+   `git diff --check`.
+4. Confirm the OpenStax permission attestation, then run the fail-closed release
+   preflight. It verifies native runtime identity and performs a bounded
+   five-cache Accelergy + McPAT round trip without running gem5 or Gemini.
+5. Run one deterministic smoke candidate and verify its manifest, completed run
+   record, four objectives, and energy provenance.
+6. Run the three-candidate random pilot, then the equal-budget Gemini pilot only
+   after API use is approved.
+7. Derive any larger burst budget from observed pilot time, failures, disk use,
+   artifact size, and Gemini usage.
 
-Run the fail-closed deployment preflight from the CHIA head node before any
-smoke, pilot, or migrated-server campaign:
-
-```bash
-export OPENSTAX_LLM_PERMISSION_CONFIRMED=1  # only after permission is confirmed
-uv run python scripts/preflight_release.py --config experiment-contracts/campaigns/final-burst.yaml
-```
-
-This checks the reviewed local GGUF and live llama.cpp identity, required Ray
-resources, worker Python/uv/Docker availability, both pinned container images,
-and a short synthetic Accelergy energy-estimation round trip. It does not run
-gem5, call Gemini, or create campaign evidence. Ray transfers the release
-checkout as a temporary working package; the gem5 worker does not need a
-persistent repository clone.
-
-Before starting Ray, every cluster machine must report the same Python and Ray
-versions. A campaign started with `uv run` also requires `uv` on the `PATH`
-inherited by every raylet. On the gem5 worker, verify:
-
-```bash
-command -v uv
-uv --version
-python --version
-ray --version
-docker version
-```
-
-If `command -v uv` fails, install `uv`, add its installation directory to
-`PATH`, and restart the gem5 raylet from that shell. The head node passes the
-OpenStax attestation into the Ray job environment; it does not need to be stored
-on the worker.
-
-Run the single deterministic smoke only after the native model server, Ray cluster, gem5 image, and energy image pass preflight:
-
-```bash
-export OPENSTAX_LLM_PERMISSION_CONFIRMED=1  # only after permission is confirmed
-uv run python scripts/run_experiment.py --config experiment-contracts/campaigns/final-burst.yaml --smoke
-```
-
-Run equal pilots in separate result directories:
-
-```bash
-uv run python scripts/run_experiment.py --config experiment-contracts/campaigns/final-burst.yaml --method random
-uv run python scripts/run_experiment.py --config experiment-contracts/campaigns/final-burst.yaml --method gemini
-```
-
-Do not increase the candidate budget until the pilot is reviewed. Existing campaign directories cause a fail-closed error to prevent evidence overwrite.
+The hardware task owns gem5 and Accelergy on the same `gem5` worker. Its total
+timeout covers image preflight, compilation, simulation, mapping, energy
+execution, and verification. Existing campaign directories cause a fail-closed
+error so prior evidence cannot be overwritten.
