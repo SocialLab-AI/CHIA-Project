@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 import yaml
 
@@ -6,6 +7,7 @@ from src.hardware.energy_estimator import (
     ENERGY_SCOPE,
     build_accelergy_inputs,
     read_energy_uj,
+    run_accelergy,
     update_metrics,
 )
 
@@ -186,4 +188,37 @@ def test_updates_metrics_without_losing_existing_data(
         ENERGY_SCOPE
     )
     assert result["status"]["state"] == "completed"
+
+
+def test_accelergy_uses_the_pinned_v03_output_flag(tmp_path):
+    inspected = json.dumps(
+        [
+            {
+                "Id": "sha256:" + "a" * 64,
+                "RepoDigests": ["chia-energy-tools@sha256:" + "b" * 64],
+            }
+        ]
+    )
+    with patch(
+        "src.hardware.energy_estimator.shutil.which",
+        return_value="/usr/bin/docker",
+    ), patch(
+        "src.hardware.energy_estimator.run_process",
+        side_effect=[
+            {"stdout": inspected},
+            {"stdout": ""},
+            {"stdout": ""},
+        ],
+    ) as process:
+        run_accelergy(tmp_path, "chia-energy-tools:0.2")
+
+    container_command = process.call_args_list[1].args[0]
+    assert container_command[-5:] == [
+        "accelergy",
+        "architecture.yaml",
+        "action_counts.yaml",
+        "-o",
+        "output",
+    ]
+    assert "--outdir" not in container_command
 

@@ -15,7 +15,12 @@ from pathlib import Path
 import yaml
 
 from src.common.candidate import Candidate, ROOT
-from src.common.errors import ConfigError, MetricsError, PreflightError
+from src.common.errors import (
+    ConfigError,
+    MetricsError,
+    PreflightError,
+    RuntimeExecutionError,
+)
 from src.common.process import run_process
 from src.common.security import digest, safe_id, within
 
@@ -27,7 +32,7 @@ ENERGY_SCOPE = (
 )
 
 
-class EnergyEstimatorError(RuntimeError):
+class EnergyEstimatorError(RuntimeExecutionError):
     """Raised when energy estimation cannot be completed."""
 
 
@@ -202,7 +207,7 @@ def run_accelergy(
         "accelergy",
         "architecture.yaml",
         "action_counts.yaml",
-        "--outdir",
+        "-o",
         "output",
     ]
 
