@@ -70,12 +70,13 @@ def test_real_chia_full_graph_with_mocked_runtimes(tmp_path):
                     "metrics": {
                         "latency_ms": 10.0,
                         "throughput_qps": 100.0,
-                        "sample_count": 1,
+                        "sample_count": 3 * config["measurement"]["software_repetitions"],
                         "answer_quality": 0.75,
-                        "question_count": 1,
+                        "question_count": 3,
                     },
                     "dataset": {
-                        "dataset_id": "fixture-openstax",
+                        "dataset_id": "openstax-college-physics-2e-ch4-concepts-v1",
+                        "source_url": "https://openstax.org/books/college-physics-2e/pages/4-conceptual-questions",
                         "license": "CC BY-NC-SA 4.0",
                         "reference_visible_to_model": False,
                     },
