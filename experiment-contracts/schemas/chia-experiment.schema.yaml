@@ -941,7 +941,7 @@ $defs:
         uniqueItems: true
         items:
           type: string
-          enum: ["local", "contabo", "development_cloud", "organizer_burst"]
+          enum: ["local", "contabo", "gcp", "development_cloud", "organizer_burst"]
       max_parallel_jobs:
         type: integer
         minimum: 1
@@ -1017,7 +1017,7 @@ $defs:
         enum: ["dev", "integration", "pilot", "final"]
       backend:
         type: string
-        enum: ["local", "contabo", "development_cloud", "organizer_burst"]
+        enum: ["local", "contabo", "gcp", "development_cloud", "organizer_burst"]
       worker_id:
         type: string
         minLength: 1

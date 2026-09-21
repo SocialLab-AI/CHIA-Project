@@ -137,6 +137,49 @@ def test_run_record_validates(master_schema):
     assert record["metrics"]["passed"] is True
 
 
+@pytest.mark.parametrize("tier", ["dev", "integration", "pilot", "final"])
+@pytest.mark.parametrize(
+    "backend",
+    ["local", "contabo", "gcp", "development_cloud", "organizer_burst", "unknown"],
+)
+def test_campaign_backend_tier_policy(tier, backend):
+    from src.common.errors import ConfigError
+    from src.orchestration.chia import validate_campaign_config
+
+    approved = {
+        ("dev", "local"), ("dev", "contabo"),
+        ("integration", "local"), ("integration", "contabo"),
+        ("pilot", "contabo"), ("pilot", "gcp"),
+        ("final", "organizer_burst"),
+    }
+    config = {"tier": tier, "backend": backend}
+    if (tier, backend) in approved:
+        assert validate_campaign_config(config)["backend"] == backend
+    else:
+        with pytest.raises(ConfigError, match="backend is not allowed"):
+            validate_campaign_config(config)
+
+
+@pytest.mark.parametrize(
+    "backend", ["local", "contabo", "gcp", "development_cloud", "organizer_burst", "unknown"]
+)
+def test_backend_schema_enums(master_schema, backend):
+    policy = load_yaml(POLICIES_DIR / "compute-policy.yaml")
+    policy["tiers"]["pilot"]["backends"] = [backend]
+    record = load_yaml(EXAMPLES_DIR / "completed-run.yaml")
+    record["execution"].update(tier="pilot", backend=backend)
+    for definition, document in [("compute_policy", policy), ("run_record", record)]:
+        assert get_validator(master_schema, definition).is_valid(document) == (backend != "unknown")
+
+
+def test_final_burst_uses_gcp():
+    from src.orchestration.chia import validate_campaign_config
+
+    config = load_yaml(CONTRACTS / "campaigns" / "final-burst.yaml")
+    checked = validate_campaign_config(config)
+    assert (checked["tier"], checked["backend"]) == ("pilot", "gcp")
+
+
 def test_orchestration_experiment_interface(tmp_path):
     """The canonical executor records invalid inputs without invoking runtime nodes."""
     from src.orchestration.experiment import run_experiment
