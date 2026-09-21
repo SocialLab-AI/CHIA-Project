@@ -1,10 +1,12 @@
 import json
 from unittest.mock import patch
 
+import pytest
 import yaml
 
 from src.hardware.energy_estimator import (
     ENERGY_SCOPE,
+    EnergyEstimatorError,
     build_accelergy_inputs,
     read_energy_uj,
     run_accelergy,
@@ -67,7 +69,7 @@ def test_builds_all_five_cache_components():
     )
 
     architecture_local = architecture[
-        "architecture"
+        "architecture_description"
     ]["subtree"][0]["local"]
 
     action_local = actions[
@@ -98,7 +100,7 @@ def test_architecture_uses_mapping_assumptions():
         sample_mapping()
     )
 
-    root = architecture["architecture"]["subtree"][0]
+    root = architecture["architecture_description"]["subtree"][0]
 
     assert root["attributes"] == {
         "technology": "45nm",
@@ -191,6 +193,11 @@ def test_updates_metrics_without_losing_existing_data(
 
 
 def test_accelergy_uses_the_pinned_v03_output_flag(tmp_path):
+    (tmp_path / "output").mkdir()
+    (tmp_path / "output/energy_estimation.yaml").write_text(
+        "energy_estimation: {}\n",
+        encoding="utf-8",
+    )
     inspected = json.dumps(
         [
             {
@@ -221,4 +228,29 @@ def test_accelergy_uses_the_pinned_v03_output_flag(tmp_path):
         "action_counts.yaml",
     ]
     assert "--outdir" not in container_command
+
+
+def test_accelergy_rejects_success_without_estimate(tmp_path):
+    inspected = json.dumps(
+        [{"Id": "sha256:" + "a" * 64, "RepoDigests": []}]
+    )
+    with patch(
+        "src.hardware.energy_estimator.shutil.which",
+        return_value="/usr/bin/docker",
+    ), patch(
+        "src.hardware.energy_estimator.run_process",
+        side_effect=[
+            {"stdout": inspected},
+            {
+                "stdout_summary": "no output generated",
+                "stderr_summary": "",
+            },
+            {"stdout": ""},
+        ],
+    ):
+        with pytest.raises(EnergyEstimatorError) as caught:
+            run_accelergy(tmp_path, "chia-energy-tools:0.2")
+
+    assert "without creating" in str(caught.value)
+    assert caught.value.stdout_summary == "no output generated"
 

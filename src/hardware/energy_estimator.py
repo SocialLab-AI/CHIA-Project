@@ -122,7 +122,7 @@ def build_accelergy_inputs(mapping: dict) -> tuple[dict, dict]:
     )
 
     architecture = {
-        "architecture": {
+        "architecture_description": {
             "version": 0.3,
             "subtree": [
                 {
@@ -215,13 +215,22 @@ def run_accelergy(
         command[command.index("-v"):command.index("-v")] = [
             "--user", f"{os.getuid()}:{os.getgid()}"
         ]
+    result = None
     try:
-        run_process(command, cwd=ROOT, timeout=timeout_seconds)
+        result = run_process(command, cwd=ROOT, timeout=timeout_seconds)
     finally:
         try:
             run_process([docker, "rm", "-f", name], cwd=ROOT, timeout=10)
         except Exception:
             pass
+    estimate = work_directory / "output/energy_estimation.yaml"
+    if not estimate.is_file():
+        error = EnergyEstimatorError(
+            "Accelergy completed without creating energy_estimation.yaml."
+        )
+        error.stdout_summary = result["stdout_summary"]
+        error.stderr_summary = result["stderr_summary"]
+        raise error
     return image_identity
 
 
