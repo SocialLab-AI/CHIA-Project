@@ -263,3 +263,39 @@ def test_openstax_attestation_is_propagated_to_ray_workers(monkeypatch):
         options["runtime_env"] == {"env_vars": {variable: "1"}}
         for options in node_options
     )
+
+
+def test_release_preflight_checks_reviewed_head_identity(tmp_path, monkeypatch):
+    from scripts.preflight_release import check_head
+
+    model = tmp_path / "qwen2.5-0.5b-instruct-q5_k_m.gguf"
+    model.write_bytes(b"reviewed-model")
+    config = {
+        "runtime": {
+            "software": {
+                "endpoint": "http://127.0.0.1:8081",
+                "assets_root": str(tmp_path),
+                "gguf": model.name,
+                "model_sha256": "a" * 64,
+                "context_tokens": 2048,
+                "parallel_slots": 1,
+                "dataset_permission_env": "OPENSTAX_LLM_PERMISSION_CONFIRMED",
+            }
+        }
+    }
+    monkeypatch.setenv("OPENSTAX_LLM_PERMISSION_CONFIRMED", "1")
+    with patch(
+        "scripts.preflight_release.runtime_preflight",
+        return_value={
+            "model_path": str(model),
+            "model_sha256": "a" * 64,
+            "context_tokens": 2048,
+            "parallel_slots": 1,
+            "runtime_build": "fixture",
+        },
+    ):
+        result = check_head(config)
+
+    assert result["role"] == "CHIA head node"
+    assert result["model_path"] == str(model)
+    assert result["context_tokens"] == 2048
