@@ -51,7 +51,7 @@ class LocalDispatcher:
 class ChiaDispatcher:
     """Schedule graph nodes through CHIA and Ray."""
 
-    def __init__(self, address="auto"):
+    def __init__(self, address="auto", *, env_vars=None):
         try:
             import ray
             from chia.base.ChiaFunction import ChiaFunction
@@ -65,14 +65,19 @@ class ChiaDispatcher:
 
         if not ray.is_initialized():
             init_options = {}
+            runtime_env = {}
 
             if (
                 isinstance(address, str)
                 and address.startswith("ray://")
             ):
-                init_options["runtime_env"] = {
-                    "working_dir": str(ROOT),
-                }
+                runtime_env["working_dir"] = str(ROOT)
+
+            if env_vars:
+                runtime_env["env_vars"] = dict(env_vars)
+
+            if runtime_env:
+                init_options["runtime_env"] = runtime_env
 
             ray.init(
                 address=address,
@@ -92,6 +97,12 @@ class ChiaDispatcher:
                     f"{resource} resource."
                 )
 
+        node_runtime_env = (
+            {"env_vars": dict(env_vars)}
+            if env_vars
+            else None
+        )
+
         self.nodes = {
             name: ChiaFunction(
                 resources=RESOURCES[name],
@@ -102,6 +113,7 @@ class ChiaDispatcher:
                 ),
                 max_retries=0,
                 retry_exceptions=False,
+                runtime_env=node_runtime_env,
             )(function)
             for name, function in FUNCTIONS.items()
         }

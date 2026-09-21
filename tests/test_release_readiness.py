@@ -5,7 +5,8 @@ import json
 import math
 import sys
 import time
-from unittest.mock import patch
+from types import ModuleType, SimpleNamespace
+from unittest.mock import Mock, patch
 
 import pytest
 import yaml
@@ -204,3 +205,47 @@ def test_cli_profiles_keep_execution_and_stopping_budgets_equal(cli_args, expect
     effective = entrypoint.call_args.args[0]
     assert effective["iterations"] == expected_budget
     assert effective["stopping"]["max_evaluated_candidates"] == expected_budget
+
+
+def test_openstax_attestation_is_propagated_to_ray_workers(monkeypatch):
+    from src.orchestration.chia import ray_worker_environment
+    from src.orchestration.dispatch import ChiaDispatcher
+
+    variable = "OPENSTAX_LLM_PERMISSION_CONFIRMED"
+    monkeypatch.setenv(variable, "1")
+    assert ray_worker_environment(
+        {"software": {"dataset_permission_env": variable}}
+    ) == {variable: "1"}
+
+    fake_ray = SimpleNamespace(
+        is_initialized=lambda: False,
+        init=Mock(),
+        cluster_resources=lambda: {
+            "control": 1,
+            "llama_cpp": 1,
+            "gem5": 1,
+        },
+    )
+    node_options = []
+    fake_chia_module = ModuleType("chia.base.ChiaFunction")
+
+    def fake_chia_function(**options):
+        node_options.append(options)
+        return lambda function: function
+
+    fake_chia_module.ChiaFunction = fake_chia_function
+    with patch.dict(
+        sys.modules,
+        {"ray": fake_ray, "chia.base.ChiaFunction": fake_chia_module},
+    ):
+        ChiaDispatcher("auto", env_vars={variable: "1"})
+
+    fake_ray.init.assert_called_once_with(
+        address="auto",
+        runtime_env={"env_vars": {variable: "1"}},
+    )
+    assert node_options
+    assert all(
+        options["runtime_env"] == {"env_vars": {variable: "1"}}
+        for options in node_options
+    )

@@ -9,6 +9,23 @@ uv run python scripts/run_experiment.py --config experiment-contracts/campaigns/
 uv run pytest -q -m "not scheduling"
 ```
 
+Before starting Ray, every cluster machine must report the same Python and Ray
+versions. A campaign started with `uv run` also requires `uv` on the `PATH`
+inherited by every raylet. On the gem5 worker, verify:
+
+```bash
+command -v uv
+uv --version
+python --version
+ray --version
+docker version
+```
+
+If `command -v uv` fails, install `uv`, add its installation directory to
+`PATH`, and restart the gem5 raylet from that shell. The head node passes the
+OpenStax attestation into the Ray job environment; it does not need to be stored
+on the worker.
+
 Run the single deterministic smoke only after the native model server, Ray cluster, gem5 image, and energy image pass preflight:
 
 ```bash

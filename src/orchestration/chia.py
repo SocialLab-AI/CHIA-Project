@@ -3,8 +3,10 @@
 import copy
 import hashlib
 import json
+import os
 import platform
 from pathlib import Path
+import re
 import time
 
 import yaml
@@ -17,6 +19,17 @@ from src.common.security import canonical, finite_number, local_endpoint, safe_i
 from src.orchestration.dispatch import ChiaDispatcher, LocalDispatcher
 from src.orchestration.experiment import run_experiment
 from src.orchestration.policies import deterministic_candidates, pareto
+
+
+def ray_worker_environment(runtime):
+    """Return only operator-approved environment values needed by Ray tasks."""
+    permission_name = runtime.get(
+        "software", {}
+    ).get("dataset_permission_env")
+    if not permission_name:
+        return {}
+    permission_value = os.getenv(permission_name)
+    return {permission_name: "1"} if permission_value == "1" else {}
 
 
 def validate_campaign_config(value=None):
@@ -250,6 +263,16 @@ def validate_campaign_config(value=None):
                     "runtime.software.request_retries must be an integer "
                     "between zero and two."
                 )
+
+        permission_env = runtime["software"].get("dataset_permission_env")
+        if permission_env is not None and (
+            not isinstance(permission_env, str)
+            or re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", permission_env) is None
+        ):
+            raise ConfigError(
+                "runtime.software.dataset_permission_env must be "
+                "a valid environment variable name."
+            )
 
     if "hardware" in value.get("runtime", {}):
         tolerance = runtime["hardware"].get(
@@ -493,7 +516,8 @@ def chia_entrypoint(config=None, *, dispatcher=None):
     if dispatcher is None:
         if mode == "chia":
             dispatcher = ChiaDispatcher(
-                config.get("ray_address", "auto")
+                config.get("ray_address", "auto"),
+                env_vars=ray_worker_environment(runtime),
             )
         else:
             dispatcher = LocalDispatcher()
