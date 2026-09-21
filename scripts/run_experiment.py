@@ -12,6 +12,12 @@ from src.orchestration.chia import chia_entrypoint, validate_campaign_config
 from src.orchestration.policies import deterministic_candidates
 
 
+def _set_candidate_budget(config, candidate_budget):
+    """Keep the execution count and authoritative stopping limit in lockstep."""
+    config["iterations"] = candidate_budget
+    config.setdefault("stopping", {})["max_evaluated_candidates"] = candidate_budget
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path)
@@ -22,11 +28,11 @@ def main():
     config = yaml.safe_load(args.config.read_text()) if args.config else {}
     if args.smoke:
         config["campaign_id"] = "final-burst-smoke"
-        config["iterations"] = 1
+        _set_candidate_budget(config, 1)
         config["optimizer"] = {"enabled": False}
     elif args.method:
         config["campaign_id"] = "final-burst-" + args.method
-        config["iterations"] = config["study"]["candidate_budget_per_method"]
+        _set_candidate_budget(config, config["study"]["candidate_budget_per_method"])
         if args.method == "random":
             config["optimizer"] = {
                 "enabled": True, "policy": "random",

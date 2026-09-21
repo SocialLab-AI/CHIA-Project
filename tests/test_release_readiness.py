@@ -3,6 +3,7 @@
 import copy
 import json
 import math
+import sys
 import time
 from unittest.mock import patch
 
@@ -187,3 +188,19 @@ def test_random_and_gemini_share_the_same_graph_executor():
 def test_quality_matching_uses_word_boundaries():
     result = evaluate_required_concepts("An earthquake occurred.", [["earth"]])
     assert result["score"] == 0
+
+
+@pytest.mark.parametrize("cli_args,expected_budget", [(["--smoke"], 1), (["--method", "random"], 3)])
+def test_cli_profiles_keep_execution_and_stopping_budgets_equal(cli_args, expected_budget):
+    from scripts.run_experiment import main
+
+    campaign = ROOT / "experiment-contracts/campaigns/final-burst.yaml"
+    with patch.object(sys, "argv", ["run_experiment.py", "--config", str(campaign), *cli_args]), patch(
+        "scripts.run_experiment.chia_entrypoint",
+        return_value={"state": "completed", "experiments": []},
+    ) as entrypoint:
+        assert main() == 0
+
+    effective = entrypoint.call_args.args[0]
+    assert effective["iterations"] == expected_budget
+    assert effective["stopping"]["max_evaluated_candidates"] == expected_budget
