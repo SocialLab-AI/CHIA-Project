@@ -12,6 +12,7 @@ __pycache__/
 
 # Test / lint / type-check caches
 .pytest_cache/
+.test-tmp*/
 .ruff_cache/
 .mypy_cache/
 .coverage
@@ -47,3 +48,23 @@ dist/
 *.tmp
 *.temp
 *.bak
+# Generated optimization outputs
+results/hardware-optimization/
+
+# Python temporary files
+__pycache__/
+.pytest_cache/
+*.py[cod]
+
+# Local secrets
+.env
+.env.*
+
+# Editor backup files
+*.save
+*.save.*
+
+# Operator-only overlays and runtime state
+*.local.yaml
+*.local.json
+.gemini/

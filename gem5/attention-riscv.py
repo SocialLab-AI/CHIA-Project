@@ -1,3 +1,5 @@
+"""Hardware-owned SimObject mapping used by the isolated candidate runner."""
+
 import argparse
 
 import m5
@@ -75,6 +77,7 @@ def parse_args():
         required=True,
     )
 
+    parser.add_argument("--binary", default=BINARY)
     args = parser.parse_args()
 
     if args.cpu_model == "RiscvTimingSimpleCPU" and args.issue_width != 1:
@@ -142,7 +145,10 @@ memory_types = {
 system = System()
 
 system.clk_domain = SrcClockDomain()
-system.clk_domain.clock = f"{args.frequency_ghz:g}GHz"
+system.clk_domain.clock = "1GHz"
+system.cpu_clk_domain = SrcClockDomain(
+    clock=f"{args.frequency_ghz:g}GHz", voltage_domain=VoltageDomain()
+)
 system.clk_domain.voltage_domain = VoltageDomain()
 
 system.mem_mode = "timing"
@@ -150,10 +156,7 @@ system.mem_ranges = [AddrRange(f"{args.memory_size_mib}MiB")]
 system.multi_thread = True
 
 cpu_type = cpu_types[args.cpu_model]
-system.cpu = [
-    cpu_type(cpu_id=core_id)
-    for core_id in range(args.cores)
-]
+system.cpu = [cpu_type(cpu_id=core_id) for core_id in range(args.cores)]
 
 system.membus = SystemXBar()
 system.l2bus = L2XBar()
@@ -165,6 +168,7 @@ system.l2cache = L2Cache(
 )
 
 for cpu in system.cpu:
+    cpu.clk_domain = system.cpu_clk_domain
     if args.cpu_model == "RiscvO3CPU":
         cpu.issueWidth = args.issue_width
 
@@ -197,10 +201,10 @@ system.mem_ctrl.dram = memory_types[args.memory_type]()
 system.mem_ctrl.dram.range = system.mem_ranges[0]
 system.mem_ctrl.port = system.membus.mem_side_ports
 
-system.workload = SEWorkload.init_compatible(BINARY)
+system.workload = SEWorkload.init_compatible(args.binary)
 
 process = Process(pid=100)
-process.cmd = [BINARY]
+process.cmd = [args.binary]
 
 for cpu in system.cpu:
     cpu.workload = process
@@ -214,28 +218,13 @@ print("Starting Q4 attention simulation")
 print(f"CPU: {args.cores} x {args.cpu_model}")
 print(f"Issue width: {args.issue_width}")
 print(f"Clock: {args.frequency_ghz:g}GHz")
-print(
-    f"L1 I-cache: {args.l1i_cache_kib}KiB, "
-    f"{args.l1i_associativity}-way per core"
-)
-print(
-    f"L1 D-cache: {args.l1d_cache_kib}KiB, "
-    f"{args.l1d_associativity}-way per core"
-)
-print(
-    f"L2 cache: {args.l2_cache_kib}KiB, "
-    f"{args.l2_associativity}-way shared"
-)
-print(
-    f"Memory: {args.memory_type}, "
-    f"{args.memory_size_mib}MiB"
-)
+print(f"L1 I-cache: {args.l1i_cache_kib}KiB, {args.l1i_associativity}-way per core")
+print(f"L1 D-cache: {args.l1d_cache_kib}KiB, {args.l1d_associativity}-way per core")
+print(f"L2 cache: {args.l2_cache_kib}KiB, {args.l2_associativity}-way shared")
+print(f"Memory: {args.memory_type}, {args.memory_size_mib}MiB")
 print("KV-cache format: packed Q4")
 print("Software threads: 2")
 
 exit_event = m5.simulate()
 
-print(
-    f"Exiting @ tick {m5.curTick()} "
-    f"because {exit_event.getCause()}"
-)
+print(f"Exiting @ tick {m5.curTick()} because {exit_event.getCause()}")

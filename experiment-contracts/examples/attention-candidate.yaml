@@ -8,19 +8,19 @@ metadata:
 
 workload:
   context_tokens: 512
-  query_heads: 4
+  query_heads: 14
   kv_heads: 2
-  head_dimension: 32
+  head_dimension: 64
   layers: 1
 
 software:
   implementation: AttentionKernelQuantizedKV
   kv_format: Q4
-  threads: 1
+  threads: 2
 
 hardware:
   cpu_model: RiscvTimingSimpleCPU
-  cores: 1
+  cores: 2
   frequency_ghz: 1
   issue_width: 1
   l1i_cache_kib: 16

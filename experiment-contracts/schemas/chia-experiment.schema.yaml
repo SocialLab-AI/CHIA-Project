@@ -267,14 +267,6 @@ $defs:
       - batch_size
       - temperature
       - max_output_tokens
-      - embedding_model
-      - embedding_dimension
-      - retrieval_method
-      - similarity_metric
-      - top_k
-      - chunk_size
-      - chunk_overlap
-      - chunk_unit
       - runtime_ready
     properties:
       model:
@@ -298,33 +290,6 @@ $defs:
       max_output_tokens:
         type: integer
         minimum: 1
-      embedding_model:
-        type: string
-        minLength: 1
-        description: "Authoritative embedding model identifier (canonical: sentence-transformers/multi-qa-MiniLM-L6-dot-v1)."
-      embedding_dimension:
-        type: integer
-        minimum: 1
-      retrieval_method:
-        type: string
-        minLength: 1
-        description: "Canonical machine-readable retrieval method (semantic_similarity)."
-      similarity_metric:
-        type: string
-        minLength: 1
-        description: "Authoritative vector similarity metric (canonical: dot_product)."
-      top_k:
-        type: integer
-        minimum: 1
-      chunk_size:
-        type: integer
-        minimum: 1
-      chunk_overlap:
-        type: integer
-        minimum: 0
-      chunk_unit:
-        type: string
-        enum: ["characters"]
       runtime_ready:
         type: boolean
       status:
@@ -367,19 +332,15 @@ $defs:
 
   tutor_workload:
     type: object
-    description: "Offline AI Tutor evaluation dataset and corpus workload parameters."
+    description: "Offline AI Tutor evaluation dataset workload parameters."
     additionalProperties: false
     required:
       - dataset_id
-      - corpus_id
       - evaluation_protocol
       - num_questions
       - seed
     properties:
       dataset_id:
-        type: string
-        minLength: 1
-      corpus_id:
         type: string
         minLength: 1
       evaluation_protocol:
@@ -516,6 +477,13 @@ $defs:
         $ref: "#/$defs/nullable_nonnegative_number"
       average_dram_access_latency_ns:
         $ref: "#/$defs/nullable_nonnegative_number"
+      energy_uj:
+        $ref: "#/$defs/nullable_nonnegative_number"
+      energy_scope:
+        type:
+          - string
+          - "null"
+        description: "Components included in the reported energy estimate."
 
   run_metrics:
     type: object
@@ -639,16 +607,6 @@ $defs:
           - backend
           - cpu_threads
           - batch_size
-          - temperature
-          - max_output_tokens
-          - embedding_model
-          - embedding_dimension
-          - retrieval_method
-          - similarity_metric
-          - top_k
-          - chunk_size
-          - chunk_overlap
-          - chunk_unit
           - runtime_ready
           - status
         properties:
@@ -659,14 +617,6 @@ $defs:
           batch_size: { type: integer, minimum: 1 }
           temperature: { type: number, minimum: 0 }
           max_output_tokens: { type: integer, minimum: 1 }
-          embedding_model: { type: string }
-          embedding_dimension: { type: integer, minimum: 1 }
-          retrieval_method: { type: string }
-          similarity_metric: { type: string }
-          top_k: { type: integer, minimum: 1 }
-          chunk_size: { type: integer, minimum: 1 }
-          chunk_overlap: { type: integer, minimum: 0 }
-          chunk_unit: { type: string, enum: ["characters"] }
           runtime_ready: { type: boolean }
           status: { type: string }
       fixed:
@@ -678,16 +628,6 @@ $defs:
           - backend
           - cpu_threads
           - batch_size
-          - temperature
-          - max_output_tokens
-          - embedding_model
-          - embedding_dimension
-          - retrieval_method
-          - similarity_metric
-          - top_k
-          - chunk_size
-          - chunk_overlap
-          - chunk_unit
         properties:
           model: { type: string }
           quantization: { type: string }
@@ -696,14 +636,6 @@ $defs:
           batch_size: { type: integer, minimum: 1 }
           temperature: { type: number, minimum: 0 }
           max_output_tokens: { type: integer, minimum: 1 }
-          embedding_model: { type: string }
-          embedding_dimension: { type: integer, minimum: 1 }
-          retrieval_method: { type: string }
-          similarity_metric: { type: string }
-          top_k: { type: integer, minimum: 1 }
-          chunk_size: { type: integer, minimum: 1 }
-          chunk_overlap: { type: integer, minimum: 0 }
-          chunk_unit: { type: string, enum: ["characters"] }
       active_candidates:
         type: object
       pending_search_space:
@@ -824,7 +756,7 @@ $defs:
             minItems: 1
             uniqueItems: true
             items:
-              enum: [128, 256, 512]
+              enum: [128, 256, 512, 1024, 2048]
       fixed:
         $ref: "#/$defs/hardware_fixed_summary"
       constraints:
@@ -883,10 +815,10 @@ $defs:
       memory_type: { const: "DDR3_1600_8x8" }
       memory_size_mib: { const: 16 }
       simulation_mode: { const: "SE" }
-      context_tokens: { enum: [128, 256, 512] }
-      query_heads: { const: 4 }
+      context_tokens: { enum: [128, 256, 512, 1024, 2048] }
+      query_heads: { const: 14 }
       kv_heads: { const: 2 }
-      head_dimension: { const: 32 }
+      head_dimension: { const: 64 }
       layers: { const: 1 }
       threads: { enum: [1, 2, 4] }
       repetitions: { type: integer, minimum: 1 }
@@ -925,9 +857,9 @@ $defs:
       memory_type: { const: "DDR3_1600_8x8" }
       memory_size_mib: { const: 16 }
       simulation_mode: { const: "SE" }
-      query_heads: { const: 4 }
+      query_heads: { const: 14 }
       kv_heads: { const: 2 }
-      head_dimension: { const: 32 }
+      head_dimension: { const: 64 }
       layers: { const: 1 }
       threads: { const: 2 }
       repetitions: { const: 10 }
@@ -953,12 +885,29 @@ $defs:
         required:
           - budget_usd
           - metering_required
+          - models
         properties:
           budget_usd:
             type: number
             minimum: 0
           metering_required:
             type: boolean
+          models:
+            type: object
+            minProperties: 1
+            additionalProperties:
+              type: object
+              additionalProperties: false
+              required:
+                - input_usd_per_million_tokens
+                - output_usd_per_million_tokens
+              properties:
+                input_usd_per_million_tokens:
+                  type: number
+                  minimum: 0
+                output_usd_per_million_tokens:
+                  type: number
+                  minimum: 0
       tiers:
         type: object
         additionalProperties: false
@@ -1217,8 +1166,6 @@ $defs:
     properties:
       dataset_id:
         type: string
-      corpus_id:
-        type: string
       evaluation_protocol:
         type: string
       num_questions:
@@ -1233,8 +1180,14 @@ $defs:
         type: string
       reference_source:
         type: string
-        const: "openstax"
+        const: "OpenStax College Physics 2e, Chapter 4 conceptual questions"
         description: "Hard guardrail: held out for evaluation only."
+      source_url:
+        type: string
+        const: "https://openstax.org/books/college-physics-2e/pages/4-conceptual-questions"
+      license:
+        type: string
+        const: "CC BY-NC-SA 4.0"
       reference_visible_to_model:
         type: boolean
         const: false
@@ -1307,3 +1260,160 @@ $defs:
         items:
           type: "integer"
           minimum: 0
+
+  # Full-loop versioned contracts; legacy 0.2 definitions remain unchanged.
+  loop_candidate:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - profile
+    - hardware
+    - workload
+    - software
+    - measurement
+    properties:
+      schema_version:
+        const: 0.3.0
+      profile:
+        const: qwen25-q5-openstax-14-2-64
+      hardware:
+        $ref: '#/$defs/hardware'
+      workload:
+        $ref: '#/$defs/attention_workload'
+      software:
+        type: object
+        additionalProperties: false
+        required:
+        - model
+        - quantization
+        - backend
+        - temperature
+        - max_output_tokens
+        - cpu_threads
+        - batch_size
+        properties:
+          model:
+            const: "Qwen2.5 0.5B Instruct"
+          quantization:
+            const: Q5_K_M
+          backend:
+            const: "llama.cpp / CPU"
+          temperature:
+            type: number
+            enum:
+            - 0.0
+            - 0.2
+            - 0.5
+          max_output_tokens:
+            type: integer
+            enum:
+            - 128
+            - 256
+            - 384
+          cpu_threads:
+            type: integer
+            const: 4
+          batch_size:
+            type: integer
+            const: 1
+      measurement:
+        type: object
+        additionalProperties: false
+        required:
+        - software_repetitions
+        - kernel_iterations
+        properties:
+          software_repetitions:
+            type: integer
+            minimum: 1
+            maximum: 10
+          kernel_iterations:
+            type: integer
+            minimum: 1
+            maximum: 10
+  loop_record:
+    type: object
+    additionalProperties: false
+    required:
+    - schema_version
+    - campaign_id
+    - iteration
+    - run_id
+    - candidate_id
+    - candidate
+    - status
+    - started_at
+    - ended_at
+    - software_result
+    - hardware_result
+    - energy_result
+    - evaluation
+    - failure
+    - events
+    - provenance
+    - optimizer
+    properties:
+      schema_version:
+        const: 0.3.0
+      campaign_id: &id001
+        type: string
+        minLength: 1
+      iteration:
+        type: integer
+        minimum: 1
+      run_id: *id001
+      candidate_id:
+        type: string
+        pattern: ^[0-9a-f]{64}$
+      candidate: &id002
+        type:
+        - object
+        - 'null'
+      status:
+        enum:
+        - completed
+        - failed
+        - rejected
+      started_at: *id001
+      ended_at: *id001
+      software_result: *id002
+      hardware_result: *id002
+      energy_result: *id002
+      evaluation: *id002
+      failure: *id002
+      events:
+        type: array
+        items:
+          type: object
+      provenance:
+        type: object
+      optimizer:
+        type: object
+        additionalProperties: false
+        required:
+        - policy
+        - metadata
+        properties:
+          policy: *id001
+          metadata:
+            type: object
+    allOf:
+    - if:
+        properties:
+          status:
+            const: completed
+      then:
+        properties:
+          candidate:
+            $ref: '#/$defs/loop_candidate'
+          software_result:
+            type: object
+          hardware_result:
+            type: object
+          energy_result:
+            type: object
+          evaluation:
+            type: object
+          failure:
+            type: 'null'

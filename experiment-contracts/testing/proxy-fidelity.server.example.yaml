@@ -1,0 +1,36 @@
+# Issue #60 operator configuration. Copy to an ignored *.local.yaml before use.
+# The exact GGUF and llama-bench paths are local runtime facts, not repository assets.
+experiment_id: qwen-gem5-proxy-fidelity-v1
+contexts: [128, 256, 512, 1024, 2048]
+results_root: results/proxy-fidelity
+
+native:
+  model_path: /absolute/path/to/qwen2.5-0.5b-instruct-q5_k_m.gguf
+  model_sha256: 041474553fcabfc2a2d67903f9d2c2e50bd92528e670da4f33b5d0ce6e59fd55
+  llama_bench: /absolute/path/to/llama-bench
+  threads: 4
+  repetitions: 5
+  timeout_seconds: 1800
+  collect_perf: true
+
+hardware:
+  mode: chia
+  ray_address: auto
+  image: ghcr.io/gem5/devcontainer:v25-1
+  timeout_seconds: 1800
+  correctness_tolerance:
+    max_absolute_error: 0.01
+    mean_squared_error: 0.00001
+  sensitivity:
+    - case_id: compact-cache
+      hardware_overrides:
+        l1d_cache_kib: 16
+        l1d_associativity: 2
+        l2_cache_kib: 256
+        l2_associativity: 4
+    - case_id: high-associativity
+      hardware_overrides:
+        l1d_cache_kib: 64
+        l1d_associativity: 8
+        l2_cache_kib: 1024
+        l2_associativity: 16

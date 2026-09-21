@@ -1,0 +1,56 @@
+# Portable example topology. Render an ignored cluster.local.yaml with operator values.
+cluster_name: chia-full-loop
+
+file_mounts:
+  /tmp/chia-project/: /srv/chia-project/
+
+rsync_exclude:
+  - ".git"
+  - ".venv"
+  - "__pycache__"
+  - "gem5/results"
+  - "results"
+  - ".env*"
+  - "*.local.yaml"
+  - "*.local.json"
+  - ".gemini"
+  - "*.pem"
+  - "id_ed25519*"
+
+provider:
+  head_ip: 192.0.2.10
+
+auth:
+  ssh_user: chia
+  ssh_private_key: /home/chia/.ssh/id_ed25519
+
+  overrides:
+    192.0.2.11:
+      ssh_user: chia
+      ssh_private_key: /home/chia/.ssh/id_ed25519
+
+available_node_types:
+  gem5_worker:
+    resources:
+      gem5: 1
+
+    num_workers: 1
+
+    compatible_ips:
+      - 192.0.2.11
+
+    worker_env_commands:
+      - source /opt/chia/.venv/bin/activate
+      - export PYTHONPATH=/tmp/chia-project
+
+head_env_commands:
+  - source /opt/chia/.venv/bin/activate
+  - export PYTHONPATH=/tmp/chia-project
+
+head_start_ray_commands:
+  - ray stop
+  - ray start --head --port=6379 --include-dashboard=True --dashboard-host=127.0.0.1 --dashboard-agent-listen-port=0 --resources='{"control":1,"llama_cpp":1}'
+
+worker_start_ray_commands:
+  - ray stop
+  - ray start --address=$RAY_HEAD_IP:6379 --dashboard-agent-listen-port=0

@@ -1,5 +1,7 @@
 from pathlib import Path
 import json
+import time
+from unittest.mock import patch
 import pytest
 import yaml
 
@@ -33,7 +35,9 @@ def master_schema():
 
 def get_validator(master_schema: dict, def_name: str) -> Draft202012Validator:
     subschema = {
-        "$schema": master_schema.get("$schema", "https://json-schema.org/draft/2020-12/schema"),
+        "$schema": master_schema.get(
+            "$schema", "https://json-schema.org/draft/2020-12/schema"
+        ),
         "$ref": f"#/$defs/{def_name}",
         "$defs": master_schema.get("$defs", {}),
     }
@@ -53,7 +57,9 @@ def hw_ds_validator(master_schema):
 def test_baseline_attention_valid(hw_validator):
     baseline = load_yaml(BASELINES_DIR / "attention.yaml")
     errors = list(hw_validator.iter_errors(baseline))
-    assert not errors, f"Baseline attention validation errors: {[e.message for e in errors]}"
+    assert not errors, (
+        f"Baseline attention validation errors: {[e.message for e in errors]}"
+    )
 
 
 def test_q4_campaign_restrictions():
@@ -73,7 +79,7 @@ def test_q4_campaign_restrictions():
     assert hw["memory_type"] == "DDR3_1600_8x8"
     assert hw["memory_size_mib"] == 16
     assert hw["simulation_mode"] == "SE"
-    assert baseline["status"]["state"] == "completed"
+    assert baseline["status"]["state"] == "planned"
 
 
 def test_timing_simple_cpu_issue_width_constraint(hw_validator):
@@ -83,7 +89,9 @@ def test_timing_simple_cpu_issue_width_constraint(hw_validator):
     valid_timing["hardware"]["cpu_model"] = "RiscvTimingSimpleCPU"
     valid_timing["hardware"]["issue_width"] = 1
     errors = list(hw_validator.iter_errors(valid_timing))
-    assert not errors, f"Expected issue_width=1 for TimingSimpleCPU to pass, got: {errors}"
+    assert not errors, (
+        f"Expected issue_width=1 for TimingSimpleCPU to pass, got: {errors}"
+    )
 
     invalid_timing = json.loads(json.dumps(candidate))
     invalid_timing["hardware"]["cpu_model"] = "RiscvTimingSimpleCPU"
@@ -92,16 +100,19 @@ def test_timing_simple_cpu_issue_width_constraint(hw_validator):
     assert len(errors) > 0, "Expected issue_width=2 for TimingSimpleCPU to be rejected"
 
 
-@pytest.mark.parametrize("field,illegal_val", [
-    ("cores", 3),
-    ("l1d_cache_kib", 128),
-    ("l2_associativity", 2),
-    ("cpu_model", "InvalidCPU"),
-    ("frequency_ghz", 5),
-    ("memory_type", "DDR4"),
-    ("memory_size_mib", 32),
-    ("simulation_mode", "FS"),
-])
+@pytest.mark.parametrize(
+    "field,illegal_val",
+    [
+        ("cores", 3),
+        ("l1d_cache_kib", 128),
+        ("l2_associativity", 2),
+        ("cpu_model", "InvalidCPU"),
+        ("frequency_ghz", 5),
+        ("memory_type", "DDR4"),
+        ("memory_size_mib", 32),
+        ("simulation_mode", "FS"),
+    ],
+)
 def test_illegal_hardware_values_rejected(hw_validator, field, illegal_val):
     candidate = load_yaml(EXAMPLES_DIR / "attention-candidate.yaml")
     mutated = json.loads(json.dumps(candidate))
@@ -118,42 +129,99 @@ def test_active_hardware_knobs(hw_ds_validator):
 
     active_hw = ds["active_candidates"]["hardware"]
     expected_knobs = {
-        "cpu_model", "frequency_ghz", "issue_width",
-        "l1d_cache_kib", "l1d_associativity", "l2_cache_kib", "l2_associativity"
+        "cpu_model",
+        "frequency_ghz",
+        "issue_width",
+        "l1d_cache_kib",
+        "l1d_associativity",
+        "l2_cache_kib",
+        "l2_associativity",
     }
     assert set(active_hw.keys()) == expected_knobs
     assert ds["fixed"]["cores"] == 2
     assert ds["fixed"]["kv_format"] == "Q4"
 
 
-def test_emitted_hardware_metrics_preserved():
-    """Verify actual emitted per-core and DRAM metrics are preserved."""
+def test_production_profile_does_not_reuse_calibration_metrics():
+    """The selected profile must not claim measurements before its smoke."""
     baseline = load_yaml(BASELINES_DIR / "attention.yaml")
     metrics = baseline["metrics"]
 
-    # Per-core array metrics
-    assert isinstance(metrics["cycles_per_core"], list)
-    assert len(metrics["cycles_per_core"]) == 2
-    assert isinstance(metrics["ipc_per_core"], list)
-    assert len(metrics["ipc_per_core"]) == 2
-    assert isinstance(metrics["cpi_per_core"], list)
-    assert len(metrics["cpi_per_core"]) == 2
-    assert isinstance(metrics["l1d_miss_rate_per_core"], list)
-    assert len(metrics["l1d_miss_rate_per_core"]) == 2
-    assert isinstance(metrics["l1i_miss_rate_per_core"], list)
-    assert len(metrics["l1i_miss_rate_per_core"]) == 2
-
-    # Aggregate and DRAM metrics
-    assert "aggregate_ipc" in metrics
-    assert "dram_bytes_read" in metrics
-    assert "dram_bytes_written" in metrics
-    assert "dram_bandwidth_bytes_per_second" in metrics
-    assert "dram_bandwidth_utilization_percent" in metrics
-    assert "average_dram_access_latency_ns" in metrics
+    assert all(value is None for value in metrics.values())
 
 
-def test_hardware_runner_skeleton():
-    """Verify src.hardware.runner raises NotImplementedError."""
+def test_hardware_runner_rejects_invalid_candidate():
+    """Invalid candidates must fail before runtime access."""
     from src.hardware.runner import run_hardware
-    with pytest.raises(NotImplementedError):
+
+    with pytest.raises(ValueError):
         run_hardware({})
+
+
+def test_hardware_runner_executes_energy_inside_shared_deadline():
+    from src.common.candidate import Candidate, baseline_candidate
+    from src.common.security import digest
+    from src.hardware.energy_mapping import ENERGY_SCOPE
+    from src.hardware.runner import run_gem5_candidate
+
+    config = baseline_candidate()
+    candidate_id = Candidate.from_dict(config).candidate_id
+    gem5_result = {
+        "candidate_id": candidate_id,
+        "status": "completed",
+        "hardware": config["hardware"],
+        "workload": config["workload"],
+        "metrics": {"simulated_seconds": 1.0},
+        "correctness": {"status": "PASS"},
+        "provenance": {"stats_sha256": "a" * 64},
+        "artifacts": {"directory": "/tmp/gem5/run-a", "stats": "stats.txt"},
+    }
+    gem5_result_id = digest(gem5_result)
+    energy_result = {
+        "candidate_id": candidate_id,
+        "status": "completed",
+        "hardware_result_id": gem5_result_id,
+        "stats_sha256": "a" * 64,
+        "metrics": {"estimated_cache_dynamic_energy_uj": 4.5},
+        "scope": ENERGY_SCOPE,
+        "provenance": {"estimator": "fixture"},
+    }
+    runtime = {
+        "timeout_seconds": 10,
+        "correctness_tolerance": {
+            "max_absolute_error": 0.1,
+            "mean_squared_error": 0.01,
+        },
+        "artifacts_root": "/tmp/gem5",
+        "energy": {
+            "image": "chia-energy-tools:0.3",
+            "timeout_seconds": 300,
+            "artifacts_root": "/tmp/energy",
+        },
+        "deadline_epoch_seconds": time.time() + 10,
+    }
+    preflight = {"docker": "docker", "image": "chia-energy-tools:0.3"}
+    # Imports occur inside the runner, so patch the defining estimator module.
+    with patch(
+        "src.hardware.energy_estimator.preflight_energy_runtime",
+        return_value=preflight,
+    ) as energy_preflight, patch(
+        "src.hardware.runner._run_gem5_only",
+        return_value=gem5_result,
+    ) as gem5, patch(
+        "src.hardware.energy_estimator.run_energy_candidate",
+        return_value=energy_result,
+    ) as energy:
+        result = run_gem5_candidate(config, runtime, {"run_id": "run-a"})
+
+    assert gem5.call_count == 1 and energy.call_count == 1
+    assert energy_preflight.call_count == 1
+    energy_runtime = energy.call_args.args[2]
+    assert 0 < energy_runtime["timeout_seconds"] <= 10
+    assert energy_runtime["deadline_epoch_seconds"] <= runtime[
+        "deadline_epoch_seconds"
+    ]
+    assert energy_runtime["hardware_artifacts_root"] == "/tmp/gem5"
+    assert result["metrics"]["energy_uj"] == 4.5
+    assert result["metrics"]["energy_scope"] == ENERGY_SCOPE
+    assert result["energy_evidence"] == energy_result

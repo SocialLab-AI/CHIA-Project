@@ -35,7 +35,9 @@ def master_schema():
 
 def get_validator(master_schema: dict, def_name: str) -> Draft202012Validator:
     subschema = {
-        "$schema": master_schema.get("$schema", "https://json-schema.org/draft/2020-12/schema"),
+        "$schema": master_schema.get(
+            "$schema", "https://json-schema.org/draft/2020-12/schema"
+        ),
         "$ref": f"#/$defs/{def_name}",
         "$defs": master_schema.get("$defs", {}),
     }
@@ -75,21 +77,26 @@ def test_local_reference_resolution_without_network(master_schema):
         assert val is not None
 
 
-@pytest.mark.parametrize("yaml_path,def_name", [
-    (BASELINES_DIR / "tutor.yaml", "tutor_config"),
-    (BASELINES_DIR / "attention.yaml", "attention_experiment"),
-    (DESIGN_SPACES_DIR / "software.yaml", "software_design_space"),
-    (DESIGN_SPACES_DIR / "hardware.yaml", "hardware_design_space"),
-    (POLICIES_DIR / "compute-policy.yaml", "compute_policy"),
-    (EXAMPLES_DIR / "attention-candidate.yaml", "attention_experiment"),
-    (EXAMPLES_DIR / "completed-run.yaml", "run_record"),
-])
+@pytest.mark.parametrize(
+    "yaml_path,def_name",
+    [
+        (BASELINES_DIR / "tutor.yaml", "tutor_config"),
+        (BASELINES_DIR / "attention.yaml", "attention_experiment"),
+        (DESIGN_SPACES_DIR / "software.yaml", "software_design_space"),
+        (DESIGN_SPACES_DIR / "hardware.yaml", "hardware_design_space"),
+        (POLICIES_DIR / "compute-policy.yaml", "compute_policy"),
+        (EXAMPLES_DIR / "attention-candidate.yaml", "attention_experiment"),
+        (EXAMPLES_DIR / "completed-run.yaml", "run_record"),
+    ],
+)
 def test_canonical_yaml_examples_validate(master_schema, yaml_path, def_name):
     """Every maintained YAML example and search-space document must validate against its master schema definition."""
     data = load_yaml(yaml_path)
     val = get_validator(master_schema, def_name)
     errors = list(val.iter_errors(data))
-    assert not errors, f"{yaml_path.name} failed #/$defs/{def_name}: {[e.message for e in errors]}"
+    assert not errors, (
+        f"{yaml_path.name} failed #/$defs/{def_name}: {[e.message for e in errors]}"
+    )
 
 
 def test_unknown_experiment_property_rejected(master_schema):
@@ -109,8 +116,12 @@ def test_compute_policy_burst_restrictions():
         has_burst = "organizer_burst" in tier.get("backends", [])
         burst_allowed = tier.get("organizer_burst_allowed", False)
         if tier_name != "final":
-            assert not has_burst, f"organizer_burst backend cannot appear in tier {tier_name}"
-            assert not burst_allowed, f"organizer_burst_allowed must be False in tier {tier_name}"
+            assert not has_burst, (
+                f"organizer_burst backend cannot appear in tier {tier_name}"
+            )
+            assert not burst_allowed, (
+                f"organizer_burst_allowed must be False in tier {tier_name}"
+            )
         else:
             assert has_burst, "final tier must include organizer_burst"
             assert burst_allowed, "final tier must allow organizer_burst"
@@ -126,17 +137,12 @@ def test_run_record_validates(master_schema):
     assert record["metrics"]["passed"] is True
 
 
-def test_orchestration_experiment_interface():
-    """Verify src.orchestration.experiment passes full config to hardware and tutor runners."""
+def test_orchestration_experiment_interface(tmp_path):
+    """The canonical executor records invalid inputs without invoking runtime nodes."""
     from src.orchestration.experiment import run_experiment
     from unittest.mock import patch
 
-    mock_config = {"experiment_id": "test-exp", "software": {}, "hardware": {}}
-    with patch("src.orchestration.experiment.run_tutor") as mock_tutor, \
-         patch("src.orchestration.experiment.run_hardware") as mock_hw:
-        mock_tutor.return_value = {"status": "ok"}
-        mock_hw.return_value = {"status": "ok"}
-        result = run_experiment(mock_config)
-        mock_tutor.assert_called_once_with(mock_config)
-        mock_hw.assert_called_once_with(mock_config)
-        assert result == {"software_result": {"status": "ok"}, "hardware_result": {"status": "ok"}}
+    with patch("src.orchestration.experiment.LocalDispatcher") as dispatch:
+        result = run_experiment({}, results_root=tmp_path)
+        assert result["status"] == "rejected"
+        dispatch.return_value.submit.assert_not_called()

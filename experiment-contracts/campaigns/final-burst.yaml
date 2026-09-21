@@ -1,0 +1,75 @@
+campaign_id: final-burst
+mode: chia
+tier: pilot
+backend: contabo
+iterations: 3
+wall_budget_seconds: 14400
+results_root: results
+ray_address: auto
+
+runtime:
+  software:
+    endpoint: http://127.0.0.1:8081
+    assets_root: /opt/chia/models
+    gguf: qwen2.5-0.5b-instruct-q5_k_m.gguf
+    model_sha256: 041474553fcabfc2a2d67903f9d2c2e50bd92528e670da4f33b5d0ce6e59fd55
+    context_tokens: 2048
+    parallel_slots: 1
+    timeout_seconds: 3600
+    candidate_timeout_seconds: 3600
+    request_timeout_seconds: 180
+    request_retries: 1
+    request_retry_delay_seconds: 2
+    dataset_permission_env: OPENSTAX_LLM_PERMISSION_CONFIRMED
+    retries: 0
+  hardware:
+    image: ghcr.io/gem5/devcontainer:v25-1
+    timeout_seconds: 3600
+    retries: 0
+    artifacts_root: results/final-burst/gem5
+    correctness_tolerance:
+      max_absolute_error: 0.1
+      mean_squared_error: 0.01
+  energy:
+    image: chia-energy-tools:0.3
+    timeout_seconds: 600
+    retries: 0
+    artifacts_root: results/final-burst/energy-work
+
+# The pilot is deliberately three candidates. Set the later burst budget only
+# after measuring pilot runtime, failure rate, disk use, and Gemini usage.
+stopping:
+  max_evaluated_candidates: 3
+  max_campaign_wall_seconds: 14400
+  max_consecutive_proposal_failures: 3
+  max_infrastructure_failures: 3
+  no_improvement_patience: null
+  duplicate_policy: reject_without_evaluation
+
+study:
+  question: "Under equal budgets, does Gemini-guided CHIA search find better observed or Pareto candidates more efficiently than seeded random search?"
+  candidate_budget_per_method: 3
+  methods: [gemini_api, random]
+  random_seed: 20260921
+  shared_contracts:
+    model: Qwen2.5-0.5B-Instruct Q5_K_M
+    dataset: data/questions/questions.json
+    dataset_reference: data/references/openstax.json
+    dataset_license: CC BY-NC-SA 4.0
+    dataset_llm_use_permission: operator_attestation_required
+    software_design_space: experiment-contracts/design-spaces/software.yaml
+    hardware_design_space: experiment-contracts/design-spaces/hardware.yaml
+    proxy: qwen25-gqa-14-2-64-q4-v1
+    objectives:
+      - native_latency_ms
+      - proxy_simulated_seconds
+      - estimated_cache_dynamic_energy_uj
+      - answer_quality_loss
+    evaluator: openstax-required-concept-coverage-v1
+    candidate_timeout_seconds: 3600
+    measurement_repetitions:
+      native_per_question: 1
+      proxy_kernel: 10
+
+optimizer:
+  enabled: false

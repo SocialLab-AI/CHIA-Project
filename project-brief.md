@@ -10,12 +10,9 @@ This is a full-stack **Domain-Specific Architecture co-design** entry: we don't 
 
 ## What the system is
 
-A small **retrieval-augmented question-answering (RAG) pipeline**:
+An offline, inference-only AI Tutor. The executable baseline is Qwen2.5 0.5B Instruct with Q5_K_M weights, served on native CPU through llama.cpp.
 
-- A **sub-1B language model** (candidate: Qwen2.5-0.5B) generates answers.
-- An **embedding model** retrieves relevant reference text to ground those answers.
-
-Both run on a simulated CPU edge target — no GPU, no cloud at inference time.
+The native software measurement and simulated attention-kernel proxy are separate executions. See [current implementation](docs/FULL_LOOP.md) and [status](docs/IMPLEMENTATION_STATUS.md) for evidence and remaining gates.
 
 ## The loop
 
@@ -24,9 +21,10 @@ Using CHIA, we run one optimization loop that repeats: **propose a joint SW+HW c
 ### What we optimize
 
 **Software knobs**
-- Model quantization level
-- Retrieval top-k (how many passages we pull)
-- Batch size
+- Sampling temperature
+- Maximum generated tokens
+
+The model artifact, Q5_K_M quantization, CPU threads and sequential request topology are fixed for this campaign.
 
 **Hardware knobs (gem5)**
 - L1 and L2 cache sizes
@@ -37,10 +35,10 @@ Using CHIA, we run one optimization loop that repeats: **propose a joint SW+HW c
 
 Two separate measurement paths that the loop fuses into one objective:
 
-- **Answer quality** — measured *natively* per software config. Questions come from a subset of the **OpenStax QA dataset**; a reference answer is the ground truth; an automated **reviewer model** scores our system's responses against it.
-- **Hardware metrics** — measured in **gem5**: latency, memory utilization, and energy. Energy comes from **Accelergy + McPAT** on top of the gem5 run.
+- **Answer quality** — measured *natively* on three attributed OpenStax conceptual questions with deterministic required-concept rubrics. References remain evaluator-only.
+- **Hardware metrics** — measured in **gem5**: simulated time, instructions, IPC, cache miss rates and memory traffic.
 
-Quantization is the knob that couples the two: it changes both answer quality (measured natively) and the compute profile fed to gem5.
+Native Tutor measurements and the gem5 attention proxy remain separate objective domains. The current proxy is an abstraction and does not claim to predict complete Qwen latency.
 
 ## Why gem5 runs a proxy, not the model
 
@@ -58,7 +56,7 @@ An **optimized Pareto frontier** mapping answer quality against latency, energy,
 
 - **admatieh** — the CHIA loop: nodes, edges, the agent that proposes configs.
 - **yahyafl** — gem5: the proxy model, the HW knobs, latency/memory/energy extraction (incl. Accelergy/McPAT).
-- **sara-alsayyah** — the tutor workload: RAG pipeline, OpenStax QA eval, the reviewer-model scorer.
+- **sara-alsayyah** — the tutor workload: inference runtime, OpenStax QA eval, the reviewer-model scorer.
 - **Lynn** — architecture, the config schema, how the two metric paths fuse, integration, submission.
 
 Nobody's boxed in — every issue has a reviewer from another stream, and the point is that all of us understand the whole loop.

@@ -129,6 +129,8 @@ def build_metrics(stats):
             / tick_frequency
             * 1_000_000_000.0
         ),
+        "energy_uj": None,
+        "energy_scope": None,
     }
 
 

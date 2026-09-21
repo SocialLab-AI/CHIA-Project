@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0",
+  "evidence_type": "observed_single_candidate_integration_smoke",
+  "observed_at_utc": "2026-09-21",
+  "source_git_sha": "45b21950b9cdc59c0e388b98bb661550dce97632",
+  "campaign_id": "final-burst-smoke",
+  "run_id": "run-e9ba2424838246afad8f6183810e8cd1",
+  "candidate_id": "b900e503b88c7c1447c07cf4e2ddf4fbd816f988761b0a95f52b317e7c716aff",
+  "execution_profile": {
+    "topology": "single_server_rootless",
+    "tier": "integration",
+    "backend": "local",
+    "candidate_count": 1,
+    "chia_iterations": 1,
+    "optimizer_enabled": false,
+    "software_repetitions_per_question": 1,
+    "question_count": 3
+  },
+  "state": "completed",
+  "elapsed_seconds": 895.9922911530011,
+  "objectives": {
+    "native_latency_ms": 6862.006723999002,
+    "proxy_simulated_seconds": 0.0854,
+    "estimated_cache_dynamic_energy_uj": 9136.5186591748,
+    "answer_quality_loss": 0.33333333333333337
+  },
+  "quality": {
+    "answer_quality": 0.6666666666666666,
+    "method": "required_concept_coverage",
+    "sample_count": 3
+  },
+  "proxy": {
+    "query_heads": 14,
+    "kv_heads": 2,
+    "head_dimension": 64,
+    "context_tokens": 512,
+    "threads": 2,
+    "repetitions": 10,
+    "status": "PASS",
+    "max_absolute_error": 0.013470888,
+    "mean_squared_error": 0.000014581,
+    "instructions": 197462665,
+    "sim_ticks": 85400011000,
+    "gem5_host_seconds": 600.38
+  },
+  "energy": {
+    "scope": "Dynamic cache energy for two L1I caches, two L1D caches, and one shared L2 cache. Excludes processor-core logic, DRAM, interconnect, TLB, and static/leakage energy.",
+    "component_names": [
+      "qwen_attention_proxy.cpu0_l1i",
+      "qwen_attention_proxy.cpu0_l1d",
+      "qwen_attention_proxy.cpu1_l1i",
+      "qwen_attention_proxy.cpu1_l1d",
+      "qwen_attention_proxy.shared_l2"
+    ],
+    "execution_duration_seconds": 288.76379401600207,
+    "container_image_digest": "chia-energy-tools@sha256:22fa87f61b2ae991c520d94a01eb725de707384e6860e1f26caeeb2db9df7cfd",
+    "accelergy_version": "0.3",
+    "accelergy_commit": "da08b20451c6cee87aefc809bce7583af9d04068",
+    "mcpat_version": "1.3",
+    "mcpat_commit": "74d4759f3ba2dff8f5a69e07a68efdb46b42fb8c",
+    "plugin_commit": "fb0ed91449cea91c88647864d07d871c4de08a0e",
+    "mapping_sha256": "160cb5f1f156784a94209d62b4dd5199a6e46ba530f34332e2695603e9cc4d94",
+    "architecture_sha256": "3bb2855a5b3ac5ebbcb94d22a50df959c36265e453243243467656fe3e8b3ab8",
+    "action_counts_sha256": "65eeb335a734b6e0a3608c5164f7f9584a13c7ee718d5884a2a8799e88bc8e6b",
+    "energy_result_sha256": "05b7558e3f3f3feb02fdbbd7b1fc506826f1db9bbf39ecc6292275dbb1cbc35e"
+  },
+  "integrity": {
+    "manifest_verified": true,
+    "completed_record_present": true,
+    "pareto_record_present": true,
+    "raw_artifacts_committed": false,
+    "raw_artifact_policy": "Generated binaries and machine-specific simulator outputs remain in the checksummed campaign result directory."
+  },
+  "limitations": [
+    "One candidate and one CHIA iteration were executed.",
+    "This observation does not establish repeatability or compare optimizers.",
+    "The proxy supports comparative context-scaling analysis, not absolute full-model latency equivalence.",
+    "The energy estimate covers the documented cache dynamic-energy scope only."
+  ]
+}

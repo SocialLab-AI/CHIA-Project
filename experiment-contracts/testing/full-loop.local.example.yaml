@@ -1,0 +1,35 @@
+# Operator runtime settings only. The proposal's three deterministic candidates are generated in code.
+# Copy to an ignored *.local.yaml and choose reviewed runtime bounds/tolerances.
+campaign_id: deterministic-local-review
+mode: local
+tier: dev
+backend: local
+iterations: 3
+wall_budget_seconds: 1800
+runtime:
+  software:
+    endpoint: http://127.0.0.1:8081
+    assets_root: /absolute/path/to/model-directory
+    gguf: qwen2.5-0.5b-instruct-q5_k_m.gguf
+    model_sha256: 041474553fcabfc2a2d67903f9d2c2e50bd92528e670da4f33b5d0ce6e59fd55
+    context_tokens: 2048
+    parallel_slots: 1
+    timeout_seconds: 3600 # CHIA/software-node deadline
+    candidate_timeout_seconds: 3600 # complete evaluation deadline
+    request_timeout_seconds: 60 # one llama.cpp request; normal requests are ~1-10 s
+    request_retries: 1 # transient availability failures only; timeouts are never retried
+    request_retry_delay_seconds: 2
+    retries: 0 # never repeat a completed portion of a long candidate at the CHIA node level
+  hardware:
+    image: ghcr.io/gem5/devcontainer:v25-1 # resolves an already-installed immutable image ID, never auto-pulls
+    timeout_seconds: 600
+    retries: 0
+    correctness_tolerance:
+      max_absolute_error: 0.01
+      mean_squared_error: 0.00001
+    artifacts_root: results/deterministic-local-review/gem5
+  energy:
+    image: chia-energy-tools:0.3
+    timeout_seconds: 300 # cap inside the shared hardware deadline
+    retries: 0
+    artifacts_root: results/deterministic-local-review/energy-work

@@ -1,32 +1,40 @@
-# Schema: schemas/chia-experiment.schema.yaml#/$defs/compute_policy
-# Small operational policy. The long reasoning belongs in README.md, not in this YAML.
 policy_version: "0.2.0"
 
 gemini:
   budget_usd: 300
   metering_required: true
+  models:
+    gemini-3.1-flash-lite:
+      input_usd_per_million_tokens: 0.25
+      output_usd_per_million_tokens: 1.50
 
 tiers:
   dev:
-    backends: [local, contabo]
+    backends:
+      - local
+      - contabo
     max_parallel_jobs: 1
     gemini_allowed: true
     organizer_burst_allowed: false
 
   integration:
-    backends: [contabo, development_cloud]
+    backends:
+      - local
+      - contabo
     max_parallel_jobs: 2
     gemini_allowed: true
     organizer_burst_allowed: false
 
   pilot:
-    backends: [contabo, development_cloud]
+    backends:
+      - contabo
     max_parallel_jobs: 4
     gemini_allowed: true
     organizer_burst_allowed: false
 
   final:
-    backends: [organizer_burst]
+    backends:
+      - organizer_burst
     max_parallel_jobs: 32
     gemini_allowed: true
     organizer_burst_allowed: true
