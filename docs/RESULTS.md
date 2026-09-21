@@ -51,6 +51,30 @@ Existing proxy-comparison evidence under
 context-scaling trend comparison and selection of the Qwen-shaped proxy; it is
 not evidence of full-model latency equivalence.
 
+## Backend labels and deployment provenance
+
+The final validated deployment ran on GCP. The corresponding validated release is
+identified by the annotated tag `micro-2026-chia-validated`, which points to
+`bcbf685c47ea73ed29184991d795735a3d8c67cc`.
+
+Recorded configuration labels must be distinguished from the deployment provider:
+
+- The committed [smoke summary](experiments/evidence/final-burst-smoke-20260921/summary.json)
+  records `execution_profile.backend: local` for
+  `run-e9ba2424838246afad8f6183810e8cd1` at source commit
+  `45b21950b9cdc59c0e388b98bb661550dce97632`.
+- `experiment-contracts/campaigns/final-burst.yaml` at that source commit used
+  `backend: contabo`. Commit `e24cb3446fc4bc4c40f93aa6cdd9c7605416107b`
+  changed the canonical campaign to `backend: gcp` and documented that a
+  completed GCP smoke had carried the incorrect `contabo` label. That note
+  does not identify a run ID; the raw server records are not committed, so it
+  cannot establish that label for the specific run summarized above.
+- The current canonical campaign uses `backend: gcp`. The README's
+  single-server integration overlay explicitly changes its label to `local`.
+
+Historical evidence remains unchanged. Neither the older `local` summary label
+nor the former `contabo` campaign label changes the recorded GCP deployment.
+
 ## Campaign evidence layout
 
 Each campaign creates:
