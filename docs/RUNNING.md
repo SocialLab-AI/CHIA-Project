@@ -18,6 +18,11 @@ and command guide. The release sequence is deliberately staged:
 7. Derive any larger burst budget from observed pilot time, failures, disk use,
    artifact size, and Gemini usage.
 
+The pre-registered follow-up comparison is
+`experiment-contracts/campaigns/confirmatory-gemini38-vs-random-10.yaml`.
+It uses Gemini 3.8 Flash for one arm and random seed `20260922` for the other,
+with ten evaluated candidates per arm and otherwise identical contracts.
+
 The hardware task owns gem5 and Accelergy on the same `gem5` worker. Its total
 timeout covers image preflight, compilation, simulation, mapping, energy
 execution, and verification. Existing campaign directories cause a fail-closed

@@ -1,0 +1,81 @@
+campaign_id: confirmatory-gemini38-vs-random-10
+mode: chia
+tier: integration
+backend: local
+iterations: 10
+wall_budget_seconds: 18000
+results_root: results
+ray_address: ray://127.0.0.1:10011
+
+runtime:
+  software:
+    endpoint: http://127.0.0.1:8082
+    assets_root: /opt/chia/models
+    gguf: qwen2.5-0.5b-instruct-q5_k_m.gguf
+    model_sha256: 041474553fcabfc2a2d67903f9d2c2e50bd92528e670da4f33b5d0ce6e59fd55
+    context_tokens: 2048
+    parallel_slots: 1
+    timeout_seconds: 3600
+    candidate_timeout_seconds: 3600
+    request_timeout_seconds: 180
+    request_retries: 1
+    request_retry_delay_seconds: 2
+    dataset_permission_env: TEAM_ASSESSMENT_LLM_PERMISSION_CONFIRMED
+    questions_path: data/questions/questions.json
+    references_path: data/references/answer_key.json
+    dataset_id: openstax-aligned-team-assessment-250-v1
+    quality_method: exact_option_text_accuracy
+    retries: 0
+  hardware:
+    image: ghcr.io/gem5/devcontainer:v25-1
+    timeout_seconds: 3600
+    retries: 0
+    artifacts_root: results/confirmatory-gemini38-vs-random-10/gem5
+    correctness_tolerance:
+      max_absolute_error: 0.1
+      mean_squared_error: 0.01
+  energy:
+    image: chia-energy-tools:0.3
+    timeout_seconds: 600
+    retries: 0
+    artifacts_root: results/confirmatory-gemini38-vs-random-10/energy-work
+
+stopping:
+  max_evaluated_candidates: 10
+  max_campaign_wall_seconds: 18000
+  max_consecutive_proposal_failures: 3
+  max_infrastructure_failures: 3
+  no_improvement_patience: null
+  duplicate_policy: reject_without_evaluation
+
+study:
+  question: "Under equal 10-candidate budgets, does Gemini 3.8 Flash find better observed or Pareto candidates more efficiently than seeded random search?"
+  candidate_budget_per_method: 10
+  methods: [gemini_api, random]
+  gemini_model: gemini-3.8-flash
+  gemini_budget_usd: 10.0
+  gemini_timeout_seconds: 60
+  random_seed: 20260922
+  shared_contracts:
+    model: Qwen2.5-0.5B-Instruct Q5_K_M
+    dataset: data/questions/questions.json
+    dataset_reference: data/references/answer_key.json
+    dataset_license: "Team-authored evaluation material; repository use authorized by contributor"
+    dataset_llm_use_permission: operator_attestation_required
+    software_design_space: experiment-contracts/design-spaces/software.yaml
+    hardware_design_space: experiment-contracts/design-spaces/hardware.yaml
+    proxy: qwen25-gqa-14-2-64-q4-v1
+    objectives:
+      - native_latency_ms
+      - proxy_simulated_seconds
+      - estimated_cache_dynamic_energy_uj
+      - answer_quality_loss
+    evaluator: exact-option-text-accuracy-v1
+    candidate_timeout_seconds: 3600
+    measurement_repetitions:
+      native_per_question: 1
+      proxy_kernel: 10
+
+# The CLI selects one proposer at a time while preserving this shared contract.
+optimizer:
+  enabled: false

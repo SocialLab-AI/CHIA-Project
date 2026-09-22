@@ -10,7 +10,7 @@ This README explains the project and reproduces the complete loop on one
 Ubuntu server without administrator access. It covers installation, the native
 model service, Ray resources, Docker images, configuration, validation,
 preflight, one-candidate smoke testing, evidence verification, and the equal
-three-candidate pilots.
+pilot and confirmatory comparisons.
 
 > **Release gate:** do not run a pilot or burst until contract validation,
 > release preflight, and the deterministic one-candidate smoke all pass on the
@@ -30,6 +30,7 @@ three-candidate pilots.
 | Energy image | `chia-energy-tools:0.3` |
 | Objectives | native latency, proxy simulated time, estimated cache dynamic energy, quality loss |
 | Canonical contract | `experiment-contracts/campaigns/final-burst.yaml` |
+| Confirmatory comparison | `experiment-contracts/campaigns/confirmatory-gemini38-vs-random-10.yaml` |
 
 The 14/2/64 proxy represents Qwen attention geometry for comparative hardware
 design-space exploration. Proxy validation supports context-scaling trend
@@ -536,6 +537,19 @@ wins. Estimated API cost in the usage ledger is not verified live billing.
 
 Do not increase the candidate budget or launch a burst until pilot wall time,
 failure rate, disk use, artifact size, and Gemini usage are reviewed.
+
+### Matched 10-versus-10 confirmatory profile
+
+The reviewed confirmatory contract runs Gemini 3.8 Flash and seeded random
+search for ten evaluated candidates each. The random seed is `20260922`, which
+differs from the first comparison. Both arms share the native model,
+250-question dataset, design spaces, proxy, energy estimator, evaluator,
+candidate budget, stopping limits, resources, and four objective definitions.
+
+Pass a unique `--campaign-id` for each arm. The CLI derives the gem5 and energy
+artifact roots from that ID, preventing an earlier campaign from being
+overwritten. The rates in `compute-policy.yaml` estimate Gemini usage cost;
+the usage ledger is not a live billing statement.
 
 ## 14. Stop and restart the rootless services
 

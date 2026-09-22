@@ -345,6 +345,64 @@ def test_cli_profiles_keep_execution_and_stopping_budgets_equal(cli_args, expect
     )
 
 
+@pytest.mark.parametrize(
+    "method,campaign_id,expected_optimizer",
+    [
+        (
+            "gemini",
+            "confirmatory-gemini38-test",
+            {"policy": "gemini_api", "model": "gemini-3.8-flash"},
+        ),
+        (
+            "random",
+            "confirmatory-random-test",
+            {"policy": "random", "seed": 20260922},
+        ),
+    ],
+)
+def test_confirmatory_cli_uses_reviewed_model_seed_and_unique_id(
+    method, campaign_id, expected_optimizer
+):
+    from scripts.run_experiment import main
+
+    campaign = (
+        ROOT
+        / "experiment-contracts/campaigns/confirmatory-gemini38-vs-random-10.yaml"
+    )
+    with patch.object(
+        sys,
+        "argv",
+        [
+            "run_experiment.py",
+            "--config",
+            str(campaign),
+            "--method",
+            method,
+            "--campaign-id",
+            campaign_id,
+        ],
+    ), patch(
+        "scripts.run_experiment.chia_entrypoint",
+        return_value={"state": "completed", "experiments": []},
+    ) as entrypoint:
+        assert main() == 0
+
+    effective = entrypoint.call_args.args[0]
+    assert effective["campaign_id"] == campaign_id
+    assert effective["iterations"] == 10
+    assert effective["stopping"]["max_evaluated_candidates"] == 10
+    assert all(
+        effective["optimizer"][field] == expected
+        for field, expected in expected_optimizer.items()
+    )
+    assert effective["runtime"]["hardware"]["artifacts_root"].replace(
+        "\\", "/"
+    ) == f"results/{campaign_id}/gem5"
+    assert effective["runtime"]["energy"]["artifacts_root"].replace(
+        "\\", "/"
+    ) == f"results/{campaign_id}/energy-work"
+
+
 def test_dataset_attestation_is_propagated_to_ray_workers(monkeypatch):
     from src.orchestration.chia import ray_worker_environment
     from src.orchestration.dispatch import ChiaDispatcher

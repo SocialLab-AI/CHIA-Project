@@ -7,6 +7,11 @@ gemini:
     gemini-3.1-flash-lite:
       input_usd_per_million_tokens: 0.25
       output_usd_per_million_tokens: 1.50
+    # Reviewed 2026-09-22: https://ai.google.dev/gemini-api/docs/pricing
+    # These rates estimate campaign cost; they are not verified billing data.
+    gemini-3.8-flash:
+      input_usd_per_million_tokens: 0.75
+      output_usd_per_million_tokens: 3.75
 
 tiers:
   dev:
