@@ -284,6 +284,21 @@ def test_random_and_gemini_share_the_same_graph_executor():
     assert metadata == {"seed": 7, "request_count": 0}
 
 
+def test_gemini_optimizer_declares_all_four_pareto_objectives():
+    from src.orchestration.gemini_api import (
+        PARETO_OBJECTIVES,
+        PROMPT_VERSION,
+    )
+
+    assert PARETO_OBJECTIVES == (
+        "native_latency_ms",
+        "proxy_simulated_seconds",
+        "estimated_cache_dynamic_energy_uj",
+        "answer_quality_loss",
+    )
+    assert PROMPT_VERSION == "candidate-json-v3-four-objective-pareto"
+
+
 def test_quality_matching_uses_word_boundaries():
     result = evaluate_required_concepts("An earthquake occurred.", [["earth"]])
     assert result["score"] == 0
