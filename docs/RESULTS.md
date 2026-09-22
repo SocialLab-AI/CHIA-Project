@@ -51,6 +51,44 @@ Existing proxy-comparison evidence under
 context-scaling trend comparison and selection of the Qwen-shaped proxy; it is
 not evidence of full-model latency equivalence.
 
+## Ten-candidate Gemini pilot
+
+The `final-burst-gemini` pilot completed on 2026-09-21 at Git commit
+`adc85e51d9684921830e6b6bb1cbcdaeeb2c3ebc`. All ten candidate evaluations
+completed. Nine candidates came from accepted Gemini proposals; a repeated
+proposal on the eighth Gemini request was rejected and replaced with one
+deterministic fallback candidate.
+
+| Field | Observed value |
+| --- | --- |
+| Campaign state | `completed` |
+| Stop reason | `iteration_limit` |
+| Campaign wall time | 9468.836 seconds |
+| Completed candidates | 10 |
+| Observed Pareto candidates | 6 |
+| Gemini requests | 10 |
+| Accepted proposals | 9 |
+| Rejected duplicates | 1 |
+| Malformed responses | 0 |
+| Gemini tokens | 32,937 |
+| Estimated Gemini cost | USD 0.00993925 |
+
+The lowest observed native latency was 3382.129 ms. The lowest proxy simulated
+time was 0.019288 seconds. The lowest estimated cache dynamic energy was
+9136.519 microjoules, produced by the deterministic fallback. The highest
+observed required-concept coverage score was 0.6667. No single candidate
+minimized every objective.
+
+All candidate records passed completed-record validation, candidate IDs were
+unique, comparison groups agreed, and the stored Pareto frontier matched an
+independent recomputation. The execution-server manifest also passed in full.
+The reviewed evidence and complete candidate table are under
+`docs/experiments/evidence/final-burst-gemini-20260921/`.
+
+This is a Gemini-guided pilot rather than the final optimizer comparison. It
+does not establish that Gemini outperforms random search. The matching
+ten-candidate seeded-random campaign remains required.
+
 ## Campaign evidence layout
 
 Each campaign creates:

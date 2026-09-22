@@ -8,4 +8,9 @@ OpenStax currently states that College Physics 2e is CC BY-NC-SA 4.0 and separat
 
 Energy estimates dynamic access energy for two L1I caches, two L1D caches, and one shared L2 cache using aggregate gem5 hit/miss counters. Aggregate lookups are modeled as reads because current counters do not distinguish reads and writes. The estimate excludes processor-core logic, DRAM, interconnect, TLBs, static/leakage energy, and native Qwen energy.
 
-The three-candidate setting is a pilot, not a final burst size. Gemini pricing is an estimate from the reviewed compute policy. Results support best-observed and budget-bounded Pareto claims only.
+The completed ten-candidate Gemini campaign is still a pilot until it is paired
+with the equal-budget seeded-random campaign. One rejected Gemini duplicate was
+replaced by a deterministic fallback, so the ten evaluated candidates comprise
+nine Gemini proposals and one fallback. Gemini pricing is an estimate from the
+reviewed compute policy. Results support best-observed and budget-bounded Pareto
+claims only.

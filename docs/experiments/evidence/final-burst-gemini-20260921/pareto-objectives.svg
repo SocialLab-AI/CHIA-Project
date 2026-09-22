@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050">
+<rect width="100%" height="100%" fill="white"/>
+<text x="70" y="75" font-family="Arial, sans-serif" font-size="38" font-weight="700" fill="#172033">CHIA Gemini Pilot Candidate Objectives</text>
+<text x="70" y="115" font-family="Arial, sans-serif" font-size="21" fill="#5d687a">Ten completed evaluations at source commit adc85e51; lower is better except concept coverage</text>
+<text x="80" y="189" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#172033">Native Qwen latency</text>
+<rect x="150" y="200" width="590" height="270" fill="#f7f9fc" stroke="#d9e0ea" stroke-width="2"/>
+<line x1="150" y1="470.0" x2="740" y2="470.0" stroke="#d9e0ea"/>
+<text x="80" y="475.0" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">0</text>
+<line x1="150" y1="402.5" x2="740" y2="402.5" stroke="#d9e0ea"/>
+<text x="80" y="407.5" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">1875</text>
+<line x1="150" y1="335.0" x2="740" y2="335.0" stroke="#d9e0ea"/>
+<text x="80" y="340.0" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">3750</text>
+<line x1="150" y1="267.5" x2="740" y2="267.5" stroke="#d9e0ea"/>
+<text x="80" y="272.5" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">5625</text>
+<line x1="150" y1="200.0" x2="740" y2="200.0" stroke="#d9e0ea"/>
+<text x="80" y="205.0" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">7500</text>
+<rect x="150.0" y="222.51737230409344" width="50.0" height="247.48262769590656" fill="#a8b2c1" stroke="#a8b2c1" stroke-width="1"/>
+<text x="166.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I1</text>
+<rect x="210.0" y="261.09869434409484" width="50.0" height="208.90130565590516" fill="#a8b2c1" stroke="#a8b2c1" stroke-width="1"/>
+<text x="226.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I2</text>
+<rect x="270.0" y="229.33724535204237" width="50.0" height="240.66275464795763" fill="#a8b2c1" stroke="#a8b2c1" stroke-width="1"/>
+<text x="286.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I3</text>
+<rect x="330.0" y="230.40551226794196" width="50.0" height="239.59448773205804" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="346.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I4</text>
+<rect x="390.0" y="333.98841817997163" width="50.0" height="136.01158182002837" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="406.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I5</text>
+<rect x="450.0" y="224.8091345000139" width="50.0" height="245.1908654999861" fill="#a8b2c1" stroke="#a8b2c1" stroke-width="1"/>
+<text x="466.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I6</text>
+<rect x="510.0" y="226.80960003206565" width="50.0" height="243.19039996793435" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="526.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I7</text>
+<rect x="570.0" y="225.35855598808848" width="50.0" height="244.64144401191152" fill="#2563eb" stroke="#d97706" stroke-width="5"/>
+<text x="586.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I8</text>
+<rect x="630.0" y="226.33582394004043" width="50.0" height="243.66417605995957" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="646.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I9</text>
+<rect x="690.0" y="348.24335009594506" width="50.0" height="121.75664990405494" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="706.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I10</text>
+<text x="150" y="506" font-family="Arial, sans-serif" font-size="15" fill="#5d687a">milliseconds</text>
+<text x="840" y="189" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#172033">gem5 proxy simulated time</text>
+<rect x="910" y="200" width="590" height="270" fill="#f7f9fc" stroke="#d9e0ea" stroke-width="2"/>
+<line x1="910" y1="470.0" x2="1500" y2="470.0" stroke="#d9e0ea"/>
+<text x="840" y="475.0" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">0.000</text>
+<line x1="910" y1="402.5" x2="1500" y2="402.5" stroke="#d9e0ea"/>
+<text x="840" y="407.5" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">0.025</text>
+<line x1="910" y1="335.0" x2="1500" y2="335.0" stroke="#d9e0ea"/>
+<text x="840" y="340.0" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">0.050</text>
+<line x1="910" y1="267.5" x2="1500" y2="267.5" stroke="#d9e0ea"/>
+<text x="840" y="272.5" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">0.075</text>
+<line x1="910" y1="200.0" x2="1500" y2="200.0" stroke="#d9e0ea"/>
+<text x="840" y="205.0" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">0.100</text>
+<rect x="910.0" y="220.8656" width="50.0" height="249.1344" fill="#a8b2c1" stroke="#a8b2c1" stroke-width="1"/>
+<text x="926.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I1</text>
+<rect x="970.0" y="417.9224" width="50.0" height="52.07760000000002" fill="#a8b2c1" stroke="#a8b2c1" stroke-width="1"/>
+<text x="986.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I2</text>
+<rect x="1030.0" y="408.24830000000003" width="50.0" height="61.75169999999997" fill="#a8b2c1" stroke="#a8b2c1" stroke-width="1"/>
+<text x="1046.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I3</text>
+<rect x="1090.0" y="417.9224" width="50.0" height="52.07760000000002" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="1106.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I4</text>
+<rect x="1150.0" y="417.9224" width="50.0" height="52.07760000000002" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="1166.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I5</text>
+<rect x="1210.0" y="417.9224" width="50.0" height="52.07760000000002" fill="#a8b2c1" stroke="#a8b2c1" stroke-width="1"/>
+<text x="1226.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I6</text>
+<rect x="1270.0" y="402.3272" width="50.0" height="67.6728" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="1286.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I7</text>
+<rect x="1330.0" y="239.42000000000002" width="50.0" height="230.57999999999998" fill="#2563eb" stroke="#d97706" stroke-width="5"/>
+<text x="1346.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I8</text>
+<rect x="1390.0" y="371.4176" width="50.0" height="98.5824" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="1406.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I9</text>
+<rect x="1450.0" y="277.6142" width="50.0" height="192.38580000000002" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="1466.0" y="497" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I10</text>
+<text x="910" y="506" font-family="Arial, sans-serif" font-size="15" fill="#5d687a">seconds</text>
+<text x="80" y="614" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#172033">Estimated cache dynamic energy</text>
+<rect x="150" y="625" width="590" height="270" fill="#f7f9fc" stroke="#d9e0ea" stroke-width="2"/>
+<line x1="150" y1="895.0" x2="740" y2="895.0" stroke="#d9e0ea"/>
+<text x="80" y="900.0" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">0</text>
+<line x1="150" y1="827.5" x2="740" y2="827.5" stroke="#d9e0ea"/>
+<text x="80" y="832.5" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">10500</text>
+<line x1="150" y1="760.0" x2="740" y2="760.0" stroke="#d9e0ea"/>
+<text x="80" y="765.0" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">21000</text>
+<line x1="150" y1="692.5" x2="740" y2="692.5" stroke="#d9e0ea"/>
+<text x="80" y="697.5" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">31500</text>
+<line x1="150" y1="625.0" x2="740" y2="625.0" stroke="#d9e0ea"/>
+<text x="80" y="630.0" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">42000</text>
+<rect x="150.0" y="642.165876784975" width="50.0" height="252.834123215025" fill="#a8b2c1" stroke="#a8b2c1" stroke-width="1"/>
+<text x="166.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I1</text>
+<rect x="210.0" y="780.396468355525" width="50.0" height="114.60353164447497" fill="#a8b2c1" stroke="#a8b2c1" stroke-width="1"/>
+<text x="226.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I2</text>
+<rect x="270.0" y="778.1645531109904" width="50.0" height="116.83544688900963" fill="#a8b2c1" stroke="#a8b2c1" stroke-width="1"/>
+<text x="286.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I3</text>
+<rect x="330.0" y="780.396468355525" width="50.0" height="114.60353164447497" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="346.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I4</text>
+<rect x="390.0" y="780.396468355525" width="50.0" height="114.60353164447497" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="406.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I5</text>
+<rect x="450.0" y="780.396468355525" width="50.0" height="114.60353164447497" fill="#a8b2c1" stroke="#a8b2c1" stroke-width="1"/>
+<text x="466.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I6</text>
+<rect x="510.0" y="780.7143876416195" width="50.0" height="114.28561235838049" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="526.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I7</text>
+<rect x="570.0" y="836.2652371910192" width="50.0" height="58.734762808980804" fill="#2563eb" stroke="#d97706" stroke-width="5"/>
+<text x="586.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I8</text>
+<rect x="630.0" y="782.1584091186733" width="50.0" height="112.84159088132674" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="646.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I9</text>
+<rect x="690.0" y="784.4773022168356" width="50.0" height="110.5226977831644" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="706.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I10</text>
+<text x="150" y="931" font-family="Arial, sans-serif" font-size="15" fill="#5d687a">microjoules</text>
+<text x="840" y="614" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#172033">Required concept coverage</text>
+<rect x="910" y="625" width="590" height="270" fill="#f7f9fc" stroke="#d9e0ea" stroke-width="2"/>
+<line x1="910" y1="895.0" x2="1500" y2="895.0" stroke="#d9e0ea"/>
+<text x="840" y="900.0" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">0.00</text>
+<line x1="910" y1="827.5" x2="1500" y2="827.5" stroke="#d9e0ea"/>
+<text x="840" y="832.5" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">0.19</text>
+<line x1="910" y1="760.0" x2="1500" y2="760.0" stroke="#d9e0ea"/>
+<text x="840" y="765.0" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">0.38</text>
+<line x1="910" y1="692.5" x2="1500" y2="692.5" stroke="#d9e0ea"/>
+<text x="840" y="697.5" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">0.56</text>
+<line x1="910" y1="625.0" x2="1500" y2="625.0" stroke="#d9e0ea"/>
+<text x="840" y="630.0" font-family="Arial, sans-serif" font-size="14" fill="#5d687a">0.75</text>
+<rect x="910.0" y="655.0" width="50.0" height="240.0" fill="#a8b2c1" stroke="#a8b2c1" stroke-width="1"/>
+<text x="926.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I1</text>
+<rect x="970.0" y="695.0" width="50.0" height="200.0" fill="#a8b2c1" stroke="#a8b2c1" stroke-width="1"/>
+<text x="986.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I2</text>
+<rect x="1030.0" y="695.0" width="50.0" height="200.0" fill="#a8b2c1" stroke="#a8b2c1" stroke-width="1"/>
+<text x="1046.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I3</text>
+<rect x="1090.0" y="655.0" width="50.0" height="240.0" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="1106.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I4</text>
+<rect x="1150.0" y="695.0" width="50.0" height="200.0" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="1166.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I5</text>
+<rect x="1210.0" y="655.0" width="50.0" height="240.0" fill="#a8b2c1" stroke="#a8b2c1" stroke-width="1"/>
+<text x="1226.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I6</text>
+<rect x="1270.0" y="655.0" width="50.0" height="240.0" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="1286.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I7</text>
+<rect x="1330.0" y="655.0" width="50.0" height="240.0" fill="#2563eb" stroke="#d97706" stroke-width="5"/>
+<text x="1346.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I8</text>
+<rect x="1390.0" y="655.0" width="50.0" height="240.0" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="1406.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I9</text>
+<rect x="1450.0" y="695.0" width="50.0" height="200.0" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<text x="1466.0" y="922" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033">I10</text>
+<text x="910" y="931" font-family="Arial, sans-serif" font-size="15" fill="#5d687a">score</text>
+<rect x="85" y="1000" width="25" height="25" fill="#2563eb"/><text x="120" y="1019" font-family="Arial, sans-serif" font-size="17" fill="#172033">Pareto candidate</text>
+<rect x="330" y="1000" width="25" height="25" fill="#a8b2c1"/><text x="365" y="1019" font-family="Arial, sans-serif" font-size="17" fill="#172033">Dominated candidate</text>
+<rect x="625" y="1000" width="25" height="25" fill="#2563eb" stroke="#d97706" stroke-width="5"/><text x="660" y="1019" font-family="Arial, sans-serif" font-size="17" fill="#172033">Deterministic fallback</text>
+</svg>

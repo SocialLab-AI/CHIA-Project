@@ -485,6 +485,13 @@ machine-specific work directories. The first verified smoke is documented in
 [`docs/RESULTS.md`](docs/RESULTS.md) and its
 [machine-readable summary](docs/experiments/evidence/final-burst-smoke-20260921/summary.json).
 
+The completed ten-candidate Gemini-guided pilot is also documented in
+[`docs/RESULTS.md`](docs/RESULTS.md) with its
+[reviewed evidence package](docs/experiments/evidence/final-burst-gemini-20260921/README.md).
+It contains nine accepted Gemini proposals and one deterministic fallback after
+a rejected duplicate. It is pilot evidence and does not claim that Gemini
+outperforms random search.
+
 ## 13. Run equal three-candidate pilots
 
 Use the measured smoke runtime to reserve adequate time. Run random first
