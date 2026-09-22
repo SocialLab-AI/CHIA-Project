@@ -25,6 +25,7 @@ from src.hardware.energy_estimator import (
     write_yaml,
 )
 from src.orchestration.chia import validate_campaign_config
+from src.tutor.evaluator import load_evaluation_set
 from src.tutor.llama_cpp_runtime import preflight as runtime_preflight
 from src.tutor.mapping import map_final_tutor
 
@@ -71,7 +72,7 @@ def check_head(config):
     permission_name = software_runtime.get("dataset_permission_env")
     if permission_name and os.getenv(permission_name) != "1":
         raise ConfigError(
-            f"Set {permission_name}=1 only after OpenStax permission is confirmed."
+            f"Set {permission_name}=1 only after dataset permission is confirmed."
         )
     mapping = map_final_tutor(
         baseline_candidate()["software"],
@@ -82,6 +83,16 @@ def check_head(config):
         mapping,
         timeout=15,
     )
+    dataset = load_evaluation_set(
+        software_runtime.get("questions_path", "data/questions/questions.json"),
+        software_runtime.get("references_path", "data/references/answer_key.json"),
+    )
+    if (
+        dataset["dataset_id"] != software_runtime.get("dataset_id")
+        or dataset["method"] != software_runtime.get("quality_method")
+        or len(dataset["items"]) != 250
+    ):
+        raise ConfigError("Preflight dataset differs from the reviewed campaign contract.")
     return {
         "role": "CHIA head node",
         "python_version": platform.python_version(),
@@ -90,6 +101,11 @@ def check_head(config):
         "context_tokens": identity["context_tokens"],
         "parallel_slots": identity["parallel_slots"],
         "runtime_build": identity["runtime_build"],
+        "dataset_id": dataset["dataset_id"],
+        "question_count": len(dataset["items"]),
+        "quality_method": dataset["method"],
+        "questions_sha256": dataset["questions_sha256"],
+        "references_sha256": dataset["references_sha256"],
     }
 
 

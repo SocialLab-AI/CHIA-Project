@@ -1,0 +1,1262 @@
+{
+  "schema_version": "1.0",
+  "dataset_id": "openstax-aligned-team-assessment-250-v1",
+  "method": "exact_option_text_accuracy",
+  "reference_visible_to_model": false,
+  "source_artifacts": {
+    "team_test_json_sha256": "f3a054cdaf807bbeeefdbec5900fd381fb631d13d7bbfd54db3e6983cc7dbe90",
+    "team_answer_key_docx_sha256": "3a4e87e75694e2c70e26cc79e7d5c581b4a3621226fa893cbe2d7b505b1cdd7d"
+  },
+  "references": [
+    {
+      "id": "team-openstax-physics-001",
+      "correct_answer": "3 m/s²",
+      "topic": "Kinematics"
+    },
+    {
+      "id": "team-openstax-physics-002",
+      "correct_answer": "9.8 m/s² downward",
+      "topic": "Free fall"
+    },
+    {
+      "id": "team-openstax-physics-003",
+      "correct_answer": "An object keeps its state of motion unless acted on by a net external force.",
+      "topic": "Newton's laws"
+    },
+    {
+      "id": "team-openstax-physics-004",
+      "correct_answer": "4 m/s²",
+      "topic": "Newton's second law"
+    },
+    {
+      "id": "team-openstax-physics-005",
+      "correct_answer": "49 N",
+      "topic": "Weight"
+    },
+    {
+      "id": "team-openstax-physics-006",
+      "correct_answer": "9 J",
+      "topic": "Kinetic energy"
+    },
+    {
+      "id": "team-openstax-physics-007",
+      "correct_answer": "98 J",
+      "topic": "Potential energy"
+    },
+    {
+      "id": "team-openstax-physics-008",
+      "correct_answer": "60 J",
+      "topic": "Work"
+    },
+    {
+      "id": "team-openstax-physics-009",
+      "correct_answer": "30 W",
+      "topic": "Power"
+    },
+    {
+      "id": "team-openstax-physics-010",
+      "correct_answer": "20 kg·m/s",
+      "topic": "Momentum"
+    },
+    {
+      "id": "team-openstax-physics-011",
+      "correct_answer": "20 N·s",
+      "topic": "Impulse"
+    },
+    {
+      "id": "team-openstax-physics-012",
+      "correct_answer": "Linear momentum",
+      "topic": "Collisions"
+    },
+    {
+      "id": "team-openstax-physics-013",
+      "correct_answer": "5 m/s²",
+      "topic": "Circular motion"
+    },
+    {
+      "id": "team-openstax-physics-014",
+      "correct_answer": "One-fourth as large",
+      "topic": "Gravitation"
+    },
+    {
+      "id": "team-openstax-physics-015",
+      "correct_answer": "5 N·m",
+      "topic": "Torque"
+    },
+    {
+      "id": "team-openstax-physics-016",
+      "correct_answer": "v = rω",
+      "topic": "Rotational motion"
+    },
+    {
+      "id": "team-openstax-physics-017",
+      "correct_answer": "Mass divided by volume",
+      "topic": "Fluids"
+    },
+    {
+      "id": "team-openstax-physics-018",
+      "correct_answer": "200 Pa",
+      "topic": "Pressure"
+    },
+    {
+      "id": "team-openstax-physics-019",
+      "correct_answer": "Weight of the displaced fluid",
+      "topic": "Buoyancy"
+    },
+    {
+      "id": "team-openstax-physics-020",
+      "correct_answer": "Decreases",
+      "topic": "Bernoulli principle"
+    },
+    {
+      "id": "team-openstax-physics-021",
+      "correct_answer": "300 K",
+      "topic": "Temperature"
+    },
+    {
+      "id": "team-openstax-physics-022",
+      "correct_answer": "Q = mcΔT",
+      "topic": "Heat"
+    },
+    {
+      "id": "team-openstax-physics-023",
+      "correct_answer": "ΔU = Q - W",
+      "topic": "Thermodynamics"
+    },
+    {
+      "id": "team-openstax-physics-024",
+      "correct_answer": "12 m/s",
+      "topic": "Waves"
+    },
+    {
+      "id": "team-openstax-physics-025",
+      "correct_answer": "0.2 s",
+      "topic": "Waves"
+    },
+    {
+      "id": "team-openstax-physics-026",
+      "correct_answer": "Sound requires a material medium.",
+      "topic": "Sound"
+    },
+    {
+      "id": "team-openstax-physics-027",
+      "correct_answer": "Higher",
+      "topic": "Doppler effect"
+    },
+    {
+      "id": "team-openstax-physics-028",
+      "correct_answer": "1/r²",
+      "topic": "Wave intensity"
+    },
+    {
+      "id": "team-openstax-physics-029",
+      "correct_answer": "One-fourth as large",
+      "topic": "Coulomb's law"
+    },
+    {
+      "id": "team-openstax-physics-030",
+      "correct_answer": "Positive test charge",
+      "topic": "Electric field"
+    },
+    {
+      "id": "team-openstax-physics-031",
+      "correct_answer": "Work or energy per unit charge",
+      "topic": "Electric potential"
+    },
+    {
+      "id": "team-openstax-physics-032",
+      "correct_answer": "Current",
+      "topic": "DC circuits"
+    },
+    {
+      "id": "team-openstax-physics-033",
+      "correct_answer": "Voltage",
+      "topic": "Parallel circuits"
+    },
+    {
+      "id": "team-openstax-physics-034",
+      "correct_answer": "3 A",
+      "topic": "Ohm's law"
+    },
+    {
+      "id": "team-openstax-physics-035",
+      "correct_answer": "24 W",
+      "topic": "Electric power"
+    },
+    {
+      "id": "team-openstax-physics-036",
+      "correct_answer": "Perpendicular to the magnetic field",
+      "topic": "Magnetism"
+    },
+    {
+      "id": "team-openstax-physics-037",
+      "correct_answer": "Magnetic flux",
+      "topic": "Electromagnetic induction"
+    },
+    {
+      "id": "team-openstax-physics-038",
+      "correct_answer": "More turns on the secondary than the primary",
+      "topic": "Transformers"
+    },
+    {
+      "id": "team-openstax-physics-039",
+      "correct_answer": "3.0 × 10⁸ m/s",
+      "topic": "Electromagnetic waves"
+    },
+    {
+      "id": "team-openstax-physics-040",
+      "correct_answer": "Virtual, upright, and the same size",
+      "topic": "Geometric optics"
+    },
+    {
+      "id": "team-openstax-physics-041",
+      "correct_answer": "Converge near a focal point",
+      "topic": "Lenses"
+    },
+    {
+      "id": "team-openstax-physics-042",
+      "correct_answer": "Toward the normal",
+      "topic": "Refraction"
+    },
+    {
+      "id": "team-openstax-physics-043",
+      "correct_answer": "E = hf",
+      "topic": "Quantum physics"
+    },
+    {
+      "id": "team-openstax-physics-044",
+      "correct_answer": "At or above a threshold",
+      "topic": "Photoelectric effect"
+    },
+    {
+      "id": "team-openstax-physics-045",
+      "correct_answer": "2",
+      "topic": "Radioactivity"
+    },
+    {
+      "id": "team-openstax-physics-046",
+      "correct_answer": "Splitting a heavy nucleus into smaller nuclei",
+      "topic": "Nuclear physics"
+    },
+    {
+      "id": "team-openstax-physics-047",
+      "correct_answer": "Combining light nuclei into a heavier nucleus",
+      "topic": "Nuclear physics"
+    },
+    {
+      "id": "team-openstax-physics-048",
+      "correct_answer": "Slower than an identical rest clock",
+      "topic": "Relativity"
+    },
+    {
+      "id": "team-openstax-physics-049",
+      "correct_answer": "70%",
+      "topic": "Efficiency"
+    },
+    {
+      "id": "team-openstax-physics-050",
+      "correct_answer": "Precise but not accurate",
+      "topic": "Measurement"
+    },
+    {
+      "id": "team-openstax-chemistry-001",
+      "correct_answer": "Conservation of mass",
+      "topic": "Chemical equations"
+    },
+    {
+      "id": "team-openstax-chemistry-002",
+      "correct_answer": "Protons",
+      "topic": "Atomic structure"
+    },
+    {
+      "id": "team-openstax-chemistry-003",
+      "correct_answer": "Neutrons",
+      "topic": "Isotopes"
+    },
+    {
+      "id": "team-openstax-chemistry-004",
+      "correct_answer": "A cation",
+      "topic": "Ions"
+    },
+    {
+      "id": "team-openstax-chemistry-005",
+      "correct_answer": "Neutron",
+      "topic": "Atomic structure"
+    },
+    {
+      "id": "team-openstax-chemistry-006",
+      "correct_answer": "Numbers of valence electrons",
+      "topic": "Periodic table"
+    },
+    {
+      "id": "team-openstax-chemistry-007",
+      "correct_answer": "Decreases",
+      "topic": "Periodic trends"
+    },
+    {
+      "id": "team-openstax-chemistry-008",
+      "correct_answer": "Ionic bond",
+      "topic": "Bonding"
+    },
+    {
+      "id": "team-openstax-chemistry-009",
+      "correct_answer": "Sharing of electron pairs",
+      "topic": "Bonding"
+    },
+    {
+      "id": "team-openstax-chemistry-010",
+      "correct_answer": "MgCl₂",
+      "topic": "Ionic formulas"
+    },
+    {
+      "id": "team-openstax-chemistry-011",
+      "correct_answer": "Carbon dioxide",
+      "topic": "Nomenclature"
+    },
+    {
+      "id": "team-openstax-chemistry-012",
+      "correct_answer": "6.022 × 10²³ entities",
+      "topic": "Mole concept"
+    },
+    {
+      "id": "team-openstax-chemistry-013",
+      "correct_answer": "18 g/mol",
+      "topic": "Molar mass"
+    },
+    {
+      "id": "team-openstax-chemistry-014",
+      "correct_answer": "2 mol",
+      "topic": "Stoichiometry"
+    },
+    {
+      "id": "team-openstax-chemistry-015",
+      "correct_answer": "6 mol",
+      "topic": "Stoichiometry"
+    },
+    {
+      "id": "team-openstax-chemistry-016",
+      "correct_answer": "Is consumed first and limits product formation",
+      "topic": "Limiting reactant"
+    },
+    {
+      "id": "team-openstax-chemistry-017",
+      "correct_answer": "Actual/theoretical × 100%",
+      "topic": "Reaction yield"
+    },
+    {
+      "id": "team-openstax-chemistry-018",
+      "correct_answer": "Rusting iron",
+      "topic": "Matter and change"
+    },
+    {
+      "id": "team-openstax-chemistry-019",
+      "correct_answer": "Liquid",
+      "topic": "States of matter"
+    },
+    {
+      "id": "team-openstax-chemistry-020",
+      "correct_answer": "Inversely proportional",
+      "topic": "Gas laws"
+    },
+    {
+      "id": "team-openstax-chemistry-021",
+      "correct_answer": "Increase",
+      "topic": "Gas laws"
+    },
+    {
+      "id": "team-openstax-chemistry-022",
+      "correct_answer": "PV = nRT",
+      "topic": "Ideal gases"
+    },
+    {
+      "id": "team-openstax-chemistry-023",
+      "correct_answer": "22.4 L",
+      "topic": "Molar volume"
+    },
+    {
+      "id": "team-openstax-chemistry-024",
+      "correct_answer": "Releases heat to surroundings",
+      "topic": "Thermochemistry"
+    },
+    {
+      "id": "team-openstax-chemistry-025",
+      "correct_answer": "Positive",
+      "topic": "Enthalpy"
+    },
+    {
+      "id": "team-openstax-chemistry-026",
+      "correct_answer": "Raise the temperature of a unit mass by one degree",
+      "topic": "Calorimetry"
+    },
+    {
+      "id": "team-openstax-chemistry-027",
+      "correct_answer": "Lowering the activation energy pathway",
+      "topic": "Kinetics"
+    },
+    {
+      "id": "team-openstax-chemistry-028",
+      "correct_answer": "Have more frequent and energetic collisions",
+      "topic": "Kinetics"
+    },
+    {
+      "id": "team-openstax-chemistry-029",
+      "correct_answer": "Equal",
+      "topic": "Equilibrium"
+    },
+    {
+      "id": "team-openstax-chemistry-030",
+      "correct_answer": "Shift in a direction that partially opposes the disturbance",
+      "topic": "Le Châtelier principle"
+    },
+    {
+      "id": "team-openstax-chemistry-031",
+      "correct_answer": "Toward products",
+      "topic": "Equilibrium"
+    },
+    {
+      "id": "team-openstax-chemistry-032",
+      "correct_answer": "Proton donor",
+      "topic": "Acids and bases"
+    },
+    {
+      "id": "team-openstax-chemistry-033",
+      "correct_answer": "Proton acceptor",
+      "topic": "Acids and bases"
+    },
+    {
+      "id": "team-openstax-chemistry-034",
+      "correct_answer": "Acidic",
+      "topic": "pH"
+    },
+    {
+      "id": "team-openstax-chemistry-035",
+      "correct_answer": "7",
+      "topic": "pH"
+    },
+    {
+      "id": "team-openstax-chemistry-036",
+      "correct_answer": "4",
+      "topic": "pH calculations"
+    },
+    {
+      "id": "team-openstax-chemistry-037",
+      "correct_answer": "Small amounts of acid or base are added",
+      "topic": "Buffers"
+    },
+    {
+      "id": "team-openstax-chemistry-038",
+      "correct_answer": "Loss of electrons",
+      "topic": "Redox"
+    },
+    {
+      "id": "team-openstax-chemistry-039",
+      "correct_answer": "Gain of electrons",
+      "topic": "Redox"
+    },
+    {
+      "id": "team-openstax-chemistry-040",
+      "correct_answer": "Anode",
+      "topic": "Electrochemistry"
+    },
+    {
+      "id": "team-openstax-chemistry-041",
+      "correct_answer": "Anode to cathode",
+      "topic": "Electrochemistry"
+    },
+    {
+      "id": "team-openstax-chemistry-042",
+      "correct_answer": "A high concentration of mobile ions",
+      "topic": "Solutions"
+    },
+    {
+      "id": "team-openstax-chemistry-043",
+      "correct_answer": "Maximum amount of solute that dissolves under specified conditions",
+      "topic": "Solutions"
+    },
+    {
+      "id": "team-openstax-chemistry-044",
+      "correct_answer": "Moles of solute per liter of solution",
+      "topic": "Concentration"
+    },
+    {
+      "id": "team-openstax-chemistry-045",
+      "correct_answer": "0.25 M",
+      "topic": "Molarity"
+    },
+    {
+      "id": "team-openstax-chemistry-046",
+      "correct_answer": "Hydrogen bonding",
+      "topic": "Intermolecular forces"
+    },
+    {
+      "id": "team-openstax-chemistry-047",
+      "correct_answer": "Increases",
+      "topic": "Liquids"
+    },
+    {
+      "id": "team-openstax-chemistry-048",
+      "correct_answer": "Base",
+      "topic": "Lewis acids and bases"
+    },
+    {
+      "id": "team-openstax-chemistry-049",
+      "correct_answer": "-2",
+      "topic": "Oxidation numbers"
+    },
+    {
+      "id": "team-openstax-chemistry-050",
+      "correct_answer": "It is related to the number of possible microscopic arrangements.",
+      "topic": "Entropy"
+    },
+    {
+      "id": "team-openstax-biology-001",
+      "correct_answer": "A plasma membrane",
+      "topic": "Cell biology"
+    },
+    {
+      "id": "team-openstax-biology-002",
+      "correct_answer": "Independent variable",
+      "topic": "Scientific method"
+    },
+    {
+      "id": "team-openstax-biology-003",
+      "correct_answer": "Testable and falsifiable",
+      "topic": "Scientific method"
+    },
+    {
+      "id": "team-openstax-biology-004",
+      "correct_answer": "Hydrogen bonds between water molecules",
+      "topic": "Water"
+    },
+    {
+      "id": "team-openstax-biology-005",
+      "correct_answer": "Can form four covalent bonds",
+      "topic": "Carbon"
+    },
+    {
+      "id": "team-openstax-biology-006",
+      "correct_answer": "Protein",
+      "topic": "Macromolecules"
+    },
+    {
+      "id": "team-openstax-biology-007",
+      "correct_answer": "Lower activation energy and speed reactions",
+      "topic": "Enzymes"
+    },
+    {
+      "id": "team-openstax-biology-008",
+      "correct_answer": "Nucleus",
+      "topic": "Cell organelles"
+    },
+    {
+      "id": "team-openstax-biology-009",
+      "correct_answer": "Mitochondrion",
+      "topic": "Cellular respiration"
+    },
+    {
+      "id": "team-openstax-biology-010",
+      "correct_answer": "Protein synthesis",
+      "topic": "Protein synthesis"
+    },
+    {
+      "id": "team-openstax-biology-011",
+      "correct_answer": "Modifying and sorting proteins and lipids",
+      "topic": "Endomembrane system"
+    },
+    {
+      "id": "team-openstax-biology-012",
+      "correct_answer": "Controls which substances cross",
+      "topic": "Membranes"
+    },
+    {
+      "id": "team-openstax-biology-013",
+      "correct_answer": "Diffusion",
+      "topic": "Transport"
+    },
+    {
+      "id": "team-openstax-biology-014",
+      "correct_answer": "Water across a selectively permeable membrane",
+      "topic": "Osmosis"
+    },
+    {
+      "id": "team-openstax-biology-015",
+      "correct_answer": "Lose water",
+      "topic": "Osmosis"
+    },
+    {
+      "id": "team-openstax-biology-016",
+      "correct_answer": "Can move substances against a concentration gradient using energy",
+      "topic": "Active transport"
+    },
+    {
+      "id": "team-openstax-biology-017",
+      "correct_answer": "Cytoplasm",
+      "topic": "Cellular respiration"
+    },
+    {
+      "id": "team-openstax-biology-018",
+      "correct_answer": "Oxidative phosphorylation",
+      "topic": "Cellular respiration"
+    },
+    {
+      "id": "team-openstax-biology-019",
+      "correct_answer": "Organic molecules such as sugars",
+      "topic": "Photosynthesis"
+    },
+    {
+      "id": "team-openstax-biology-020",
+      "correct_answer": "Thylakoid membranes",
+      "topic": "Photosynthesis"
+    },
+    {
+      "id": "team-openstax-biology-021",
+      "correct_answer": "Organic carbon compounds",
+      "topic": "Photosynthesis"
+    },
+    {
+      "id": "team-openstax-biology-022",
+      "correct_answer": "Two genetically similar nuclei can form",
+      "topic": "Mitosis"
+    },
+    {
+      "id": "team-openstax-biology-023",
+      "correct_answer": "Four haploid cells",
+      "topic": "Meiosis"
+    },
+    {
+      "id": "team-openstax-biology-024",
+      "correct_answer": "Genetic variation",
+      "topic": "Meiosis"
+    },
+    {
+      "id": "team-openstax-biology-025",
+      "correct_answer": "A segment of DNA with information for a functional product",
+      "topic": "Genetics"
+    },
+    {
+      "id": "team-openstax-biology-026",
+      "correct_answer": "Alleles during gamete formation",
+      "topic": "Mendelian genetics"
+    },
+    {
+      "id": "team-openstax-biology-027",
+      "correct_answer": "The dominant trait",
+      "topic": "Dominance"
+    },
+    {
+      "id": "team-openstax-biology-028",
+      "correct_answer": "25%",
+      "topic": "Punnett squares"
+    },
+    {
+      "id": "team-openstax-biology-029",
+      "correct_answer": "One old strand and one new strand",
+      "topic": "DNA replication"
+    },
+    {
+      "id": "team-openstax-biology-030",
+      "correct_answer": "Thymine",
+      "topic": "DNA structure"
+    },
+    {
+      "id": "team-openstax-biology-031",
+      "correct_answer": "RNA from a DNA template",
+      "topic": "Gene expression"
+    },
+    {
+      "id": "team-openstax-biology-032",
+      "correct_answer": "Ribosomes",
+      "topic": "Gene expression"
+    },
+    {
+      "id": "team-openstax-biology-033",
+      "correct_answer": "mRNA",
+      "topic": "Genetic code"
+    },
+    {
+      "id": "team-openstax-biology-034",
+      "correct_answer": "Reproductive success",
+      "topic": "Evolution"
+    },
+    {
+      "id": "team-openstax-biology-035",
+      "correct_answer": "Tends to increase reproductive success in a particular environment",
+      "topic": "Evolution"
+    },
+    {
+      "id": "team-openstax-biology-036",
+      "correct_answer": "Small populations",
+      "topic": "Population genetics"
+    },
+    {
+      "id": "team-openstax-biology-037",
+      "correct_answer": "Common ancestry",
+      "topic": "Evolution"
+    },
+    {
+      "id": "team-openstax-biology-038",
+      "correct_answer": "Evolutionary relationships",
+      "topic": "Phylogeny"
+    },
+    {
+      "id": "team-openstax-biology-039",
+      "correct_answer": "Lack cellular structure and depend on hosts for replication",
+      "topic": "Viruses"
+    },
+    {
+      "id": "team-openstax-biology-040",
+      "correct_answer": "Binary fission",
+      "topic": "Prokaryotes"
+    },
+    {
+      "id": "team-openstax-biology-041",
+      "correct_answer": "Water and dissolved minerals",
+      "topic": "Plant transport"
+    },
+    {
+      "id": "team-openstax-biology-042",
+      "correct_answer": "Sugars and other organic products",
+      "topic": "Plant transport"
+    },
+    {
+      "id": "team-openstax-biology-043",
+      "correct_answer": "Gas exchange and water loss",
+      "topic": "Plant physiology"
+    },
+    {
+      "id": "team-openstax-biology-044",
+      "correct_answer": "Red blood cells",
+      "topic": "Circulation"
+    },
+    {
+      "id": "team-openstax-biology-045",
+      "correct_answer": "Alveoli",
+      "topic": "Respiration"
+    },
+    {
+      "id": "team-openstax-biology-046",
+      "correct_answer": "Promoting cellular uptake and storage of glucose",
+      "topic": "Endocrine regulation"
+    },
+    {
+      "id": "team-openstax-biology-047",
+      "correct_answer": "Axons",
+      "topic": "Nervous system"
+    },
+    {
+      "id": "team-openstax-biology-048",
+      "correct_answer": "Living organisms and the nonliving environment",
+      "topic": "Ecology"
+    },
+    {
+      "id": "team-openstax-biology-049",
+      "correct_answer": "Sunlight captured by producers",
+      "topic": "Ecology"
+    },
+    {
+      "id": "team-openstax-biology-050",
+      "correct_answer": "Individuals of the same species living in the same area",
+      "topic": "Population ecology"
+    },
+    {
+      "id": "team-openstax-mathematics-001",
+      "correct_answer": "6x - 11",
+      "topic": "Algebraic expressions"
+    },
+    {
+      "id": "team-openstax-mathematics-002",
+      "correct_answer": "6",
+      "topic": "Linear equations"
+    },
+    {
+      "id": "team-openstax-mathematics-003",
+      "correct_answer": "6",
+      "topic": "Linear equations"
+    },
+    {
+      "id": "team-openstax-mathematics-004",
+      "correct_answer": "x < 4",
+      "topic": "Inequalities"
+    },
+    {
+      "id": "team-openstax-mathematics-005",
+      "correct_answer": "8",
+      "topic": "Absolute value"
+    },
+    {
+      "id": "team-openstax-mathematics-006",
+      "correct_answer": "x⁷",
+      "topic": "Exponents"
+    },
+    {
+      "id": "team-openstax-mathematics-007",
+      "correct_answer": "x⁴",
+      "topic": "Exponents"
+    },
+    {
+      "id": "team-openstax-mathematics-008",
+      "correct_answer": "12",
+      "topic": "Order of operations"
+    },
+    {
+      "id": "team-openstax-mathematics-009",
+      "correct_answer": "(x - 3)(x + 3)",
+      "topic": "Factoring"
+    },
+    {
+      "id": "team-openstax-mathematics-010",
+      "correct_answer": "x = 2 or 3",
+      "topic": "Quadratic equations"
+    },
+    {
+      "id": "team-openstax-mathematics-011",
+      "correct_answer": "b² - 4ac",
+      "topic": "Quadratic equations"
+    },
+    {
+      "id": "team-openstax-mathematics-012",
+      "correct_answer": "9",
+      "topic": "Functions"
+    },
+    {
+      "id": "team-openstax-mathematics-013",
+      "correct_answer": "Each x-value has exactly one y-value",
+      "topic": "Functions"
+    },
+    {
+      "id": "team-openstax-mathematics-014",
+      "correct_answer": "2",
+      "topic": "Linear functions"
+    },
+    {
+      "id": "team-openstax-mathematics-015",
+      "correct_answer": "y = mx + b",
+      "topic": "Linear functions"
+    },
+    {
+      "id": "team-openstax-mathematics-016",
+      "correct_answer": "y = 3x - 2",
+      "topic": "Linear functions"
+    },
+    {
+      "id": "team-openstax-mathematics-017",
+      "correct_answer": "Parallel",
+      "topic": "Linear functions"
+    },
+    {
+      "id": "team-openstax-mathematics-018",
+      "correct_answer": "3x⁴ - x + 2",
+      "topic": "Polynomials"
+    },
+    {
+      "id": "team-openstax-mathematics-019",
+      "correct_answer": "5",
+      "topic": "Polynomials"
+    },
+    {
+      "id": "team-openstax-mathematics-020",
+      "correct_answer": "0",
+      "topic": "Remainder theorem"
+    },
+    {
+      "id": "team-openstax-mathematics-021",
+      "correct_answer": "−2 and 2",
+      "topic": "Polynomial zeros"
+    },
+    {
+      "id": "team-openstax-mathematics-022",
+      "correct_answer": "x + 1",
+      "topic": "Rational expressions"
+    },
+    {
+      "id": "team-openstax-mathematics-023",
+      "correct_answer": "x = 5",
+      "topic": "Rational functions"
+    },
+    {
+      "id": "team-openstax-mathematics-024",
+      "correct_answer": "x = 4",
+      "topic": "Rational equations"
+    },
+    {
+      "id": "team-openstax-mathematics-025",
+      "correct_answer": "4",
+      "topic": "Exponential functions"
+    },
+    {
+      "id": "team-openstax-mathematics-026",
+      "correct_answer": "10³ = 1000",
+      "topic": "Logarithms"
+    },
+    {
+      "id": "team-openstax-mathematics-027",
+      "correct_answer": "0",
+      "topic": "Logarithms"
+    },
+    {
+      "id": "team-openstax-mathematics-028",
+      "correct_answer": "log a + log b",
+      "topic": "Logarithms"
+    },
+    {
+      "id": "team-openstax-mathematics-029",
+      "correct_answer": "A(t)=A₀e^{kt} with k>0",
+      "topic": "Exponential models"
+    },
+    {
+      "id": "team-openstax-mathematics-030",
+      "correct_answer": "x-coordinate",
+      "topic": "Unit circle"
+    },
+    {
+      "id": "team-openstax-mathematics-031",
+      "correct_answer": "1/2",
+      "topic": "Trigonometry"
+    },
+    {
+      "id": "team-openstax-mathematics-032",
+      "correct_answer": "1/2",
+      "topic": "Trigonometry"
+    },
+    {
+      "id": "team-openstax-mathematics-033",
+      "correct_answer": "sin θ / cos θ",
+      "topic": "Trigonometric identities"
+    },
+    {
+      "id": "team-openstax-mathematics-034",
+      "correct_answer": "sin²θ + cos²θ = 1",
+      "topic": "Trigonometric identities"
+    },
+    {
+      "id": "team-openstax-mathematics-035",
+      "correct_answer": "0° or 180°",
+      "topic": "Trigonometric equations"
+    },
+    {
+      "id": "team-openstax-mathematics-036",
+      "correct_answer": "5",
+      "topic": "Right triangles"
+    },
+    {
+      "id": "team-openstax-mathematics-037",
+      "correct_answer": "Opposite/hypotenuse",
+      "topic": "Trigonometry"
+    },
+    {
+      "id": "team-openstax-mathematics-038",
+      "correct_answer": "x=4, y=3",
+      "topic": "Systems"
+    },
+    {
+      "id": "team-openstax-mathematics-039",
+      "correct_answer": "Point where the lines intersect",
+      "topic": "Systems"
+    },
+    {
+      "id": "team-openstax-mathematics-040",
+      "correct_answer": "No solution",
+      "topic": "Systems"
+    },
+    {
+      "id": "team-openstax-mathematics-041",
+      "correct_answer": "(x-h)²+(y-k)²=r²",
+      "topic": "Analytic geometry"
+    },
+    {
+      "id": "team-openstax-mathematics-042",
+      "correct_answer": "Parabola",
+      "topic": "Conic sections"
+    },
+    {
+      "id": "team-openstax-mathematics-043",
+      "correct_answer": "Arithmetic with common difference 4",
+      "topic": "Sequences"
+    },
+    {
+      "id": "team-openstax-mathematics-044",
+      "correct_answer": "162",
+      "topic": "Geometric sequences"
+    },
+    {
+      "id": "team-openstax-mathematics-045",
+      "correct_answer": "n(n+1)/2",
+      "topic": "Sequences"
+    },
+    {
+      "id": "team-openstax-mathematics-046",
+      "correct_answer": "1/2",
+      "topic": "Probability"
+    },
+    {
+      "id": "team-openstax-mathematics-047",
+      "correct_answer": "1/3",
+      "topic": "Probability"
+    },
+    {
+      "id": "team-openstax-mathematics-048",
+      "correct_answer": "6",
+      "topic": "Counting"
+    },
+    {
+      "id": "team-openstax-mathematics-049",
+      "correct_answer": "120",
+      "topic": "Factorials"
+    },
+    {
+      "id": "team-openstax-mathematics-050",
+      "correct_answer": "0.8",
+      "topic": "Probability"
+    },
+    {
+      "id": "team-openstax-english-001",
+      "correct_answer": "The researchers repeated the experiment.",
+      "topic": "Sentence structure"
+    },
+    {
+      "id": "team-openstax-english-002",
+      "correct_answer": "The rain stopped, we left.",
+      "topic": "Sentence errors"
+    },
+    {
+      "id": "team-openstax-english-003",
+      "correct_answer": "The team worked late because the deadline was close.",
+      "topic": "Sentence errors"
+    },
+    {
+      "id": "team-openstax-english-004",
+      "correct_answer": "The list of items is on the desk.",
+      "topic": "Subject-verb agreement"
+    },
+    {
+      "id": "team-openstax-english-005",
+      "correct_answer": "All students must submit their papers.",
+      "topic": "Pronouns"
+    },
+    {
+      "id": "team-openstax-english-006",
+      "correct_answer": "The student's books were missing, meaning books belonging to one student.",
+      "topic": "Apostrophes"
+    },
+    {
+      "id": "team-openstax-english-007",
+      "correct_answer": "The data were incomplete; therefore, the team repeated the test.",
+      "topic": "Punctuation"
+    },
+    {
+      "id": "team-openstax-english-008",
+      "correct_answer": "She brought three items: a notebook, a pen, and a calculator.",
+      "topic": "Punctuation"
+    },
+    {
+      "id": "team-openstax-english-009",
+      "correct_answer": "After the meeting, we wrote the report.",
+      "topic": "Commas"
+    },
+    {
+      "id": "team-openstax-english-010",
+      "correct_answer": "affect",
+      "topic": "Word choice"
+    },
+    {
+      "id": "team-openstax-english-011",
+      "correct_answer": "Because the test failed, we repeated it.",
+      "topic": "Conciseness"
+    },
+    {
+      "id": "team-openstax-english-012",
+      "correct_answer": "However",
+      "topic": "Transitions"
+    },
+    {
+      "id": "team-openstax-english-013",
+      "correct_answer": "Therefore",
+      "topic": "Transitions"
+    },
+    {
+      "id": "team-openstax-english-014",
+      "correct_answer": "A clear main point supported by relevant evidence",
+      "topic": "Paragraphs"
+    },
+    {
+      "id": "team-openstax-english-015",
+      "correct_answer": "Introduces or states the paragraph's main point",
+      "topic": "Paragraphs"
+    },
+    {
+      "id": "team-openstax-english-016",
+      "correct_answer": "Universities should teach basic digital privacy because students routinely manage sensitive personal data online.",
+      "topic": "Thesis statements"
+    },
+    {
+      "id": "team-openstax-english-017",
+      "correct_answer": "Relevant to the claim and explained",
+      "topic": "Evidence"
+    },
+    {
+      "id": "team-openstax-english-018",
+      "correct_answer": "Audience, purpose, and context",
+      "topic": "Rhetoric"
+    },
+    {
+      "id": "team-openstax-english-019",
+      "correct_answer": "Logos",
+      "topic": "Rhetoric"
+    },
+    {
+      "id": "team-openstax-english-020",
+      "correct_answer": "Ethos",
+      "topic": "Rhetoric"
+    },
+    {
+      "id": "team-openstax-english-021",
+      "correct_answer": "Pathos",
+      "topic": "Rhetoric"
+    },
+    {
+      "id": "team-openstax-english-022",
+      "correct_answer": "Why particular choices may persuade or inform that group",
+      "topic": "Rhetorical analysis"
+    },
+    {
+      "id": "team-openstax-english-023",
+      "correct_answer": "A peer-reviewed scientific article",
+      "topic": "Source evaluation"
+    },
+    {
+      "id": "team-openstax-english-024",
+      "correct_answer": "Authority",
+      "topic": "Source evaluation"
+    },
+    {
+      "id": "team-openstax-english-025",
+      "correct_answer": "Presenting someone else's ideas as your own without credit",
+      "topic": "Academic integrity"
+    },
+    {
+      "id": "team-openstax-english-026",
+      "correct_answer": "Express the idea in genuinely new wording and cite the source",
+      "topic": "Paraphrasing"
+    },
+    {
+      "id": "team-openstax-english-027",
+      "correct_answer": "Integrated into your sentence and cited",
+      "topic": "Quotations"
+    },
+    {
+      "id": "team-openstax-english-028",
+      "correct_answer": "Credit sources and help readers locate them",
+      "topic": "Citation"
+    },
+    {
+      "id": "team-openstax-english-029",
+      "correct_answer": "The students completed the experiment.",
+      "topic": "Style"
+    },
+    {
+      "id": "team-openstax-english-030",
+      "correct_answer": "She entered the room and sat down.",
+      "topic": "Verb tense"
+    },
+    {
+      "id": "team-openstax-english-031",
+      "correct_answer": "It's important to check your sources.",
+      "topic": "Usage"
+    },
+    {
+      "id": "team-openstax-english-032",
+      "correct_answer": "The researchers revised their methods.",
+      "topic": "Usage"
+    },
+    {
+      "id": "team-openstax-english-033",
+      "correct_answer": "The company changed its policy.",
+      "topic": "Usage"
+    },
+    {
+      "id": "team-openstax-english-034",
+      "correct_answer": "Walking to class, Maya was soaked by the rain.",
+      "topic": "Modifiers"
+    },
+    {
+      "id": "team-openstax-english-035",
+      "correct_answer": "The course requires reading, writing, and presenting.",
+      "topic": "Parallelism"
+    },
+    {
+      "id": "team-openstax-english-036",
+      "correct_answer": "The results were unexpected and require further analysis.",
+      "topic": "Academic style"
+    },
+    {
+      "id": "team-openstax-english-037",
+      "correct_answer": "Bicycle use increased, but causation is not fully established.",
+      "topic": "Reading comprehension"
+    },
+    {
+      "id": "team-openstax-english-038",
+      "correct_answer": "Seasonal weather may have influenced the change.",
+      "topic": "Reading comprehension"
+    },
+    {
+      "id": "team-openstax-english-039",
+      "correct_answer": "More sleep was associated with higher scores, but the design does not prove causation.",
+      "topic": "Reading comprehension"
+    },
+    {
+      "id": "team-openstax-english-040",
+      "correct_answer": "Sleep duration was not randomly assigned.",
+      "topic": "Reading comprehension"
+    },
+    {
+      "id": "team-openstax-english-041",
+      "correct_answer": "Was the previous month also an exam period?",
+      "topic": "Critical reading"
+    },
+    {
+      "id": "team-openstax-english-042",
+      "correct_answer": "The claim may overgeneralize from a small, nonrepresentative sample.",
+      "topic": "Reasoning"
+    },
+    {
+      "id": "team-openstax-english-043",
+      "correct_answer": "The new policy will improve student learning.",
+      "topic": "Claims and evidence"
+    },
+    {
+      "id": "team-openstax-english-044",
+      "correct_answer": "Before-and-after algebra scores for comparable students",
+      "topic": "Evidence"
+    },
+    {
+      "id": "team-openstax-english-045",
+      "correct_answer": "Compare their methods, evidence, scope, and assumptions",
+      "topic": "Synthesis"
+    },
+    {
+      "id": "team-openstax-english-046",
+      "correct_answer": "Bring multiple sources into relation around a point or question",
+      "topic": "Synthesis"
+    },
+    {
+      "id": "team-openstax-english-047",
+      "correct_answer": "In the meeting, the committee discussed the controversial proposal.",
+      "topic": "Clarity"
+    },
+    {
+      "id": "team-openstax-english-048",
+      "correct_answer": "The experiment ended, and the team saved the data.",
+      "topic": "Coordination"
+    },
+    {
+      "id": "team-openstax-english-049",
+      "correct_answer": "The method is inexpensive; however, it is slower than the alternative.",
+      "topic": "Cohesion"
+    },
+    {
+      "id": "team-openstax-english-050",
+      "correct_answer": "Check organization, evidence, citations, grammar, and formatting against the assignment requirements",
+      "topic": "Revision and editing"
+    }
+  ]
+}

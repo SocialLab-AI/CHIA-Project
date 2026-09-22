@@ -66,6 +66,10 @@ def test_software_runner_repetitions_and_no_reference_leak():
         "dataset_id": "fixture",
         "source_url": "https://openstax.org/fixture",
         "license": "CC BY-NC-SA 4.0",
+        "source_description": "fixture",
+        "method": "required_concept_coverage",
+        "questions_sha256": "a" * 64,
+        "references_sha256": "b" * 64,
         "items": [
             {
                 "question": {"id": "q1", "question": "Question?"},
@@ -99,6 +103,78 @@ def test_software_runner_repetitions_and_no_reference_leak():
     assert result["metrics"]["answer_quality"] == 1.0
     assert all("reference" not in key for key in call.call_args.kwargs)
     assert "generated_answer" in result["samples"][0]
+
+
+def test_multiple_choice_runner_uses_unlabeled_options_and_hides_answer_key():
+    config = baseline_candidate()
+    reply = {
+        "choices": [
+            {
+                "finish_reason": "stop",
+                "message": {"content": "Conservation of mass"},
+            }
+        ],
+        "usage": {"prompt_tokens": 12, "completion_tokens": 4},
+        "timings": {
+            "prompt_ms": 10.0,
+            "predicted_ms": 20.0,
+            "predicted_per_second": 50.0,
+            "cache_n": 0,
+        },
+        "system_fingerprint": "fixture",
+    }
+    evaluation = {
+        "dataset_id": "fixture-250",
+        "source_url": "https://openstax.org/",
+        "license": "team-authored",
+        "source_description": "fixture",
+        "method": "exact_option_text_accuracy",
+        "questions_sha256": "a" * 64,
+        "references_sha256": "b" * 64,
+        "items": [
+            {
+                "question": {
+                    "id": "chemistry-001",
+                    "subject": "Chemistry",
+                    "question": "Which law is satisfied by a balanced equation?",
+                    "options": [
+                        "Boyle's law",
+                        "Conservation of mass",
+                        "Avogadro's law",
+                        "Conservation of energy only",
+                    ],
+                },
+                "reference": {"correct_answer": "Conservation of mass"},
+            }
+        ],
+    }
+    with (
+        patch(
+            "src.tutor.runner.map_final_tutor",
+            return_value={
+                "endpoint": "http://127.0.0.1:8081",
+                "request": {
+                    "model": "fixture",
+                    "temperature": 0.0,
+                    "max_output_tokens": 384,
+                },
+            },
+        ),
+        patch(
+            "src.tutor.runner.preflight",
+            return_value={"runtime_build": "fixture", "model_sha256": "a" * 64},
+        ),
+        patch("src.tutor.runner.load_evaluation_set", return_value=evaluation),
+        patch("src.tutor.runner.call_llama_cpp", return_value=reply) as call,
+    ):
+        result = run_software_candidate(config, {"timeout_seconds": 30})
+
+    prompt = call.call_args.kwargs["user_prompt"]
+    assert "- Conservation of mass" in prompt
+    assert "A)" not in prompt and "B)" not in prompt
+    assert "correct_answer" not in prompt
+    assert result["metrics"]["answer_quality"] == 1.0
+    assert result["metrics"]["subject_accuracy"] == {"Chemistry": 1.0}
 
 
 def test_llama_cpp_response_metrics_are_verified():

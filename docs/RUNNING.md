@@ -8,7 +8,7 @@ and command guide. The release sequence is deliberately staged:
 2. Start one Ray node with `control`, `llama_cpp`, and `gem5` resources.
 3. Run contract validation, validate-only, non-scheduling tests, and
    `git diff --check`.
-4. Confirm the OpenStax permission attestation, then run the fail-closed release
+4. Confirm the team-assessment permission attestation, then run the fail-closed release
    preflight. It verifies native runtime identity and performs a bounded
    five-cache Accelergy + McPAT round trip without running gem5 or Gemini.
 5. Run one deterministic smoke candidate and verify its manifest, completed run

@@ -15,6 +15,16 @@ REQUIRED_ENERGY_COMPONENTS = {
     "shared_l2",
 }
 
+CANONICAL_DATASET = {
+    "dataset_id": "openstax-aligned-team-assessment-250-v1",
+    "source_url": "https://openstax.org/",
+    "license": (
+        "Team-authored evaluation material; repository use authorized by contributor"
+    ),
+    "quality_method": "exact_option_text_accuracy",
+    "question_count": 250,
+}
+
 
 def verify_results(config, candidate_id, software, hardware, energy=None):
     energy = energy or (
@@ -135,10 +145,19 @@ def verify_results(config, candidate_id, software, hardware, energy=None):
         raise MetricsError("Software sample count differs from requested repetitions.")
     dataset = software.get("dataset", {})
     if (
-        dataset.get("dataset_id") != "openstax-college-physics-2e-ch4-concepts-v1"
-        or dataset.get("source_url") != "https://openstax.org/books/college-physics-2e/pages/4-conceptual-questions"
+        dataset.get("dataset_id") != CANONICAL_DATASET["dataset_id"]
+        or dataset.get("source_url") != CANONICAL_DATASET["source_url"]
         or dataset.get("reference_visible_to_model") is not False
-        or dataset.get("license") != "CC BY-NC-SA 4.0"
+        or dataset.get("license") != CANONICAL_DATASET["license"]
+        or dataset.get("quality_method") != CANONICAL_DATASET["quality_method"]
+        or sw.get("quality_method") != CANONICAL_DATASET["quality_method"]
+        or question_count != CANONICAL_DATASET["question_count"]
+        or not isinstance(dataset.get("source_description"), str)
+        or not dataset["source_description"].strip()
+        or any(
+            re.fullmatch(r"[0-9a-f]{64}", dataset.get(field, "")) is None
+            for field in ("questions_sha256", "references_sha256")
+        )
     ):
         raise MetricsError("Tutor dataset provenance or reference isolation is absent.")
     if hardware.get("correctness", {}).get("status") != "PASS" or not hardware[
@@ -191,7 +210,7 @@ def verify_results(config, candidate_id, software, hardware, energy=None):
         },
         "answer_quality": quality,
         "quality_evaluated": True,
-        "scope": "openstax_quality_plus_qwen_attention_proxy_plus_cache_dynamic_energy",
+        "scope": "team_assessment_accuracy_plus_qwen_attention_proxy_plus_cache_dynamic_energy",
         "comparison_group": {
             "context_tokens": config["workload"]["context_tokens"],
             "profile": config["profile"],

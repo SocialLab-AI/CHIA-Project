@@ -1,5 +1,14 @@
 # Results and evidence
 
+## Dataset transition
+
+The smoke and ten-candidate Gemini pilot documented below were produced at
+their recorded source commits with the earlier three-question concept-coverage
+dataset. The current release contract replaces that dataset with the
+250-question team-authored OpenStax-aligned assessment and exact option-text
+accuracy. Historical quality values remain valid for their recorded commits,
+but they must not be compared directly with results from the new evaluator.
+
 ## Verified one-candidate integration smoke
 
 The first complete final-profile smoke passed on 2026-09-21 at Git commit

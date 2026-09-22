@@ -284,11 +284,11 @@ def run_semantic_checks(verbose: bool = True) -> bool:
         ok = False
 
     # Evaluation isolation guardrail
-    if tutor_eval.get("reference_source") != "OpenStax College Physics 2e, Chapter 4 conceptual questions":
+    if tutor_eval.get("reference_source") != "Team-authored 250-question assessment aligned to OpenStax topic scope":
         if verbose:
             print(
                 "[FAIL] Evaluation reference source must be "
-                "the final OpenStax source, got "
+                "the final team-authored OpenStax-aligned source, got "
                 f"{tutor_eval.get('reference_source')}"
             )
         ok = False
@@ -393,18 +393,38 @@ def run_manifest_consistency_checks(verbose: bool = True) -> bool:
     attention = load_yaml(BASELINES_DIR / "attention.yaml")
     hardware = load_yaml(DESIGN_SPACES_DIR / "hardware.yaml")
     shared = campaign["study"]["shared_contracts"]
+    questions = load_json(ROOT / "data/questions/questions.json")
+    answers = load_json(ROOT / "data/references/answer_key.json")
+    answer_by_id = {item["id"]: item for item in answers["references"]}
+    correct_positions = [
+        question["options"].index(answer_by_id[question["id"]]["correct_answer"])
+        for question in questions["questions"]
+    ]
     reviewed_model_sha256 = (
         "041474553fcabfc2a2d67903f9d2c2e50bd92528e670da4f33b5d0ce6e59fd55"
     )
     ok = (
         tutor["software"]["model"] == "Qwen2.5 0.5B Instruct"
         and tutor["software"]["quantization"] == "Q5_K_M"
-        and tutor["workload"]["dataset_id"] == "openstax-college-physics-2e-ch4-concepts-v1"
-        and tutor["evaluation"]["license"] == "CC BY-NC-SA 4.0"
+        and tutor["workload"]["dataset_id"] == "openstax-aligned-team-assessment-250-v1"
+        and tutor["workload"]["num_questions"] == 250
+        and tutor["evaluation"]["license"] == "Team-authored evaluation material; repository use authorized by contributor"
         and attention["workload"]["query_heads"] == hardware["fixed"]["query_heads"] == 14
         and attention["workload"]["kv_heads"] == hardware["fixed"]["kv_heads"] == 2
         and attention["workload"]["head_dimension"] == hardware["fixed"]["head_dimension"] == 64
         and shared["dataset"] == "data/questions/questions.json"
+        and shared["dataset_reference"] == "data/references/answer_key.json"
+        and campaign["runtime"]["software"]["quality_method"] == "exact_option_text_accuracy"
+        and questions["dataset_id"] == answers["dataset_id"] == tutor["workload"]["dataset_id"]
+        and len(questions["questions"]) == len(answers["references"]) == 250
+        and len(answer_by_id) == 250
+        and [correct_positions.count(index) for index in range(4)] == [63, 63, 62, 62]
+        and all(
+            isinstance(question["options"], list)
+            and len(question["options"]) == 4
+            and "correct_answer" not in question
+            for question in questions["questions"]
+        )
         and len(shared["objectives"]) == 4
         and "energy" in campaign["runtime"]
         and campaign["runtime"]["software"]["assets_root"] == "/opt/chia/models"

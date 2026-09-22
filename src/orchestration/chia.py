@@ -15,7 +15,7 @@ from src.common.candidate import ROOT, Candidate
 from src.common.errors import ConfigError, failure
 from src.common.logging import utc_now
 from src.common.records import atomic_json, atomic_text, provenance
-from src.common.security import canonical, finite_number, local_endpoint, safe_id
+from src.common.security import canonical, finite_number, local_endpoint, safe_id, within
 from src.orchestration.dispatch import ChiaDispatcher, LocalDispatcher
 from src.orchestration.experiment import run_experiment
 from src.orchestration.policies import deterministic_candidates, pareto
@@ -155,6 +155,10 @@ def validate_campaign_config(value=None):
             "request_retries",
             "request_retry_delay_seconds",
             "dataset_permission_env",
+            "questions_path",
+            "references_path",
+            "dataset_id",
+            "quality_method",
         },
         "hardware": {
             "image",
@@ -273,6 +277,22 @@ def validate_campaign_config(value=None):
                 "runtime.software.dataset_permission_env must be "
                 "a valid environment variable name."
             )
+
+        for field in (
+            "questions_path",
+            "references_path",
+            "dataset_id",
+            "quality_method",
+        ):
+            item = runtime["software"].get(field)
+            if item is not None and (
+                not isinstance(item, str) or not item.strip()
+            ):
+                raise ConfigError(f"runtime.software.{field} must be nonempty text.")
+        for field in ("questions_path", "references_path"):
+            item = runtime["software"].get(field)
+            if item is not None:
+                within(ROOT, item, exists=True)
 
     if "hardware" in value.get("runtime", {}):
         tolerance = runtime["hardware"].get(
@@ -502,13 +522,26 @@ def chia_entrypoint(config=None, *, dispatcher=None):
         "machine_role": "CHIA head node",
     })
     campaign_provenance = provenance()
+    questions_path = runtime.get("software", {}).get(
+        "questions_path", "data/questions/questions.json"
+    )
+    references_path = runtime.get("software", {}).get(
+        "references_path", "data/references/answer_key.json"
+    )
     campaign_provenance.update({
         "campaign_config_sha256": hashlib.sha256(canonical(config).encode()).hexdigest(),
         "design_space_sha256": hashlib.sha256(
             (ROOT / "experiment-contracts/design-spaces/software.yaml").read_bytes()
             + (ROOT / "experiment-contracts/design-spaces/hardware.yaml").read_bytes()
         ).hexdigest(),
-        "dataset_sha256": hashlib.sha256((ROOT / "data/questions/questions.json").read_bytes()).hexdigest(),
+        "dataset_sha256": hashlib.sha256(
+            within(ROOT, questions_path, exists=True).read_bytes()
+        ).hexdigest(),
+        "dataset_reference_sha256": hashlib.sha256(
+            within(ROOT, references_path, exists=True).read_bytes()
+        ).hexdigest(),
+        "dataset_id": runtime.get("software", {}).get("dataset_id"),
+        "quality_method": runtime.get("software", {}).get("quality_method"),
         "model_sha256": runtime.get("software", {}).get("model_sha256"),
     })
     atomic_json(campaign_directory / "provenance.json", campaign_provenance)

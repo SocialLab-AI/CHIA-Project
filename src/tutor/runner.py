@@ -8,6 +8,7 @@ from src.common.candidate import Candidate, ROOT
 from src.common.errors import ConfigError, ExecutionTimeout
 from src.common.security import finite_number, within
 from src.tutor.evaluator import (
+    evaluate_exact_option_text,
     evaluate_required_concepts,
     load_evaluation_set,
 )
@@ -53,6 +54,19 @@ def software_failure(error):
     return result
 
 
+def format_question_prompt(question, method):
+    if method == "exact_option_text_accuracy":
+        options = "\n".join(f"- {option}" for option in question["options"])
+        return (
+            f"{question['question']}\n\n"
+            "Choose exactly one response from the unlabeled options below.\n"
+            f"{options}\n\n"
+            "Return only the complete response text. Do not add an option label, "
+            "explanation, or extra words."
+        )
+    return question["question"]
+
+
 def run_software_candidate(config, runtime=None, context=None):
     """Run one software candidate against the complete evaluation set.
 
@@ -80,7 +94,8 @@ def run_software_candidate(config, runtime=None, context=None):
     permission_env = runtime.get("dataset_permission_env")
     if permission_env and os.getenv(permission_env) != "1":
         raise ConfigError(
-            f"OpenStax LLM-use permission is not attested; set {permission_env}=1 only after permission is confirmed."
+            f"Dataset LLM-use permission is not attested; set {permission_env}=1 "
+            "only after permission is confirmed."
         )
 
     # ---------------------------------------------------------
@@ -178,7 +193,22 @@ def run_software_candidate(config, runtime=None, context=None):
         "prompts/tutor_system.txt"
     )
 
-    evaluation_set = load_evaluation_set()
+    evaluation_set = load_evaluation_set(
+        runtime.get("questions_path", "data/questions/questions.json"),
+        runtime.get("references_path", "data/references/answer_key.json"),
+    )
+    expected_dataset_id = runtime.get("dataset_id")
+    expected_quality_method = runtime.get("quality_method")
+    if (
+        expected_dataset_id
+        and evaluation_set["dataset_id"] != expected_dataset_id
+    ):
+        raise ConfigError("Loaded evaluation dataset ID differs from the campaign contract.")
+    if (
+        expected_quality_method
+        and evaluation_set["method"] != expected_quality_method
+    ):
+        raise ConfigError("Loaded quality method differs from the campaign contract.")
 
     repetitions = config[
         "measurement"
@@ -197,6 +227,8 @@ def run_software_candidate(config, runtime=None, context=None):
 
     samples = []
     quality_results = []
+    subject_quality = {}
+    selected_position_counts = {"1": 0, "2": 0, "3": 0, "4": 0, "invalid": 0}
 
     completed_samples = 0
 
@@ -298,9 +330,10 @@ def run_software_candidate(config, runtime=None, context=None):
                         "endpoint"
                     ],
                     system_prompt=prompt,
-                    user_prompt=question[
-                        "question"
-                    ],
+                    user_prompt=format_question_prompt(
+                        question,
+                        evaluation_set["method"],
+                    ),
                     **mapping["request"],
                     timeout=per_request_timeout,
                     max_attempts=request_retries + 1,
@@ -401,14 +434,17 @@ def run_software_candidate(config, runtime=None, context=None):
             # Deterministic quality evaluation
             # -------------------------------------------------
 
-            quality = (
-                evaluate_required_concepts(
+            if evaluation_set["method"] == "exact_option_text_accuracy":
+                quality = evaluate_exact_option_text(
                     answer,
-                    reference[
-                        "required_concepts"
-                    ],
+                    question["options"],
+                    reference["correct_answer"],
                 )
-            )
+            else:
+                quality = evaluate_required_concepts(
+                    answer,
+                    reference["required_concepts"],
+                )
 
             wall_latency_ms = (
                 (
@@ -447,6 +483,7 @@ def run_software_candidate(config, runtime=None, context=None):
                 request_attempts=(
                     attempt_events
                 ),
+                subject=question.get("subject"),
             )
 
             samples.append(
@@ -456,6 +493,13 @@ def run_software_candidate(config, runtime=None, context=None):
             quality_results.append(
                 quality["score"]
             )
+            subject = question.get("subject", "unspecified")
+            subject_quality.setdefault(subject, []).append(quality["score"])
+            if evaluation_set["method"] == "exact_option_text_accuracy":
+                selected_position = quality.get("selected_position")
+                selected_position_counts[
+                    str(selected_position) if selected_position in {1, 2, 3, 4} else "invalid"
+                ] += 1
 
             completed_samples += 1
 
@@ -486,13 +530,26 @@ def run_software_candidate(config, runtime=None, context=None):
         samples
     )
 
+    correct_position_counts = {"1": 0, "2": 0, "3": 0, "4": 0}
+    if evaluation_set["method"] == "exact_option_text_accuracy":
+        for item in evaluation_set["items"]:
+            options = item["question"]["options"]
+            correct_answer = item["reference"]["correct_answer"]
+            position = options.index(correct_answer) + 1
+            correct_position_counts[str(position)] += 1
+        majority_position_baseline = (
+            max(correct_position_counts.values()) / question_count
+        )
+    else:
+        majority_position_baseline = None
+
     summary.update(
         answer_quality=(
             sum(quality_results)
             / len(quality_results)
         ),
         quality_method=(
-            "required_concept_coverage"
+            evaluation_set["method"]
         ),
         question_count=(
             question_count
@@ -511,6 +568,15 @@ def run_software_candidate(config, runtime=None, context=None):
             sample["request_retry_count"]
             for sample in samples
         ),
+        correct_answer_count=int(sum(quality_results)),
+        subject_accuracy={
+            subject: sum(values) / len(values)
+            for subject, values in sorted(subject_quality.items())
+        },
+        selected_position_counts=selected_position_counts,
+        correct_position_counts=correct_position_counts,
+        uniform_position_baseline=0.25,
+        majority_correct_position_baseline=majority_position_baseline,
     )
 
     # ---------------------------------------------------------
@@ -551,6 +617,10 @@ def run_software_candidate(config, runtime=None, context=None):
             "reference_visible_to_model": (
                 False
             ),
+            "quality_method": evaluation_set["method"],
+            "questions_sha256": evaluation_set["questions_sha256"],
+            "references_sha256": evaluation_set["references_sha256"],
+            "source_description": evaluation_set["source_description"],
         },
         "prompt_sha256": (
             hashlib.sha256(

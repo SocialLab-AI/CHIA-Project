@@ -3,7 +3,7 @@
 This repository implements a bounded CHIA loop that compares Gemini-guided and
 seeded-random search over one shared hardware/software design space. A single
 candidate is evaluated by native Qwen inference, a gem5 attention proxy, an
-Accelergy + McPAT cache-energy estimator, and an OpenStax quality evaluator.
+Accelergy + McPAT cache-energy estimator, and a 250-question assessment evaluator.
 The four measurements remain separate Pareto objectives.
 
 This README explains the project and reproduces the complete loop on one
@@ -24,7 +24,7 @@ three-candidate pilots.
 | Native model | Qwen2.5-0.5B-Instruct Q5_K_M |
 | Model file | `qwen2.5-0.5b-instruct-q5_k_m.gguf` |
 | Model SHA-256 | `041474553fcabfc2a2d67903f9d2c2e50bd92528e670da4f33b5d0ce6e59fd55` |
-| Dataset | Repository OpenStax questions only |
+| Dataset | 250 team-authored questions aligned to five OpenStax textbooks |
 | Proxy | packed-Q4 attention with 14 query heads, 2 KV heads, and head dimension 64 |
 | gem5 image | `ghcr.io/gem5/devcontainer:v25-1` |
 | Energy image | `chia-energy-tools:0.3` |
@@ -40,9 +40,11 @@ The energy objective covers dynamic access energy for two L1 instruction
 caches, two L1 data caches, and one shared L2 cache. It excludes processor-core
 logic, DRAM, interconnect, TLBs, static/leakage energy, and native Qwen energy.
 
-The quality metric is required-concept coverage over repository OpenStax
-questions. It uses token-aware matching and isolated references. It is not a
-claim of complete factual correctness.
+The quality metric is exact answer-text accuracy over 250 unlabeled,
+deterministically shuffled multiple-choice questions. The answer key is
+isolated from model prompts. Results also report per-subject accuracy and
+answer-position diagnostics. This measures assessment accuracy rather than
+complete educational or open-ended reasoning quality.
 
 ## Execution flow
 
@@ -386,15 +388,15 @@ the real native, gem5, or energy workloads.
 
 ## 10. Run the release preflight
 
-OpenStax permission is an operator attestation. Set the variable only after the
-required LLM-use permission is confirmed for the campaign.
+Dataset permission is an operator attestation. Set the variable only after the
+team-provided assessment is approved for the campaign.
 
 ```bash
 cd "$HOME/CHIA-Project"
 source "$HOME/.local/bin/env"
 source .venv/bin/activate
 export CHIA_CONFIG="$HOME/.local/state/chia/final-burst.single-server.local.yaml"
-export OPENSTAX_LLM_PERMISSION_CONFIRMED=1
+export TEAM_ASSESSMENT_LLM_PERMISSION_CONFIRMED=1
 
 uv run python scripts/preflight_release.py \
   --config "$CHIA_CONFIG"
@@ -412,7 +414,7 @@ cd "$HOME/CHIA-Project"
 source "$HOME/.local/bin/env"
 source .venv/bin/activate
 export CHIA_CONFIG="$HOME/.local/state/chia/final-burst.single-server.local.yaml"
-export OPENSTAX_LLM_PERMISSION_CONFIRMED=1
+export TEAM_ASSESSMENT_LLM_PERMISSION_CONFIRMED=1
 
 if [ -d results/final-burst-smoke ]; then
   mv results/final-burst-smoke \
@@ -426,7 +428,9 @@ uv run python scripts/run_experiment.py \
 
 `--smoke` evaluates exactly one candidate and disables both proposers. It does
 not perform multiple CHIA iterations or call Gemini. Software measurement may
-still contain multiple question samples inside that single candidate.
+still contain 250 question samples inside that single candidate. Reserve at
+least one hour for the first 250-question smoke and use its observed duration
+to size later campaign budgets.
 
 The smoke is complete only when the whole chain succeeds:
 
@@ -502,7 +506,7 @@ cd "$HOME/CHIA-Project"
 source "$HOME/.local/bin/env"
 source .venv/bin/activate
 export CHIA_CONFIG="$HOME/.local/state/chia/final-burst.single-server.local.yaml"
-export OPENSTAX_LLM_PERMISSION_CONFIRMED=1
+export TEAM_ASSESSMENT_LLM_PERMISSION_CONFIRMED=1
 
 uv run python scripts/run_experiment.py \
   --config "$CHIA_CONFIG" \
@@ -576,7 +580,7 @@ configuration persist across restarts.
 experiment-contracts/  schemas, campaign, design spaces, policy
 src/                   validation, CHIA graph, runtimes, evaluation, records
 gem5/                  attention proxy and gem5 configuration
-data/                  OpenStax questions and isolated evaluator references
+data/                  250-question assessment and isolated evaluator answer key
 infra/energy/          pinned Accelergy + McPAT image and wrapper
 scripts/               validation, preflight, and campaign entry points
 docs/                  architecture, methodology, operations, results, limits

@@ -7,9 +7,9 @@ metadata:
   artifact_manifest: "server-local artifact verified by SHA-256 at runtime"
 
 workload:
-  dataset_id: "openstax-college-physics-2e-ch4-concepts-v1"
-  evaluation_protocol: "openstax-required-concept-coverage-v1"
-  num_questions: 3
+  dataset_id: "openstax-aligned-team-assessment-250-v1"
+  evaluation_protocol: "exact-option-text-accuracy-v1"
+  num_questions: 250
   seed: 42
 
 software:
@@ -35,17 +35,17 @@ software:
 
 evaluation:
   questions_file: "data/questions/questions.json"
-  references_file: "data/references/openstax.json"
+  references_file: "data/references/answer_key.json"
 
-  reference_source: "OpenStax College Physics 2e, Chapter 4 conceptual questions"
-  source_url: "https://openstax.org/books/college-physics-2e/pages/4-conceptual-questions"
-  license: "CC BY-NC-SA 4.0"
+  reference_source: "Team-authored 250-question assessment aligned to OpenStax topic scope"
+  source_url: "https://openstax.org/"
+  license: "Team-authored evaluation material; repository use authorized by contributor"
   reference_visible_to_model: false
 
-  comparison_method: "required_concept_coverage"
-  similarity_metric: "matched_required_concept_groups"
+  comparison_method: "exact_option_text_accuracy"
+  similarity_metric: "normalized_exact_option_text"
 
-  sample_limit: 100
+  sample_limit: 250
 
 proxy_evaluation:
   type: "attention_kernel"
@@ -63,4 +63,4 @@ status:
   state: "validated"
   message: >
     Software baseline values are resolved.
-    Runtime adapter and mixed educational QA evaluation set are implemented.
+    Runtime adapter and the five-subject 250-question evaluation set are implemented.
