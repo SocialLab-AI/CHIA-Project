@@ -95,8 +95,52 @@ The reviewed evidence and complete candidate table are under
 `docs/experiments/evidence/final-burst-gemini-20260921/`.
 
 This is a Gemini-guided pilot rather than the final optimizer comparison. It
-does not establish that Gemini outperforms random search. The matching
-ten-candidate seeded-random campaign remains required.
+does not establish that Gemini outperforms random search. The matched
+250-question comparison documented below supersedes it for method comparison.
+
+## Matched Gemini-versus-random comparison
+
+The first matched comparison completed on 2026-09-22. Seeded random and
+Gemini-guided search each evaluated ten candidates with the 250-question exact
+option-text evaluator. All 20 records completed and passed the repository's
+completed-record validator. Both execution-server manifests passed, and each
+stored per-campaign Pareto frontier matched an independent recomputation.
+
+| Field | Seeded random | Gemini-guided |
+| --- | ---: | ---: |
+| Completed candidates | 10 | 10 |
+| Per-campaign Pareto candidates | 6 | 6 |
+| Combined-frontier contribution | 6 | 6 |
+| Best native latency | 1258.766 ms | **1251.860 ms** |
+| Best proxy simulated time | 0.019325 s | **0.019288 s** |
+| Best cache dynamic energy | **6429.489 uJ** | 8370.200 uJ |
+| Best exact option-text accuracy | **46.0%** | 45.2% |
+| Campaign wall time | 9835.876 s | 9173.489 s |
+| Proposal failures | 0 | 0 |
+
+There is no single overall winner under this ten-candidate budget. Each method
+contributed six candidates to the combined 12-candidate frontier. Gemini found
+the best observed native-latency and proxy-time candidates; random found the
+best observed quality and cache-energy candidates. Random dominated four
+Gemini candidates, while Gemini dominated two random candidates, but this
+secondary coverage result does not erase the equal frontier contribution or
+the split objective winners.
+
+The model, dataset hashes, design space, evaluator, proxy, energy estimator,
+runtime versions, budgets, stopping rules, and deterministic evaluation source
+hashes match. The campaign Git commits differ because the later Gemini run used
+the corrected four-objective proposer prompt in
+`src/orchestration/gemini_api.py`; that method-specific proposer is the only
+recorded runtime source-hash difference. The evidence is therefore useful for
+this observed comparison, with that provenance qualification stated.
+
+The reviewed evidence, all 20 candidate rows, individual and combined
+frontiers, proposal accounting, provenance comparison, and integrity hashes
+are under
+`docs/experiments/evidence/final-burst-250q-gemini-vs-random-20260922/`.
+This single 10-versus-10 study does not establish statistical superiority or a
+global optimum. Multiple matched repetitions are required for a stronger
+method-level claim.
 
 ## Campaign evidence layout
 

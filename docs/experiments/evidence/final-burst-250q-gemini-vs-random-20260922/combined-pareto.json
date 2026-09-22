@@ -1,0 +1,162 @@
+{
+  "candidate_ids": [
+    "ef0ca70e74d7a70fa91b5fc93df8e50f58852458f5681082d6993bd97e01e5ae",
+    "21b26804e54b5bbeaec4eb8a9156cd8ffd1a66666010249dc27fd71b5897137c",
+    "a807b2fccb9bdf948d5bc9eb06ef9a47927b5a144f778700c3494776af9710fd",
+    "3f8c3e7b96087ab6508a81faa22f5074abd77d11fb289fab382ca1f7d3143230",
+    "a8aece3ab324ae60d9df5bcb93624171523ed54e6f81bed72f79b423c00b5627",
+    "dcd398b97799ea4f2d402ef79476572dc5b560d56d3dfb5a18e91360eacd82b3",
+    "69f8f3fc7533fdd7f438c7fa00f69d4dc4385de79fb881d61d4d192867457a8b",
+    "15fe705f0118644184a420f589660f1dc556371ff22859bca1e0224c5cdb18e0",
+    "31bc861e29fd6edba91291985564f08f53f044247eb2f573a942d5f451c7af76",
+    "9db06aec74d2d57cd13dbfeb52c091bc56614484a79073b28264fa1a2d7c22e3",
+    "0f94ff2379d8002c422f2de4b25b1c3c1ef2cfdc27c671777dd7a63d99d07f80",
+    "0ac06dfc44313cf5438f10cd4a0bbce9f0498529476806b7c3b8ecc783d98cd4"
+  ],
+  "records": [
+    {
+      "candidate_id": "ef0ca70e74d7a70fa91b5fc93df8e50f58852458f5681082d6993bd97e01e5ae",
+      "iteration": 1,
+      "method": "random",
+      "objectives": {
+        "answer_quality_loss": 0.556,
+        "estimated_cache_dynamic_energy_uj": 6721.45164047038,
+        "native_latency_ms": 1274.3521084994427,
+        "proxy_simulated_seconds": 0.025083
+      },
+      "run_id": "run-0e91020139b449a386f6e6fdf7b9bd22"
+    },
+    {
+      "candidate_id": "21b26804e54b5bbeaec4eb8a9156cd8ffd1a66666010249dc27fd71b5897137c",
+      "iteration": 2,
+      "method": "random",
+      "objectives": {
+        "answer_quality_loss": 0.54,
+        "estimated_cache_dynamic_energy_uj": 10376.6958690586,
+        "native_latency_ms": 1288.6104904973763,
+        "proxy_simulated_seconds": 0.138634
+      },
+      "run_id": "run-cc40839000c842b883b549152149568c"
+    },
+    {
+      "candidate_id": "a807b2fccb9bdf948d5bc9eb06ef9a47927b5a144f778700c3494776af9710fd",
+      "iteration": 3,
+      "method": "random",
+      "objectives": {
+        "answer_quality_loss": 0.5800000000000001,
+        "estimated_cache_dynamic_energy_uj": 17469.07330178875,
+        "native_latency_ms": 1258.7659484997857,
+        "proxy_simulated_seconds": 0.019325
+      },
+      "run_id": "run-395bd9a52962495b91861eca9bdc6932"
+    },
+    {
+      "candidate_id": "3f8c3e7b96087ab6508a81faa22f5074abd77d11fb289fab382ca1f7d3143230",
+      "iteration": 7,
+      "method": "random",
+      "objectives": {
+        "answer_quality_loss": 0.552,
+        "estimated_cache_dynamic_energy_uj": 18130.061988544498,
+        "native_latency_ms": 1271.69967500231,
+        "proxy_simulated_seconds": 0.022871
+      },
+      "run_id": "run-324569c49ed54e459185dcf511971771"
+    },
+    {
+      "candidate_id": "a8aece3ab324ae60d9df5bcb93624171523ed54e6f81bed72f79b423c00b5627",
+      "iteration": 8,
+      "method": "random",
+      "objectives": {
+        "answer_quality_loss": 0.556,
+        "estimated_cache_dynamic_energy_uj": 6429.489125920599,
+        "native_latency_ms": 1277.6821160005056,
+        "proxy_simulated_seconds": 0.022407
+      },
+      "run_id": "run-69f9b4401e874acd990c9a2943eb219a"
+    },
+    {
+      "candidate_id": "dcd398b97799ea4f2d402ef79476572dc5b560d56d3dfb5a18e91360eacd82b3",
+      "iteration": 10,
+      "method": "random",
+      "objectives": {
+        "answer_quality_loss": 0.552,
+        "estimated_cache_dynamic_energy_uj": 9410.43845658394,
+        "native_latency_ms": 1307.903715503926,
+        "proxy_simulated_seconds": 0.022404
+      },
+      "run_id": "run-71796db39aaa4fef9e13266653b4de51"
+    },
+    {
+      "candidate_id": "69f8f3fc7533fdd7f438c7fa00f69d4dc4385de79fb881d61d4d192867457a8b",
+      "iteration": 2,
+      "method": "gemini",
+      "objectives": {
+        "answer_quality_loss": 0.608,
+        "estimated_cache_dynamic_energy_uj": 17827.216033585,
+        "native_latency_ms": 1267.316531491815,
+        "proxy_simulated_seconds": 0.019288
+      },
+      "run_id": "run-ce6ec655d4c84a2b8214c92043f05e60"
+    },
+    {
+      "candidate_id": "15fe705f0118644184a420f589660f1dc556371ff22859bca1e0224c5cdb18e0",
+      "iteration": 3,
+      "method": "gemini",
+      "objectives": {
+        "answer_quality_loss": 0.548,
+        "estimated_cache_dynamic_energy_uj": 9196.877177641249,
+        "native_latency_ms": 1251.8601389965625,
+        "proxy_simulated_seconds": 0.043733
+      },
+      "run_id": "run-7f12d3d60bd246ab9ae61a21720afc53"
+    },
+    {
+      "candidate_id": "31bc861e29fd6edba91291985564f08f53f044247eb2f573a942d5f451c7af76",
+      "iteration": 4,
+      "method": "gemini",
+      "objectives": {
+        "answer_quality_loss": 0.552,
+        "estimated_cache_dynamic_energy_uj": 8570.55622163812,
+        "native_latency_ms": 1293.0073914976674,
+        "proxy_simulated_seconds": 0.029344
+      },
+      "run_id": "run-ccbfeb7fa9d7490c9f8f5c1059552d09"
+    },
+    {
+      "candidate_id": "9db06aec74d2d57cd13dbfeb52c091bc56614484a79073b28264fa1a2d7c22e3",
+      "iteration": 5,
+      "method": "gemini",
+      "objectives": {
+        "answer_quality_loss": 0.548,
+        "estimated_cache_dynamic_energy_uj": 8370.1997712326,
+        "native_latency_ms": 1277.3168529965915,
+        "proxy_simulated_seconds": 0.085479
+      },
+      "run_id": "run-3900d6af6de94b55a461b89210f33867"
+    },
+    {
+      "candidate_id": "0f94ff2379d8002c422f2de4b25b1c3c1ef2cfdc27c671777dd7a63d99d07f80",
+      "iteration": 9,
+      "method": "gemini",
+      "objectives": {
+        "answer_quality_loss": 0.56,
+        "estimated_cache_dynamic_energy_uj": 8370.1997712326,
+        "native_latency_ms": 1264.9442944966722,
+        "proxy_simulated_seconds": 0.085479
+      },
+      "run_id": "run-917e9858545c47329935a6a47ca30289"
+    },
+    {
+      "candidate_id": "0ac06dfc44313cf5438f10cd4a0bbce9f0498529476806b7c3b8ecc783d98cd4",
+      "iteration": 10,
+      "method": "gemini",
+      "objectives": {
+        "answer_quality_loss": 0.56,
+        "estimated_cache_dynamic_energy_uj": 9430.439586809,
+        "native_latency_ms": 1274.087496996799,
+        "proxy_simulated_seconds": 0.022886
+      },
+      "run_id": "run-90d1088226c4416ebdcf3bf9046fe7a1"
+    }
+  ]
+}

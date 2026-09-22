@@ -1,0 +1,233 @@
+{
+  "best_observed": {
+    "answer_quality_loss": {
+      "candidates": [
+        {
+          "candidate_id": "21b26804e54b5bbeaec4eb8a9156cd8ffd1a66666010249dc27fd71b5897137c",
+          "iteration": 2,
+          "method": "random"
+        }
+      ],
+      "value": 0.54
+    },
+    "estimated_cache_dynamic_energy_uj": {
+      "candidates": [
+        {
+          "candidate_id": "a8aece3ab324ae60d9df5bcb93624171523ed54e6f81bed72f79b423c00b5627",
+          "iteration": 8,
+          "method": "random"
+        }
+      ],
+      "value": 6429.489125920599
+    },
+    "native_latency_ms": {
+      "candidates": [
+        {
+          "candidate_id": "15fe705f0118644184a420f589660f1dc556371ff22859bca1e0224c5cdb18e0",
+          "iteration": 3,
+          "method": "gemini"
+        }
+      ],
+      "value": 1251.8601389965625
+    },
+    "proxy_simulated_seconds": {
+      "candidates": [
+        {
+          "candidate_id": "69f8f3fc7533fdd7f438c7fa00f69d4dc4385de79fb881d61d4d192867457a8b",
+          "iteration": 2,
+          "method": "gemini"
+        }
+      ],
+      "value": 0.019288
+    }
+  },
+  "combined_frontier": {
+    "candidate_ids": [
+      "ef0ca70e74d7a70fa91b5fc93df8e50f58852458f5681082d6993bd97e01e5ae",
+      "21b26804e54b5bbeaec4eb8a9156cd8ffd1a66666010249dc27fd71b5897137c",
+      "a807b2fccb9bdf948d5bc9eb06ef9a47927b5a144f778700c3494776af9710fd",
+      "3f8c3e7b96087ab6508a81faa22f5074abd77d11fb289fab382ca1f7d3143230",
+      "a8aece3ab324ae60d9df5bcb93624171523ed54e6f81bed72f79b423c00b5627",
+      "dcd398b97799ea4f2d402ef79476572dc5b560d56d3dfb5a18e91360eacd82b3",
+      "69f8f3fc7533fdd7f438c7fa00f69d4dc4385de79fb881d61d4d192867457a8b",
+      "15fe705f0118644184a420f589660f1dc556371ff22859bca1e0224c5cdb18e0",
+      "31bc861e29fd6edba91291985564f08f53f044247eb2f573a942d5f451c7af76",
+      "9db06aec74d2d57cd13dbfeb52c091bc56614484a79073b28264fa1a2d7c22e3",
+      "0f94ff2379d8002c422f2de4b25b1c3c1ef2cfdc27c671777dd7a63d99d07f80",
+      "0ac06dfc44313cf5438f10cd4a0bbce9f0498529476806b7c3b8ecc783d98cd4"
+    ],
+    "contribution": {
+      "gemini": 6,
+      "random": 6
+    },
+    "count": 12
+  },
+  "comparison_stamp": "20260922T100532Z",
+  "conclusion": {
+    "claim_boundary": "This single seeded 10-versus-10 study does not establish statistical superiority or a global optimum.",
+    "classification": "complementary_tradeoffs_under_equal_10_candidate_budgets",
+    "reason": "Each method contributes six candidates to the combined 12-candidate frontier. Gemini owns the best observed native latency and proxy time; random owns the best observed quality and cache dynamic energy.",
+    "secondary_observations": {
+      "gemini_cross_method_coverage": 0.2,
+      "gemini_estimated_api_cost_usd": 0.00971025,
+      "gemini_wall_time_percent_lower_than_random": 6.734392530912619,
+      "gemini_wall_time_seconds_lower": 662.3864692109928,
+      "random_cross_method_coverage": 0.4
+    },
+    "winner": "no_single_overall_winner"
+  },
+  "cross_method_dominance": {
+    "gemini": {
+      "candidate_ids": [
+        "85f7e15f50c985e7bae1049495d38b4b36caeb306e195d88ff64ac6723b0d659",
+        "f78804c6a2ca2cb8786cba6bd11faf0d73efc722b9a752ed000271471854acfd"
+      ],
+      "opposing_candidates_dominated": 2,
+      "opposing_fraction": 0.2
+    },
+    "random": {
+      "candidate_ids": [
+        "05d1bbca5e49755801aae96f81874b595fc200a9f3c1f25c5fcdcbd9c259de3b",
+        "09334636d32826683868d327f06c9a8f36d98df42ccf7df1de38f4d39d5b2887",
+        "1a9cad86cb5a415523095a667251877f4ecfef348b14a52606a8bde110179bb4",
+        "5d19d3348aa25c3a99d3c117d0fd1aef8fc182e689664f3bb3cd697a3d08cf69"
+      ],
+      "opposing_candidates_dominated": 4,
+      "opposing_fraction": 0.4
+    }
+  },
+  "descriptive_statistics": {
+    "gemini": {
+      "answer_quality_loss": {
+        "maximum": 0.608,
+        "mean": 0.5616000000000001,
+        "median": 0.56,
+        "minimum": 0.548
+      },
+      "estimated_cache_dynamic_energy_uj": {
+        "maximum": 28499.052077151504,
+        "mean": 13420.697383140772,
+        "median": 9313.658382225123,
+        "minimum": 8370.1997712326
+      },
+      "native_latency_ms": {
+        "maximum": 1379.7371465043398,
+        "mean": 1294.0051549980126,
+        "median": 1285.1621222471294,
+        "minimum": 1251.8601389965625
+      },
+      "proxy_simulated_seconds": {
+        "maximum": 0.362356,
+        "mean": 0.0800064,
+        "median": 0.043733,
+        "minimum": 0.019288
+      }
+    },
+    "random": {
+      "answer_quality_loss": {
+        "maximum": 0.5800000000000001,
+        "mean": 0.5568000000000001,
+        "median": 0.556,
+        "minimum": 0.54
+      },
+      "estimated_cache_dynamic_energy_uj": {
+        "maximum": 39115.14271557185,
+        "mean": 12989.997639702502,
+        "median": 9084.77403413847,
+        "minimum": 6429.489125920599
+      },
+      "native_latency_ms": {
+        "maximum": 1313.4201420034515,
+        "mean": 1288.6381578995497,
+        "median": 1292.4700772455253,
+        "minimum": 1258.7659484997857
+      },
+      "proxy_simulated_seconds": {
+        "maximum": 0.138634,
+        "mean": 0.0503734,
+        "median": 0.024645,
+        "minimum": 0.019325
+      }
+    }
+  },
+  "method_best_values": {
+    "gemini": {
+      "answer_quality": 0.452,
+      "answer_quality_loss": 0.548,
+      "estimated_cache_dynamic_energy_uj": 8370.1997712326,
+      "native_latency_ms": 1251.8601389965625,
+      "proxy_simulated_seconds": 0.019288
+    },
+    "random": {
+      "answer_quality": 0.46,
+      "answer_quality_loss": 0.54,
+      "estimated_cache_dynamic_energy_uj": 6429.489125920599,
+      "native_latency_ms": 1258.7659484997857,
+      "proxy_simulated_seconds": 0.019325
+    }
+  },
+  "methods": {
+    "gemini": {
+      "campaign_id": "final-burst-250q-gemini-10-20260922T100532Z",
+      "completed_candidates": 10,
+      "elapsed_seconds": 9173.489092994001,
+      "frontier_candidate_ids": [
+        "69f8f3fc7533fdd7f438c7fa00f69d4dc4385de79fb881d61d4d192867457a8b",
+        "15fe705f0118644184a420f589660f1dc556371ff22859bca1e0224c5cdb18e0",
+        "31bc861e29fd6edba91291985564f08f53f044247eb2f573a942d5f451c7af76",
+        "9db06aec74d2d57cd13dbfeb52c091bc56614484a79073b28264fa1a2d7c22e3",
+        "0f94ff2379d8002c422f2de4b25b1c3c1ef2cfdc27c671777dd7a63d99d07f80",
+        "0ac06dfc44313cf5438f10cd4a0bbce9f0498529476806b7c3b8ecc783d98cd4"
+      ],
+      "state": "completed",
+      "stop_reason": "iteration_limit",
+      "stored_frontier_matches_recomputation": true
+    },
+    "random": {
+      "campaign_id": "final-burst-250q-random-10-20260922T100532Z",
+      "completed_candidates": 10,
+      "elapsed_seconds": 9835.875562204994,
+      "frontier_candidate_ids": [
+        "ef0ca70e74d7a70fa91b5fc93df8e50f58852458f5681082d6993bd97e01e5ae",
+        "21b26804e54b5bbeaec4eb8a9156cd8ffd1a66666010249dc27fd71b5897137c",
+        "a807b2fccb9bdf948d5bc9eb06ef9a47927b5a144f778700c3494776af9710fd",
+        "3f8c3e7b96087ab6508a81faa22f5074abd77d11fb289fab382ca1f7d3143230",
+        "a8aece3ab324ae60d9df5bcb93624171523ed54e6f81bed72f79b423c00b5627",
+        "dcd398b97799ea4f2d402ef79476572dc5b560d56d3dfb5a18e91360eacd82b3"
+      ],
+      "state": "completed",
+      "stop_reason": "iteration_limit",
+      "stored_frontier_matches_recomputation": true
+    }
+  },
+  "provenance_equivalence": {
+    "dataset_id_equal": true,
+    "dataset_reference_sha256_equal": true,
+    "dataset_sha256_equal": true,
+    "design_space_sha256_equal": true,
+    "environment_equal": true,
+    "gemini_git_commit": "bf4ae62791678e3eb452cff92cc9c436829148ee",
+    "git_commits_equal": false,
+    "model_sha256_equal": true,
+    "quality_method_equal": true,
+    "random_git_commit": "12e50b424724efdc92f554db11f820679d227b2e",
+    "runtime_versions_equal": true,
+    "shared_contracts_equal": true,
+    "source_difference_assessment": "Only src/orchestration/gemini_api.py differs. The later Gemini run used the four-objective proposer prompt. All deterministic candidate validation, native evaluation, gem5, energy, evaluation, record, and Pareto source hashes match.",
+    "source_hash_differences": [
+      "src/orchestration/gemini_api.py"
+    ]
+  },
+  "schema_version": "1.0.0",
+  "validation": {
+    "all_completed": true,
+    "all_feasible": true,
+    "all_objectives_finite": true,
+    "candidate_ids_match": true,
+    "candidate_ids_unique": true,
+    "comparison_groups_equal": true,
+    "record_count": 20,
+    "repository_completed_record_validation": "20/20 passed",
+    "server_manifests_passed": true
+  }
+}

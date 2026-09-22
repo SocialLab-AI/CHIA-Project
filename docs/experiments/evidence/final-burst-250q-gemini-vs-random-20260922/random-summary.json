@@ -1,0 +1,164 @@
+{
+  "backend": "local",
+  "campaign_id": "final-burst-250q-random-10-20260922T100532Z",
+  "elapsed_seconds": 9835.875562204994,
+  "ended_at": "2026-09-22T12:50:19.957520+00:00",
+  "gemini_usage_total": {
+    "accepted_proposals": 0,
+    "candidate_tokens": 0,
+    "duplicates": 0,
+    "estimated_cost_usd": 0.0,
+    "fallback_count": 0,
+    "input_tokens": 0,
+    "malformed_responses": 0,
+    "output_tokens": 0,
+    "rejected_proposals": 0,
+    "request_count": 0,
+    "retry_count": 0,
+    "thought_tokens": 0,
+    "total_tokens": 0,
+    "unmetered_request_failures": 0
+  },
+  "mode": "chia",
+  "optimizer_budget_remaining_usd": null,
+  "optimizer_budget_usd": null,
+  "optimizer_calls": 10,
+  "optimizer_events": [
+    {
+      "call": 1,
+      "candidate_id": "ef0ca70e74d7a70fa91b5fc93df8e50f58852458f5681082d6993bd97e01e5ae",
+      "request_count": 0,
+      "seed": 20260921,
+      "status": "accepted"
+    },
+    {
+      "call": 2,
+      "candidate_id": "21b26804e54b5bbeaec4eb8a9156cd8ffd1a66666010249dc27fd71b5897137c",
+      "request_count": 0,
+      "seed": 20260921,
+      "status": "accepted"
+    },
+    {
+      "call": 3,
+      "candidate_id": "a807b2fccb9bdf948d5bc9eb06ef9a47927b5a144f778700c3494776af9710fd",
+      "request_count": 0,
+      "seed": 20260921,
+      "status": "accepted"
+    },
+    {
+      "call": 4,
+      "candidate_id": "4211c55b16216652cff2aa14a817944a377133601d803ff101df78ead481da90",
+      "request_count": 0,
+      "seed": 20260921,
+      "status": "accepted"
+    },
+    {
+      "call": 5,
+      "candidate_id": "f78804c6a2ca2cb8786cba6bd11faf0d73efc722b9a752ed000271471854acfd",
+      "request_count": 0,
+      "seed": 20260921,
+      "status": "accepted"
+    },
+    {
+      "call": 6,
+      "candidate_id": "5ccf31895fc68f41112bfdcef488c02e3a171841209f941b38a4fdd14862e43e",
+      "request_count": 0,
+      "seed": 20260921,
+      "status": "accepted"
+    },
+    {
+      "call": 7,
+      "candidate_id": "3f8c3e7b96087ab6508a81faa22f5074abd77d11fb289fab382ca1f7d3143230",
+      "request_count": 0,
+      "seed": 20260921,
+      "status": "accepted"
+    },
+    {
+      "call": 8,
+      "candidate_id": "a8aece3ab324ae60d9df5bcb93624171523ed54e6f81bed72f79b423c00b5627",
+      "request_count": 0,
+      "seed": 20260921,
+      "status": "accepted"
+    },
+    {
+      "call": 9,
+      "candidate_id": "85f7e15f50c985e7bae1049495d38b4b36caeb306e195d88ff64ac6723b0d659",
+      "request_count": 0,
+      "seed": 20260921,
+      "status": "accepted"
+    },
+    {
+      "call": 10,
+      "candidate_id": "dcd398b97799ea4f2d402ef79476572dc5b560d56d3dfb5a18e91360eacd82b3",
+      "request_count": 0,
+      "seed": 20260921,
+      "status": "accepted"
+    }
+  ],
+  "optimizer_failures": 0,
+  "pareto_candidate_ids": [
+    "ef0ca70e74d7a70fa91b5fc93df8e50f58852458f5681082d6993bd97e01e5ae",
+    "21b26804e54b5bbeaec4eb8a9156cd8ffd1a66666010249dc27fd71b5897137c",
+    "a807b2fccb9bdf948d5bc9eb06ef9a47927b5a144f778700c3494776af9710fd",
+    "3f8c3e7b96087ab6508a81faa22f5074abd77d11fb289fab382ca1f7d3143230",
+    "a8aece3ab324ae60d9df5bcb93624171523ed54e6f81bed72f79b423c00b5627",
+    "dcd398b97799ea4f2d402ef79476572dc5b560d56d3dfb5a18e91360eacd82b3"
+  ],
+  "records": [
+    {
+      "candidate_id": "ef0ca70e74d7a70fa91b5fc93df8e50f58852458f5681082d6993bd97e01e5ae",
+      "run_id": "run-0e91020139b449a386f6e6fdf7b9bd22",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "21b26804e54b5bbeaec4eb8a9156cd8ffd1a66666010249dc27fd71b5897137c",
+      "run_id": "run-cc40839000c842b883b549152149568c",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "a807b2fccb9bdf948d5bc9eb06ef9a47927b5a144f778700c3494776af9710fd",
+      "run_id": "run-395bd9a52962495b91861eca9bdc6932",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "4211c55b16216652cff2aa14a817944a377133601d803ff101df78ead481da90",
+      "run_id": "run-14a40642ac384d22ba7d51919a5b3c6a",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "f78804c6a2ca2cb8786cba6bd11faf0d73efc722b9a752ed000271471854acfd",
+      "run_id": "run-f0a6c5ce31984ad39ec61e1ca6f7dd12",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "5ccf31895fc68f41112bfdcef488c02e3a171841209f941b38a4fdd14862e43e",
+      "run_id": "run-506aa287d5ac48aba0c3898d893abc04",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "3f8c3e7b96087ab6508a81faa22f5074abd77d11fb289fab382ca1f7d3143230",
+      "run_id": "run-324569c49ed54e459185dcf511971771",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "a8aece3ab324ae60d9df5bcb93624171523ed54e6f81bed72f79b423c00b5627",
+      "run_id": "run-69f9b4401e874acd990c9a2943eb219a",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "85f7e15f50c985e7bae1049495d38b4b36caeb306e195d88ff64ac6723b0d659",
+      "run_id": "run-ea3422292e264e1eba8414f062dffd3b",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "dcd398b97799ea4f2d402ef79476572dc5b560d56d3dfb5a18e91360eacd82b3",
+      "run_id": "run-71796db39aaa4fef9e13266653b4de51",
+      "status": "completed"
+    }
+  ],
+  "skipped": [],
+  "started_at": "2026-09-22T10:06:24.126878+00:00",
+  "state": "completed",
+  "stop_reason": "iteration_limit",
+  "tier": "integration"
+}
