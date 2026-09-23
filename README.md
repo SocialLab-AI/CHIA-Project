@@ -12,6 +12,15 @@ model service, Ray resources, Docker images, configuration, validation,
 preflight, one-candidate smoke testing, evidence verification, and the equal
 pilot and confirmatory comparisons.
 
+## Live tutor demo
+
+**[Open the Live Tutor Demo](https://edge-tutor.vercel.app/)**
+
+The live site is the user-facing demonstration of the AI tutor application
+layer. This repository contains the CHIA hardware/software co-design loop and
+the evidence used to evaluate the model and candidate configurations behind
+that application.
+
 > **Release gate:** do not run a pilot or burst until contract validation,
 > release preflight, and the deterministic one-candidate smoke all pass on the
 > target server. This repository never starts a large paid campaign
