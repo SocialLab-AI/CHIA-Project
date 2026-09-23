@@ -8,7 +8,7 @@ and command guide. The release sequence is deliberately staged:
 2. Start one Ray node with `control`, `llama_cpp`, and `gem5` resources.
 3. Run contract validation, validate-only, non-scheduling tests, and
    `git diff --check`.
-4. Confirm the OpenStax permission attestation, then run the fail-closed release
+4. Confirm the team-assessment permission attestation, then run the fail-closed release
    preflight. It verifies native runtime identity and performs a bounded
    five-cache Accelergy + McPAT round trip without running gem5 or Gemini.
 5. Run one deterministic smoke candidate and verify its manifest, completed run
@@ -17,6 +17,11 @@ and command guide. The release sequence is deliberately staged:
    after API use is approved.
 7. Derive any larger burst budget from observed pilot time, failures, disk use,
    artifact size, and Gemini usage.
+
+The pre-registered follow-up comparison is
+`experiment-contracts/campaigns/confirmatory-gemini38-vs-random-10.yaml`.
+It uses Gemini 3.8 Flash for one arm and random seed `20260922` for the other,
+with ten evaluated candidates per arm and otherwise identical contracts.
 
 The hardware task owns gem5 and Accelergy on the same `gem5` worker. Its total
 timeout covers image preflight, compilation, simulation, mapping, energy

@@ -21,7 +21,11 @@ from src.orchestration.experiment import run_experiment
 from src.orchestration.nodes.evaluation import verify_results
 from src.orchestration.nodes.shared import execute_runtime
 from src.orchestration.nodes.validation import mapping_node, validation_node
-from src.tutor.evaluator import evaluate_required_concepts, load_evaluation_set
+from src.tutor.evaluator import (
+    evaluate_exact_option_text,
+    evaluate_required_concepts,
+    load_evaluation_set,
+)
 
 
 def _software(config, runtime, context):
@@ -29,12 +33,16 @@ def _software(config, runtime, context):
         "candidate_id": Candidate.from_dict(config).candidate_id,
         "status": "completed",
         "software": config["software"],
-        "metrics": {"latency_ms": 10.0, "throughput_qps": 1.0, "sample_count": 3, "answer_quality": 0.75, "question_count": 3},
+        "metrics": {"latency_ms": 10.0, "throughput_qps": 1.0, "sample_count": 250 * config["measurement"]["software_repetitions"], "answer_quality": 0.75, "question_count": 250, "quality_method": "exact_option_text_accuracy"},
         "dataset": {
-            "dataset_id": "openstax-college-physics-2e-ch4-concepts-v1",
-            "source_url": "https://openstax.org/books/college-physics-2e/pages/4-conceptual-questions",
-            "license": "CC BY-NC-SA 4.0",
+            "dataset_id": "openstax-aligned-team-assessment-250-v1",
+            "source_url": "https://openstax.org/",
+            "license": "Team-authored evaluation material; repository use authorized by contributor",
             "reference_visible_to_model": False,
+            "quality_method": "exact_option_text_accuracy",
+            "questions_sha256": "c" * 64,
+            "references_sha256": "d" * 64,
+            "source_description": "Team-authored original wording aligned to OpenStax topic scope.",
         },
         "provenance": {"model_sha256": "a" * 64},
     }
@@ -99,10 +107,33 @@ def _combined_hardware(config, runtime, context):
     return result
 
 
-def test_real_openstax_metadata_is_accepted():
+def test_real_team_assessment_metadata_is_accepted():
     dataset = load_evaluation_set()
-    assert dataset["dataset_id"] == "openstax-college-physics-2e-ch4-concepts-v1"
-    assert dataset["license"] == "CC BY-NC-SA 4.0" and len(dataset["items"]) == 3
+    assert dataset["dataset_id"] == "openstax-aligned-team-assessment-250-v1"
+    assert dataset["method"] == "exact_option_text_accuracy"
+    assert len(dataset["items"]) == 250
+    assert all(len(item["question"]["options"]) == 4 for item in dataset["items"])
+    positions = [
+        item["question"]["options"].index(item["reference"]["correct_answer"])
+        for item in dataset["items"]
+    ]
+    assert [positions.count(index) for index in range(4)] == [63, 63, 62, 62]
+    public_questions = json.loads(
+        (ROOT / "data/questions/questions.json").read_text(encoding="utf-8")
+    )
+    assert all(
+        "correct_answer" not in question and isinstance(question["options"], list)
+        for question in public_questions["questions"]
+    )
+
+
+def test_committed_evidence_checksums_are_current():
+    from scripts.verify_evidence_checksums import audit_evidence
+
+    result = audit_evidence()
+    assert result["status"] == "passed", result["failures"]
+    assert result["verified_files"] == 36
+    assert result["external_files"] == 4
 
 
 def test_final_campaign_pins_the_runtime_verified_qwen_artifact():
@@ -262,9 +293,42 @@ def test_random_and_gemini_share_the_same_graph_executor():
     assert metadata == {"seed": 7, "request_count": 0}
 
 
+def test_gemini_optimizer_declares_all_four_pareto_objectives():
+    from src.orchestration.gemini_api import (
+        PARETO_OBJECTIVES,
+        PROMPT_VERSION,
+    )
+
+    assert PARETO_OBJECTIVES == (
+        "native_latency_ms",
+        "proxy_simulated_seconds",
+        "estimated_cache_dynamic_energy_uj",
+        "answer_quality_loss",
+    )
+    assert PROMPT_VERSION == "candidate-json-v3-four-objective-pareto"
+
+
 def test_quality_matching_uses_word_boundaries():
     result = evaluate_required_concepts("An earthquake occurred.", [["earth"]])
     assert result["score"] == 0
+
+
+def test_exact_option_text_accuracy_rejects_labels_and_extra_words():
+    options = ["Conservation of mass", "Boyle's law", "Avogadro's law", "Energy"]
+    assert evaluate_exact_option_text(
+        "Conservation of mass", options, "Conservation of mass"
+    )["score"] == 1.0
+    assert evaluate_exact_option_text(
+        "Answer: Conservation of mass", options, "Conservation of mass"
+    )["score"] == 1.0
+    assert evaluate_exact_option_text(
+        "B", options, "Conservation of mass"
+    )["score"] == 0.0
+    assert evaluate_exact_option_text(
+        "Conservation of mass because atoms are conserved.",
+        options,
+        "Conservation of mass",
+    )["score"] == 0.0
 
 
 @pytest.mark.parametrize("cli_args,expected_budget", [(["--smoke"], 1), (["--method", "random"], 3)])
@@ -290,11 +354,69 @@ def test_cli_profiles_keep_execution_and_stopping_budgets_equal(cli_args, expect
     )
 
 
-def test_openstax_attestation_is_propagated_to_ray_workers(monkeypatch):
+@pytest.mark.parametrize(
+    "method,campaign_id,expected_optimizer",
+    [
+        (
+            "gemini",
+            "confirmatory-gemini38-test",
+            {"policy": "gemini_api", "model": "gemini-3.8-flash"},
+        ),
+        (
+            "random",
+            "confirmatory-random-test",
+            {"policy": "random", "seed": 20260922},
+        ),
+    ],
+)
+def test_confirmatory_cli_uses_reviewed_model_seed_and_unique_id(
+    method, campaign_id, expected_optimizer
+):
+    from scripts.run_experiment import main
+
+    campaign = (
+        ROOT
+        / "experiment-contracts/campaigns/confirmatory-gemini38-vs-random-10.yaml"
+    )
+    with patch.object(
+        sys,
+        "argv",
+        [
+            "run_experiment.py",
+            "--config",
+            str(campaign),
+            "--method",
+            method,
+            "--campaign-id",
+            campaign_id,
+        ],
+    ), patch(
+        "scripts.run_experiment.chia_entrypoint",
+        return_value={"state": "completed", "experiments": []},
+    ) as entrypoint:
+        assert main() == 0
+
+    effective = entrypoint.call_args.args[0]
+    assert effective["campaign_id"] == campaign_id
+    assert effective["iterations"] == 10
+    assert effective["stopping"]["max_evaluated_candidates"] == 10
+    assert all(
+        effective["optimizer"][field] == expected
+        for field, expected in expected_optimizer.items()
+    )
+    assert effective["runtime"]["hardware"]["artifacts_root"].replace(
+        "\\", "/"
+    ) == f"results/{campaign_id}/gem5"
+    assert effective["runtime"]["energy"]["artifacts_root"].replace(
+        "\\", "/"
+    ) == f"results/{campaign_id}/energy-work"
+
+
+def test_dataset_attestation_is_propagated_to_ray_workers(monkeypatch):
     from src.orchestration.chia import ray_worker_environment
     from src.orchestration.dispatch import ChiaDispatcher
 
-    variable = "OPENSTAX_LLM_PERMISSION_CONFIRMED"
+    variable = "TEAM_ASSESSMENT_LLM_PERMISSION_CONFIRMED"
     monkeypatch.setenv(variable, "1")
     assert ray_worker_environment(
         {"software": {"dataset_permission_env": variable}}
@@ -348,11 +470,15 @@ def test_release_preflight_checks_reviewed_head_identity(tmp_path, monkeypatch):
                 "model_sha256": "a" * 64,
                 "context_tokens": 2048,
                 "parallel_slots": 1,
-                "dataset_permission_env": "OPENSTAX_LLM_PERMISSION_CONFIRMED",
+                "dataset_permission_env": "TEAM_ASSESSMENT_LLM_PERMISSION_CONFIRMED",
+                "questions_path": "data/questions/questions.json",
+                "references_path": "data/references/answer_key.json",
+                "dataset_id": "openstax-aligned-team-assessment-250-v1",
+                "quality_method": "exact_option_text_accuracy",
             }
         }
     }
-    monkeypatch.setenv("OPENSTAX_LLM_PERMISSION_CONFIRMED", "1")
+    monkeypatch.setenv("TEAM_ASSESSMENT_LLM_PERMISSION_CONFIRMED", "1")
     with patch(
         "scripts.preflight_release.runtime_preflight",
         return_value={

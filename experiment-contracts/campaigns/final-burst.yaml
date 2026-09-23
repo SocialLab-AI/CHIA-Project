@@ -20,7 +20,11 @@ runtime:
     request_timeout_seconds: 180
     request_retries: 1
     request_retry_delay_seconds: 2
-    dataset_permission_env: OPENSTAX_LLM_PERMISSION_CONFIRMED
+    dataset_permission_env: TEAM_ASSESSMENT_LLM_PERMISSION_CONFIRMED
+    questions_path: data/questions/questions.json
+    references_path: data/references/answer_key.json
+    dataset_id: openstax-aligned-team-assessment-250-v1
+    quality_method: exact_option_text_accuracy
     retries: 0
   hardware:
     image: ghcr.io/gem5/devcontainer:v25-1
@@ -54,8 +58,8 @@ study:
   shared_contracts:
     model: Qwen2.5-0.5B-Instruct Q5_K_M
     dataset: data/questions/questions.json
-    dataset_reference: data/references/openstax.json
-    dataset_license: CC BY-NC-SA 4.0
+    dataset_reference: data/references/answer_key.json
+    dataset_license: "Team-authored evaluation material; repository use authorized by contributor"
     dataset_llm_use_permission: operator_attestation_required
     software_design_space: experiment-contracts/design-spaces/software.yaml
     hardware_design_space: experiment-contracts/design-spaces/hardware.yaml
@@ -65,7 +69,7 @@ study:
       - proxy_simulated_seconds
       - estimated_cache_dynamic_energy_uj
       - answer_quality_loss
-    evaluator: openstax-required-concept-coverage-v1
+    evaluator: exact-option-text-accuracy-v1
     candidate_timeout_seconds: 3600
     measurement_repetitions:
       native_per_question: 1

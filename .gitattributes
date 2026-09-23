@@ -1,0 +1,5 @@
+# Hash-sensitive experiment inputs and evidence use identical bytes on every OS.
+data/**/*.json text eol=lf
+docs/experiments/evidence/** text eol=lf
+experiment-contracts/**/*.yaml text eol=lf
+uv.lock text eol=lf

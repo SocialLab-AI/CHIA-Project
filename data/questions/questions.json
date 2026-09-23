@@ -1,24 +1,3310 @@
 {
   "schema_version": "1.0",
-  "dataset_id": "openstax-college-physics-2e-ch4-concepts-v1",
-  "title": "OpenStax College Physics 2e Chapter 4 conceptual questions",
-  "license": "CC BY-NC-SA 4.0",
-  "source_url": "https://openstax.org/books/college-physics-2e/pages/4-conceptual-questions",
+  "dataset_id": "openstax-aligned-team-assessment-250-v1",
+  "title": "OpenStax-aligned 250-question team assessment",
+  "license": "Team-authored evaluation material; repository use authorized by contributor",
+  "source_url": "https://openstax.org/",
+  "source_description": "Team-authored original wording aligned to the topic scope of the listed OpenStax textbooks; OpenStax did not author these exact questions.",
+  "source_books": [
+    {
+      "subject": "Physics",
+      "title": "OpenStax College Physics 2e",
+      "url": "https://openstax.org/details/books/college-physics-2e"
+    },
+    {
+      "subject": "Chemistry",
+      "title": "OpenStax Chemistry 2e",
+      "url": "https://openstax.org/details/books/chemistry-2e"
+    },
+    {
+      "subject": "Biology",
+      "title": "OpenStax Biology 2e",
+      "url": "https://openstax.org/details/books/biology-2e"
+    },
+    {
+      "subject": "Mathematics",
+      "title": "OpenStax Algebra and Trigonometry 2e",
+      "url": "https://openstax.org/details/books/algebra-and-trigonometry-2e"
+    },
+    {
+      "subject": "English",
+      "title": "OpenStax Writing Guide with Handbook",
+      "url": "https://openstax.org/details/books/writing-guide"
+    }
+  ],
+  "question_count": 250,
+  "subjects": {
+    "Physics": 50,
+    "Chemistry": 50,
+    "Biology": 50,
+    "Mathematics": 50,
+    "English": 50
+  },
+  "option_presentation": {
+    "labels_visible_to_model": false,
+    "algorithm": "deterministic_balanced_option_permutation_v1",
+    "seed": "chia-team-assessment-option-order-v1",
+    "correct_position_counts": [
+      63,
+      63,
+      62,
+      62
+    ]
+  },
+  "source_artifacts": {
+    "team_test_json_sha256": "f3a054cdaf807bbeeefdbec5900fd381fb631d13d7bbfd54db3e6983cc7dbe90",
+    "team_answer_key_docx_sha256": "3a4e87e75694e2c70e26cc79e7d5c581b4a3621226fa893cbe2d7b505b1cdd7d"
+  },
   "questions": [
     {
-      "id": "openstax-cp2e-ch4-q3",
-      "question": "How are inertia and mass related?",
-      "source_locator": "Chapter 4 conceptual question 3"
+      "id": "team-openstax-physics-001",
+      "subject": "Physics",
+      "topic": "Kinematics",
+      "question": "A car changes velocity from 10 m/s to 22 m/s in 4 s. What is its average acceleration?",
+      "options": [
+        "2 m/s²",
+        "5.5 m/s²",
+        "3 m/s²",
+        "8 m/s²"
+      ],
+      "source_locator": "Physics team assessment question 1"
     },
     {
-      "id": "openstax-cp2e-ch4-q2",
-      "question": "What properties do forces have that allow us to classify them as vectors?",
-      "source_locator": "Chapter 4 conceptual question 2"
+      "id": "team-openstax-physics-002",
+      "subject": "Physics",
+      "topic": "Free fall",
+      "question": "Near Earth's surface, ignoring air resistance, a freely falling object has an acceleration of approximately:",
+      "options": [
+        "9.8 m/s² upward",
+        "9.8 m/s² downward",
+        "0 m/s²",
+        "98 m/s² downward"
+      ],
+      "source_locator": "Physics team assessment question 2"
     },
     {
-      "id": "openstax-cp2e-ch4-q5",
-      "question": "Which statement is correct: net force causes motion, or net force causes a change in motion? Explain your answer and give an example.",
-      "source_locator": "Chapter 4 conceptual question 5"
+      "id": "team-openstax-physics-003",
+      "subject": "Physics",
+      "topic": "Newton's laws",
+      "question": "Which statement best describes Newton's first law?",
+      "options": [
+        "Acceleration is constant for every moving object.",
+        "An object keeps its state of motion unless acted on by a net external force.",
+        "Force is always equal to mass times velocity.",
+        "Every force creates heat."
+      ],
+      "source_locator": "Physics team assessment question 3"
+    },
+    {
+      "id": "team-openstax-physics-004",
+      "subject": "Physics",
+      "topic": "Newton's second law",
+      "question": "A net force of 12 N acts on a 3 kg object. What is its acceleration?",
+      "options": [
+        "2 m/s²",
+        "4 m/s²",
+        "3 m/s²",
+        "36 m/s²"
+      ],
+      "source_locator": "Physics team assessment question 4"
+    },
+    {
+      "id": "team-openstax-physics-005",
+      "subject": "Physics",
+      "topic": "Weight",
+      "question": "What is the approximate weight of a 5 kg object near Earth's surface?",
+      "options": [
+        "5 N",
+        "49 N",
+        "98 N",
+        "9.8 N"
+      ],
+      "source_locator": "Physics team assessment question 5"
+    },
+    {
+      "id": "team-openstax-physics-006",
+      "subject": "Physics",
+      "topic": "Kinetic energy",
+      "question": "A 2 kg object moves at 3 m/s. What is its kinetic energy?",
+      "options": [
+        "18 J",
+        "3 J",
+        "6 J",
+        "9 J"
+      ],
+      "source_locator": "Physics team assessment question 6"
+    },
+    {
+      "id": "team-openstax-physics-007",
+      "subject": "Physics",
+      "topic": "Potential energy",
+      "question": "A 2 kg object is lifted 5 m. Using g = 9.8 m/s², how much gravitational potential energy does it gain?",
+      "options": [
+        "9.8 J",
+        "98 J",
+        "196 J",
+        "49 J"
+      ],
+      "source_locator": "Physics team assessment question 7"
+    },
+    {
+      "id": "team-openstax-physics-008",
+      "subject": "Physics",
+      "topic": "Work",
+      "question": "A constant 20 N force pushes an object 3 m in the same direction as the force. How much work is done?",
+      "options": [
+        "23 J",
+        "60 J",
+        "6 J",
+        "17 J"
+      ],
+      "source_locator": "Physics team assessment question 8"
+    },
+    {
+      "id": "team-openstax-physics-009",
+      "subject": "Physics",
+      "topic": "Power",
+      "question": "A machine does 120 J of work in 4 s. What is its average power?",
+      "options": [
+        "40 W",
+        "30 W",
+        "120 W",
+        "480 W"
+      ],
+      "source_locator": "Physics team assessment question 9"
+    },
+    {
+      "id": "team-openstax-physics-010",
+      "subject": "Physics",
+      "topic": "Momentum",
+      "question": "What is the momentum of a 4 kg object moving at 5 m/s?",
+      "options": [
+        "0.8 kg·m/s",
+        "9 kg·m/s",
+        "20 kg·m/s",
+        "25 kg·m/s"
+      ],
+      "source_locator": "Physics team assessment question 10"
+    },
+    {
+      "id": "team-openstax-physics-011",
+      "subject": "Physics",
+      "topic": "Impulse",
+      "question": "A constant 10 N force acts for 2 s. What impulse is delivered?",
+      "options": [
+        "12 N·s",
+        "10 N·s",
+        "5 N·s",
+        "20 N·s"
+      ],
+      "source_locator": "Physics team assessment question 11"
+    },
+    {
+      "id": "team-openstax-physics-012",
+      "subject": "Physics",
+      "topic": "Collisions",
+      "question": "In an isolated collision, which quantity is always conserved?",
+      "options": [
+        "Linear momentum",
+        "Temperature",
+        "Kinetic energy in every collision",
+        "Speed of each object"
+      ],
+      "source_locator": "Physics team assessment question 12"
+    },
+    {
+      "id": "team-openstax-physics-013",
+      "subject": "Physics",
+      "topic": "Circular motion",
+      "question": "A particle moves in a circle of radius 5 m at a speed of 5 m/s. Its centripetal acceleration is:",
+      "options": [
+        "25 m/s²",
+        "10 m/s²",
+        "1 m/s²",
+        "5 m/s²"
+      ],
+      "source_locator": "Physics team assessment question 13"
+    },
+    {
+      "id": "team-openstax-physics-014",
+      "subject": "Physics",
+      "topic": "Gravitation",
+      "question": "If the distance between two point masses doubles, their gravitational force becomes:",
+      "options": [
+        "One-fourth as large",
+        "Half as large",
+        "Twice as large",
+        "Four times as large"
+      ],
+      "source_locator": "Physics team assessment question 14"
+    },
+    {
+      "id": "team-openstax-physics-015",
+      "subject": "Physics",
+      "topic": "Torque",
+      "question": "A 10 N force is applied perpendicular to a 0.50 m wrench. What torque magnitude is produced?",
+      "options": [
+        "10 N·m",
+        "5 N·m",
+        "20 N·m",
+        "2 N·m"
+      ],
+      "source_locator": "Physics team assessment question 15"
+    },
+    {
+      "id": "team-openstax-physics-016",
+      "subject": "Physics",
+      "topic": "Rotational motion",
+      "question": "For a point on a rotating rigid object, tangential speed v is related to angular speed ω by:",
+      "options": [
+        "v = rω",
+        "v = r + ω",
+        "v = ω/r",
+        "v = r/ω"
+      ],
+      "source_locator": "Physics team assessment question 16"
+    },
+    {
+      "id": "team-openstax-physics-017",
+      "subject": "Physics",
+      "topic": "Fluids",
+      "question": "Density is defined as:",
+      "options": [
+        "Mass times volume",
+        "Volume divided by mass",
+        "Force divided by area",
+        "Mass divided by volume"
+      ],
+      "source_locator": "Physics team assessment question 17"
+    },
+    {
+      "id": "team-openstax-physics-018",
+      "subject": "Physics",
+      "topic": "Pressure",
+      "question": "A 100 N force acts uniformly over an area of 0.50 m². What pressure is produced?",
+      "options": [
+        "200 Pa",
+        "50 Pa",
+        "100 Pa",
+        "500 Pa"
+      ],
+      "source_locator": "Physics team assessment question 18"
+    },
+    {
+      "id": "team-openstax-physics-019",
+      "subject": "Physics",
+      "topic": "Buoyancy",
+      "question": "According to Archimedes' principle, the buoyant force on an immersed object equals the:",
+      "options": [
+        "Volume of the object",
+        "Density of the object",
+        "Object's mass",
+        "Weight of the displaced fluid"
+      ],
+      "source_locator": "Physics team assessment question 19"
+    },
+    {
+      "id": "team-openstax-physics-020",
+      "subject": "Physics",
+      "topic": "Bernoulli principle",
+      "question": "In steady fluid flow, if speed increases along a streamline while height is unchanged, Bernoulli's principle predicts that pressure generally:",
+      "options": [
+        "Increases",
+        "Decreases",
+        "Becomes zero",
+        "Stays exactly the same in every case"
+      ],
+      "source_locator": "Physics team assessment question 20"
+    },
+    {
+      "id": "team-openstax-physics-021",
+      "subject": "Physics",
+      "topic": "Temperature",
+      "question": "A temperature of 27°C is approximately:",
+      "options": [
+        "300 K",
+        "327 K",
+        "273 K",
+        "246 K"
+      ],
+      "source_locator": "Physics team assessment question 21"
+    },
+    {
+      "id": "team-openstax-physics-022",
+      "subject": "Physics",
+      "topic": "Heat",
+      "question": "Which equation gives heat transferred when a substance changes temperature without changing phase?",
+      "options": [
+        "Q = Pt²",
+        "Q = mcΔT",
+        "Q = m/v",
+        "Q = Fd/t"
+      ],
+      "source_locator": "Physics team assessment question 22"
+    },
+    {
+      "id": "team-openstax-physics-023",
+      "subject": "Physics",
+      "topic": "Thermodynamics",
+      "question": "Using the convention that W is work done by the system, the first law of thermodynamics is:",
+      "options": [
+        "ΔU = QW",
+        "ΔU = Q - W",
+        "ΔU = W - Q",
+        "ΔU = Q + W"
+      ],
+      "source_locator": "Physics team assessment question 23"
+    },
+    {
+      "id": "team-openstax-physics-024",
+      "subject": "Physics",
+      "topic": "Waves",
+      "question": "A wave has frequency 4 Hz and wavelength 3 m. What is its speed?",
+      "options": [
+        "7 m/s",
+        "12 m/s",
+        "0.75 m/s",
+        "24 m/s"
+      ],
+      "source_locator": "Physics team assessment question 24"
+    },
+    {
+      "id": "team-openstax-physics-025",
+      "subject": "Physics",
+      "topic": "Waves",
+      "question": "A wave has a frequency of 5 Hz. Its period is:",
+      "options": [
+        "25 s",
+        "0.2 s",
+        "5 s",
+        "0.5 s"
+      ],
+      "source_locator": "Physics team assessment question 25"
+    },
+    {
+      "id": "team-openstax-physics-026",
+      "subject": "Physics",
+      "topic": "Sound",
+      "question": "Why can ordinary sound not travel through a perfect vacuum?",
+      "options": [
+        "Vacuum reflects all sound.",
+        "Sound is too slow.",
+        "Sound requires a material medium.",
+        "Sound becomes light in a vacuum."
+      ],
+      "source_locator": "Physics team assessment question 26"
+    },
+    {
+      "id": "team-openstax-physics-027",
+      "subject": "Physics",
+      "topic": "Doppler effect",
+      "question": "When a sound source moves toward a stationary observer, the observed frequency is generally:",
+      "options": [
+        "Unchanged",
+        "Lower",
+        "Higher",
+        "Zero"
+      ],
+      "source_locator": "Physics team assessment question 27"
+    },
+    {
+      "id": "team-openstax-physics-028",
+      "subject": "Physics",
+      "topic": "Wave intensity",
+      "question": "For a point source spreading uniformly in three dimensions, intensity varies approximately as:",
+      "options": [
+        "r²",
+        "r",
+        "1/r²",
+        "1/r"
+      ],
+      "source_locator": "Physics team assessment question 28"
+    },
+    {
+      "id": "team-openstax-physics-029",
+      "subject": "Physics",
+      "topic": "Coulomb's law",
+      "question": "If the distance between two point charges doubles, the electrostatic force magnitude becomes:",
+      "options": [
+        "Half as large",
+        "One-fourth as large",
+        "Four times larger",
+        "Twice as large"
+      ],
+      "source_locator": "Physics team assessment question 29"
+    },
+    {
+      "id": "team-openstax-physics-030",
+      "subject": "Physics",
+      "topic": "Electric field",
+      "question": "The electric field direction at a point is defined as the direction of the force on a:",
+      "options": [
+        "Neutron",
+        "Magnetic pole",
+        "Negative test charge",
+        "Positive test charge"
+      ],
+      "source_locator": "Physics team assessment question 30"
+    },
+    {
+      "id": "team-openstax-physics-031",
+      "subject": "Physics",
+      "topic": "Electric potential",
+      "question": "Electric potential difference can be defined as:",
+      "options": [
+        "Force per unit current",
+        "Charge per unit work",
+        "Work or energy per unit charge",
+        "Current per unit resistance"
+      ],
+      "source_locator": "Physics team assessment question 31"
+    },
+    {
+      "id": "team-openstax-physics-032",
+      "subject": "Physics",
+      "topic": "DC circuits",
+      "question": "In a simple series circuit, which quantity is the same through all components?",
+      "options": [
+        "Power",
+        "Resistance",
+        "Voltage",
+        "Current"
+      ],
+      "source_locator": "Physics team assessment question 32"
+    },
+    {
+      "id": "team-openstax-physics-033",
+      "subject": "Physics",
+      "topic": "Parallel circuits",
+      "question": "In branches connected in parallel across an ideal source, which quantity is the same for every branch?",
+      "options": [
+        "Resistance",
+        "Charge flow rate in all cases",
+        "Voltage",
+        "Current"
+      ],
+      "source_locator": "Physics team assessment question 33"
+    },
+    {
+      "id": "team-openstax-physics-034",
+      "subject": "Physics",
+      "topic": "Ohm's law",
+      "question": "A 12 V battery is connected across a 4 Ω resistor. What current flows?",
+      "options": [
+        "3 A",
+        "0.33 A",
+        "8 A",
+        "48 A"
+      ],
+      "source_locator": "Physics team assessment question 34"
+    },
+    {
+      "id": "team-openstax-physics-035",
+      "subject": "Physics",
+      "topic": "Electric power",
+      "question": "A device operates at 12 V and draws 2 A. What electrical power does it use?",
+      "options": [
+        "6 W",
+        "24 W",
+        "10 W",
+        "14 W"
+      ],
+      "source_locator": "Physics team assessment question 35"
+    },
+    {
+      "id": "team-openstax-physics-036",
+      "subject": "Physics",
+      "topic": "Magnetism",
+      "question": "The magnetic force on a moving charged particle is greatest when its velocity is:",
+      "options": [
+        "Zero",
+        "Opposite to its acceleration only",
+        "Perpendicular to the magnetic field",
+        "Parallel to the magnetic field"
+      ],
+      "source_locator": "Physics team assessment question 36"
+    },
+    {
+      "id": "team-openstax-physics-037",
+      "subject": "Physics",
+      "topic": "Electromagnetic induction",
+      "question": "Faraday's law relates induced emf to a change in:",
+      "options": [
+        "Temperature",
+        "Magnetic flux",
+        "Mass",
+        "Electric resistance only"
+      ],
+      "source_locator": "Physics team assessment question 37"
+    },
+    {
+      "id": "team-openstax-physics-038",
+      "subject": "Physics",
+      "topic": "Transformers",
+      "question": "An ideal step-up transformer has:",
+      "options": [
+        "Equal turns and zero voltage",
+        "More turns on the secondary than the primary",
+        "Fewer turns on the secondary than the primary",
+        "No magnetic field"
+      ],
+      "source_locator": "Physics team assessment question 38"
+    },
+    {
+      "id": "team-openstax-physics-039",
+      "subject": "Physics",
+      "topic": "Electromagnetic waves",
+      "question": "All electromagnetic waves in vacuum travel at approximately:",
+      "options": [
+        "3.0 × 10⁶ m/s",
+        "3.0 × 10³ m/s",
+        "9.8 m/s",
+        "3.0 × 10⁸ m/s"
+      ],
+      "source_locator": "Physics team assessment question 39"
+    },
+    {
+      "id": "team-openstax-physics-040",
+      "subject": "Physics",
+      "topic": "Geometric optics",
+      "question": "A plane mirror forms an image that is:",
+      "options": [
+        "Real, upright, and larger",
+        "Virtual, inverted, and smaller",
+        "Virtual, upright, and the same size",
+        "Real, inverted, and smaller"
+      ],
+      "source_locator": "Physics team assessment question 40"
+    },
+    {
+      "id": "team-openstax-physics-041",
+      "subject": "Physics",
+      "topic": "Lenses",
+      "question": "A converging lens causes incoming rays parallel to its principal axis to:",
+      "options": [
+        "Remain parallel forever",
+        "Converge near a focal point",
+        "Stop at the lens surface",
+        "Diverge from the lens"
+      ],
+      "source_locator": "Physics team assessment question 41"
+    },
+    {
+      "id": "team-openstax-physics-042",
+      "subject": "Physics",
+      "topic": "Refraction",
+      "question": "When light enters a material with a higher refractive index at a nonzero angle, it usually bends:",
+      "options": [
+        "Toward the normal",
+        "Away from the normal",
+        "Into a circle",
+        "Without changing direction in all cases"
+      ],
+      "source_locator": "Physics team assessment question 42"
+    },
+    {
+      "id": "team-openstax-physics-043",
+      "subject": "Physics",
+      "topic": "Quantum physics",
+      "question": "The energy of a photon is given by:",
+      "options": [
+        "E = qV²",
+        "E = F/a",
+        "E = hf",
+        "E = mc"
+      ],
+      "source_locator": "Physics team assessment question 43"
+    },
+    {
+      "id": "team-openstax-physics-044",
+      "subject": "Physics",
+      "topic": "Photoelectric effect",
+      "question": "In the photoelectric effect, electrons are emitted only if the light frequency is:",
+      "options": [
+        "Independent of the material",
+        "Exactly zero",
+        "At or above a threshold",
+        "Below a threshold"
+      ],
+      "source_locator": "Physics team assessment question 44"
+    },
+    {
+      "id": "team-openstax-physics-045",
+      "subject": "Physics",
+      "topic": "Radioactivity",
+      "question": "A radioactive sample decreases from 80 g to 20 g. How many half-lives have passed?",
+      "options": [
+        "1",
+        "3",
+        "2",
+        "4"
+      ],
+      "source_locator": "Physics team assessment question 45"
+    },
+    {
+      "id": "team-openstax-physics-046",
+      "subject": "Physics",
+      "topic": "Nuclear physics",
+      "question": "Nuclear fission is best described as:",
+      "options": [
+        "Removing electrons from an atom",
+        "Combining two light nuclei",
+        "Creating molecules from ions",
+        "Splitting a heavy nucleus into smaller nuclei"
+      ],
+      "source_locator": "Physics team assessment question 46"
+    },
+    {
+      "id": "team-openstax-physics-047",
+      "subject": "Physics",
+      "topic": "Nuclear physics",
+      "question": "Nuclear fusion is best described as:",
+      "options": [
+        "Splitting every atom in a sample",
+        "Converting protons directly into photons only",
+        "Separating molecules by heating",
+        "Combining light nuclei into a heavier nucleus"
+      ],
+      "source_locator": "Physics team assessment question 47"
+    },
+    {
+      "id": "team-openstax-physics-048",
+      "subject": "Physics",
+      "topic": "Relativity",
+      "question": "Special relativity predicts that a moving clock, as observed from a frame in which it is moving, runs:",
+      "options": [
+        "Faster than an identical rest clock",
+        "Slower than an identical rest clock",
+        "At exactly twice the rate",
+        "Backward"
+      ],
+      "source_locator": "Physics team assessment question 48"
+    },
+    {
+      "id": "team-openstax-physics-049",
+      "subject": "Physics",
+      "topic": "Efficiency",
+      "question": "A machine receives 500 J of energy and delivers 350 J of useful energy. Its efficiency is:",
+      "options": [
+        "30%",
+        "85%",
+        "50%",
+        "70%"
+      ],
+      "source_locator": "Physics team assessment question 49"
+    },
+    {
+      "id": "team-openstax-physics-050",
+      "subject": "Physics",
+      "topic": "Measurement",
+      "question": "Repeated measurements that are close to one another but far from the accepted value are:",
+      "options": [
+        "Accurate but not precise",
+        "Precise but not accurate",
+        "Neither measurable nor repeatable",
+        "Accurate and precise"
+      ],
+      "source_locator": "Physics team assessment question 50"
+    },
+    {
+      "id": "team-openstax-chemistry-001",
+      "subject": "Chemistry",
+      "topic": "Chemical equations",
+      "question": "Which law is satisfied when a chemical equation is balanced?",
+      "options": [
+        "Conservation of energy only",
+        "Boyle's law",
+        "Avogadro's law",
+        "Conservation of mass"
+      ],
+      "source_locator": "Chemistry team assessment question 1"
+    },
+    {
+      "id": "team-openstax-chemistry-002",
+      "subject": "Chemistry",
+      "topic": "Atomic structure",
+      "question": "The atomic number of an element equals the number of:",
+      "options": [
+        "Neutrons only",
+        "Protons plus neutrons",
+        "Electrons plus neutrons",
+        "Protons"
+      ],
+      "source_locator": "Chemistry team assessment question 2"
+    },
+    {
+      "id": "team-openstax-chemistry-003",
+      "subject": "Chemistry",
+      "topic": "Isotopes",
+      "question": "Two isotopes of the same element have the same number of protons but different numbers of:",
+      "options": [
+        "Neutrons",
+        "Valence shells",
+        "Electrons in neutral atoms",
+        "Chemical symbols"
+      ],
+      "source_locator": "Chemistry team assessment question 3"
+    },
+    {
+      "id": "team-openstax-chemistry-004",
+      "subject": "Chemistry",
+      "topic": "Ions",
+      "question": "When a neutral atom loses one electron, it becomes:",
+      "options": [
+        "A molecule",
+        "An anion",
+        "An isotope",
+        "A cation"
+      ],
+      "source_locator": "Chemistry team assessment question 4"
+    },
+    {
+      "id": "team-openstax-chemistry-005",
+      "subject": "Chemistry",
+      "topic": "Atomic structure",
+      "question": "Which subatomic particle has approximately 1 atomic mass unit and no electric charge?",
+      "options": [
+        "Proton",
+        "Electron",
+        "Positron",
+        "Neutron"
+      ],
+      "source_locator": "Chemistry team assessment question 5"
+    },
+    {
+      "id": "team-openstax-chemistry-006",
+      "subject": "Chemistry",
+      "topic": "Periodic table",
+      "question": "Elements in the same group of the periodic table often have similar chemical behavior because they have similar:",
+      "options": [
+        "Numbers of neutrons",
+        "Nuclear sizes only",
+        "Atomic masses",
+        "Numbers of valence electrons"
+      ],
+      "source_locator": "Chemistry team assessment question 6"
+    },
+    {
+      "id": "team-openstax-chemistry-007",
+      "subject": "Chemistry",
+      "topic": "Periodic trends",
+      "question": "Across a period from left to right, atomic radius generally:",
+      "options": [
+        "Becomes zero",
+        "Stays identical",
+        "Increases strongly",
+        "Decreases"
+      ],
+      "source_locator": "Chemistry team assessment question 7"
+    },
+    {
+      "id": "team-openstax-chemistry-008",
+      "subject": "Chemistry",
+      "topic": "Bonding",
+      "question": "Which bond forms primarily by transfer of electrons from one atom to another?",
+      "options": [
+        "Nonpolar covalent bond",
+        "Ionic bond",
+        "Hydrogen bond",
+        "Metallic bond only between gases"
+      ],
+      "source_locator": "Chemistry team assessment question 8"
+    },
+    {
+      "id": "team-openstax-chemistry-009",
+      "subject": "Chemistry",
+      "topic": "Bonding",
+      "question": "A covalent bond involves:",
+      "options": [
+        "Transfer of protons",
+        "Attraction between two nuclei without electrons",
+        "Loss of all neutrons",
+        "Sharing of electron pairs"
+      ],
+      "source_locator": "Chemistry team assessment question 9"
+    },
+    {
+      "id": "team-openstax-chemistry-010",
+      "subject": "Chemistry",
+      "topic": "Ionic formulas",
+      "question": "What is the formula of magnesium chloride if Mg forms Mg²⁺ and Cl forms Cl⁻?",
+      "options": [
+        "Mg₂Cl",
+        "MgCl₂",
+        "Mg₂Cl₂",
+        "MgCl"
+      ],
+      "source_locator": "Chemistry team assessment question 10"
+    },
+    {
+      "id": "team-openstax-chemistry-011",
+      "subject": "Chemistry",
+      "topic": "Nomenclature",
+      "question": "What is the name of CO₂?",
+      "options": [
+        "Cobalt oxide",
+        "Calcium oxide",
+        "Carbon monoxide",
+        "Carbon dioxide"
+      ],
+      "source_locator": "Chemistry team assessment question 11"
+    },
+    {
+      "id": "team-openstax-chemistry-012",
+      "subject": "Chemistry",
+      "topic": "Mole concept",
+      "question": "One mole contains approximately:",
+      "options": [
+        "9.81 × 10² entities",
+        "6.022 × 10²³ entities",
+        "3.00 × 10⁸ entities",
+        "1.00 × 10⁻²³ entities"
+      ],
+      "source_locator": "Chemistry team assessment question 12"
+    },
+    {
+      "id": "team-openstax-chemistry-013",
+      "subject": "Chemistry",
+      "topic": "Molar mass",
+      "question": "What is the molar mass of H₂O to the nearest whole number?",
+      "options": [
+        "10 g/mol",
+        "20 g/mol",
+        "18 g/mol",
+        "16 g/mol"
+      ],
+      "source_locator": "Chemistry team assessment question 13"
+    },
+    {
+      "id": "team-openstax-chemistry-014",
+      "subject": "Chemistry",
+      "topic": "Stoichiometry",
+      "question": "How many moles are in 36 g of H₂O if its molar mass is 18 g/mol?",
+      "options": [
+        "18 mol",
+        "0.5 mol",
+        "2 mol",
+        "1 mol"
+      ],
+      "source_locator": "Chemistry team assessment question 14"
+    },
+    {
+      "id": "team-openstax-chemistry-015",
+      "subject": "Chemistry",
+      "topic": "Stoichiometry",
+      "question": "For 2H₂ + O₂ → 2H₂O, how many moles of H₂O can form from 3 mol of O₂ with excess H₂?",
+      "options": [
+        "9 mol",
+        "6 mol",
+        "3 mol",
+        "1.5 mol"
+      ],
+      "source_locator": "Chemistry team assessment question 15"
+    },
+    {
+      "id": "team-openstax-chemistry-016",
+      "subject": "Chemistry",
+      "topic": "Limiting reactant",
+      "question": "The limiting reactant is the reactant that:",
+      "options": [
+        "Never changes during reaction",
+        "Is always a gas",
+        "Has the greatest molar mass",
+        "Is consumed first and limits product formation"
+      ],
+      "source_locator": "Chemistry team assessment question 16"
+    },
+    {
+      "id": "team-openstax-chemistry-017",
+      "subject": "Chemistry",
+      "topic": "Reaction yield",
+      "question": "Percent yield is calculated as:",
+      "options": [
+        "Actual/theoretical × 100%",
+        "Actual - theoretical",
+        "Actual + theoretical",
+        "Theoretical/actual × 100%"
+      ],
+      "source_locator": "Chemistry team assessment question 17"
+    },
+    {
+      "id": "team-openstax-chemistry-018",
+      "subject": "Chemistry",
+      "topic": "Matter and change",
+      "question": "Which change is a chemical change?",
+      "options": [
+        "Boiling water",
+        "Rusting iron",
+        "Melting ice",
+        "Cutting paper"
+      ],
+      "source_locator": "Chemistry team assessment question 18"
+    },
+    {
+      "id": "team-openstax-chemistry-019",
+      "subject": "Chemistry",
+      "topic": "States of matter",
+      "question": "Which state of matter has a definite volume but takes the shape of its container?",
+      "options": [
+        "Liquid",
+        "Solid",
+        "Gas",
+        "Plasma only"
+      ],
+      "source_locator": "Chemistry team assessment question 19"
+    },
+    {
+      "id": "team-openstax-chemistry-020",
+      "subject": "Chemistry",
+      "topic": "Gas laws",
+      "question": "At constant temperature, Boyle's law states that pressure and volume of a fixed amount of gas are:",
+      "options": [
+        "Always equal",
+        "Inversely proportional",
+        "Directly proportional",
+        "Unrelated"
+      ],
+      "source_locator": "Chemistry team assessment question 20"
+    },
+    {
+      "id": "team-openstax-chemistry-021",
+      "subject": "Chemistry",
+      "topic": "Gas laws",
+      "question": "At constant pressure, increasing the absolute temperature of a gas generally causes its volume to:",
+      "options": [
+        "Decrease",
+        "Increase",
+        "Stay constant",
+        "Become zero"
+      ],
+      "source_locator": "Chemistry team assessment question 21"
+    },
+    {
+      "id": "team-openstax-chemistry-022",
+      "subject": "Chemistry",
+      "topic": "Ideal gases",
+      "question": "Which equation is the ideal gas law?",
+      "options": [
+        "q = mcΔT",
+        "E = hf",
+        "P = m/V",
+        "PV = nRT"
+      ],
+      "source_locator": "Chemistry team assessment question 22"
+    },
+    {
+      "id": "team-openstax-chemistry-023",
+      "subject": "Chemistry",
+      "topic": "Molar volume",
+      "question": "At STP-like conditions, 1 mol of an ideal gas occupies roughly:",
+      "options": [
+        "2.24 L",
+        "0.224 L",
+        "224 L",
+        "22.4 L"
+      ],
+      "source_locator": "Chemistry team assessment question 23"
+    },
+    {
+      "id": "team-openstax-chemistry-024",
+      "subject": "Chemistry",
+      "topic": "Thermochemistry",
+      "question": "An exothermic process:",
+      "options": [
+        "Cannot occur spontaneously",
+        "Has ΔH > 0 by definition",
+        "Absorbs heat from surroundings",
+        "Releases heat to surroundings"
+      ],
+      "source_locator": "Chemistry team assessment question 24"
+    },
+    {
+      "id": "team-openstax-chemistry-025",
+      "subject": "Chemistry",
+      "topic": "Enthalpy",
+      "question": "For an endothermic reaction at constant pressure, ΔH is generally:",
+      "options": [
+        "Undefined",
+        "Negative",
+        "Zero in every case",
+        "Positive"
+      ],
+      "source_locator": "Chemistry team assessment question 25"
+    },
+    {
+      "id": "team-openstax-chemistry-026",
+      "subject": "Chemistry",
+      "topic": "Calorimetry",
+      "question": "Specific heat capacity tells how much heat is required to:",
+      "options": [
+        "Raise the temperature of a unit mass by one degree",
+        "Compress one liter of gas",
+        "Break one mole of bonds only",
+        "Change phase only"
+      ],
+      "source_locator": "Chemistry team assessment question 26"
+    },
+    {
+      "id": "team-openstax-chemistry-027",
+      "subject": "Chemistry",
+      "topic": "Kinetics",
+      "question": "A catalyst speeds a reaction mainly by:",
+      "options": [
+        "Increasing the reaction enthalpy",
+        "Adding more product",
+        "Lowering the activation energy pathway",
+        "Changing the equilibrium constant permanently"
+      ],
+      "source_locator": "Chemistry team assessment question 27"
+    },
+    {
+      "id": "team-openstax-chemistry-028",
+      "subject": "Chemistry",
+      "topic": "Kinetics",
+      "question": "Increasing temperature usually increases reaction rate because particles:",
+      "options": [
+        "Stop colliding",
+        "Have more frequent and energetic collisions",
+        "Lose all kinetic energy",
+        "Move more slowly"
+      ],
+      "source_locator": "Chemistry team assessment question 28"
+    },
+    {
+      "id": "team-openstax-chemistry-029",
+      "subject": "Chemistry",
+      "topic": "Equilibrium",
+      "question": "At chemical equilibrium, the forward and reverse reaction rates are:",
+      "options": [
+        "Always increasing",
+        "Equal",
+        "Unrelated",
+        "Both zero"
+      ],
+      "source_locator": "Chemistry team assessment question 29"
+    },
+    {
+      "id": "team-openstax-chemistry-030",
+      "subject": "Chemistry",
+      "topic": "Le Châtelier principle",
+      "question": "If a system at equilibrium is disturbed, Le Châtelier's principle predicts that the system will:",
+      "options": [
+        "Always stop reacting",
+        "Destroy the catalyst",
+        "Shift in a direction that partially opposes the disturbance",
+        "Make the equilibrium constant zero"
+      ],
+      "source_locator": "Chemistry team assessment question 30"
+    },
+    {
+      "id": "team-openstax-chemistry-031",
+      "subject": "Chemistry",
+      "topic": "Equilibrium",
+      "question": "For a reaction quotient Q smaller than K, the reaction tends to proceed:",
+      "options": [
+        "Only if a catalyst is absent",
+        "Nowhere because equilibrium is impossible",
+        "Toward products",
+        "Toward reactants"
+      ],
+      "source_locator": "Chemistry team assessment question 31"
+    },
+    {
+      "id": "team-openstax-chemistry-032",
+      "subject": "Chemistry",
+      "topic": "Acids and bases",
+      "question": "According to Brønsted-Lowry theory, an acid is a:",
+      "options": [
+        "Proton donor",
+        "Neutron donor",
+        "Proton acceptor",
+        "Salt only"
+      ],
+      "source_locator": "Chemistry team assessment question 32"
+    },
+    {
+      "id": "team-openstax-chemistry-033",
+      "subject": "Chemistry",
+      "topic": "Acids and bases",
+      "question": "According to Brønsted-Lowry theory, a base is a:",
+      "options": [
+        "Proton acceptor",
+        "Proton donor",
+        "Photon donor",
+        "Neutral atom only"
+      ],
+      "source_locator": "Chemistry team assessment question 33"
+    },
+    {
+      "id": "team-openstax-chemistry-034",
+      "subject": "Chemistry",
+      "topic": "pH",
+      "question": "A solution with pH 3 is:",
+      "options": [
+        "Acidic",
+        "Basic",
+        "Neutral",
+        "Always saturated"
+      ],
+      "source_locator": "Chemistry team assessment question 34"
+    },
+    {
+      "id": "team-openstax-chemistry-035",
+      "subject": "Chemistry",
+      "topic": "pH",
+      "question": "At 25°C, a neutral aqueous solution has pH approximately:",
+      "options": [
+        "0",
+        "14",
+        "7",
+        "3"
+      ],
+      "source_locator": "Chemistry team assessment question 35"
+    },
+    {
+      "id": "team-openstax-chemistry-036",
+      "subject": "Chemistry",
+      "topic": "pH calculations",
+      "question": "If [H₃O⁺] = 1 × 10⁻⁴ M, the pH is:",
+      "options": [
+        "10",
+        "2",
+        "4",
+        "14"
+      ],
+      "source_locator": "Chemistry team assessment question 36"
+    },
+    {
+      "id": "team-openstax-chemistry-037",
+      "subject": "Chemistry",
+      "topic": "Buffers",
+      "question": "A buffer resists large pH changes when:",
+      "options": [
+        "All solvent is removed",
+        "Its concentration is exactly zero",
+        "It is heated to any temperature",
+        "Small amounts of acid or base are added"
+      ],
+      "source_locator": "Chemistry team assessment question 37"
+    },
+    {
+      "id": "team-openstax-chemistry-038",
+      "subject": "Chemistry",
+      "topic": "Redox",
+      "question": "Oxidation is defined as:",
+      "options": [
+        "Loss of protons only",
+        "Gain of electrons",
+        "Loss of electrons",
+        "Gain of neutrons only"
+      ],
+      "source_locator": "Chemistry team assessment question 38"
+    },
+    {
+      "id": "team-openstax-chemistry-039",
+      "subject": "Chemistry",
+      "topic": "Redox",
+      "question": "Reduction is defined as:",
+      "options": [
+        "Loss of electrons",
+        "Gain of oxygen in every case",
+        "Gain of electrons",
+        "Loss of mass"
+      ],
+      "source_locator": "Chemistry team assessment question 39"
+    },
+    {
+      "id": "team-openstax-chemistry-040",
+      "subject": "Chemistry",
+      "topic": "Electrochemistry",
+      "question": "In an electrochemical cell, oxidation occurs at the:",
+      "options": [
+        "Anode",
+        "Cathode",
+        "Voltmeter",
+        "Salt bridge"
+      ],
+      "source_locator": "Chemistry team assessment question 40"
+    },
+    {
+      "id": "team-openstax-chemistry-041",
+      "subject": "Chemistry",
+      "topic": "Electrochemistry",
+      "question": "In a galvanic cell, electrons flow through the external circuit from:",
+      "options": [
+        "Salt bridge to anode",
+        "Anode to cathode",
+        "Solution to salt bridge only",
+        "Cathode to anode"
+      ],
+      "source_locator": "Chemistry team assessment question 41"
+    },
+    {
+      "id": "team-openstax-chemistry-042",
+      "subject": "Chemistry",
+      "topic": "Solutions",
+      "question": "A strong electrolyte in water produces:",
+      "options": [
+        "Few or no ions",
+        "A high concentration of mobile ions",
+        "Only precipitates",
+        "Only neutral molecules"
+      ],
+      "source_locator": "Chemistry team assessment question 42"
+    },
+    {
+      "id": "team-openstax-chemistry-043",
+      "subject": "Chemistry",
+      "topic": "Solutions",
+      "question": "Solubility is best described as the:",
+      "options": [
+        "Mass of solvent only",
+        "Temperature of a solution",
+        "Rate at which a solute dissolves",
+        "Maximum amount of solute that dissolves under specified conditions"
+      ],
+      "source_locator": "Chemistry team assessment question 43"
+    },
+    {
+      "id": "team-openstax-chemistry-044",
+      "subject": "Chemistry",
+      "topic": "Concentration",
+      "question": "Molarity is defined as:",
+      "options": [
+        "Liters of solute per mole",
+        "Moles of solvent per gram of solution",
+        "Grams of solute per kilogram of solvent",
+        "Moles of solute per liter of solution"
+      ],
+      "source_locator": "Chemistry team assessment question 44"
+    },
+    {
+      "id": "team-openstax-chemistry-045",
+      "subject": "Chemistry",
+      "topic": "Molarity",
+      "question": "What is the molarity of a solution containing 0.50 mol solute in 2.0 L solution?",
+      "options": [
+        "0.25 M",
+        "0.50 M",
+        "1.0 M",
+        "4.0 M"
+      ],
+      "source_locator": "Chemistry team assessment question 45"
+    },
+    {
+      "id": "team-openstax-chemistry-046",
+      "subject": "Chemistry",
+      "topic": "Intermolecular forces",
+      "question": "Which intermolecular force is especially important between water molecules?",
+      "options": [
+        "Ionic bonding within a crystal only",
+        "Metallic bonding",
+        "Hydrogen bonding",
+        "Nuclear force"
+      ],
+      "source_locator": "Chemistry team assessment question 46"
+    },
+    {
+      "id": "team-openstax-chemistry-047",
+      "subject": "Chemistry",
+      "topic": "Liquids",
+      "question": "For most liquids, vapor pressure increases when temperature:",
+      "options": [
+        "Decreases",
+        "Increases",
+        "Falls below absolute zero",
+        "Stays constant"
+      ],
+      "source_locator": "Chemistry team assessment question 47"
+    },
+    {
+      "id": "team-openstax-chemistry-048",
+      "subject": "Chemistry",
+      "topic": "Lewis acids and bases",
+      "question": "A substance that donates electron density to form a covalent bond can be described as a Lewis:",
+      "options": [
+        "Base",
+        "Acid",
+        "Isotope",
+        "Salt"
+      ],
+      "source_locator": "Chemistry team assessment question 48"
+    },
+    {
+      "id": "team-openstax-chemistry-049",
+      "subject": "Chemistry",
+      "topic": "Oxidation numbers",
+      "question": "The oxidation number of oxygen in most compounds is:",
+      "options": [
+        "+1",
+        "+2",
+        "-2",
+        "-1"
+      ],
+      "source_locator": "Chemistry team assessment question 49"
+    },
+    {
+      "id": "team-openstax-chemistry-050",
+      "subject": "Chemistry",
+      "topic": "Entropy",
+      "question": "Which statement about entropy is most accurate?",
+      "options": [
+        "It is identical to temperature.",
+        "It is related to the number of possible microscopic arrangements.",
+        "It is always zero for gases.",
+        "It measures only bond strength."
+      ],
+      "source_locator": "Chemistry team assessment question 50"
+    },
+    {
+      "id": "team-openstax-biology-001",
+      "subject": "Biology",
+      "topic": "Cell biology",
+      "question": "Which feature is shared by all known cells?",
+      "options": [
+        "Chloroplasts",
+        "A plasma membrane",
+        "A cell wall",
+        "A nucleus"
+      ],
+      "source_locator": "Biology team assessment question 1"
+    },
+    {
+      "id": "team-openstax-biology-002",
+      "subject": "Biology",
+      "topic": "Scientific method",
+      "question": "In a controlled experiment, the variable deliberately changed by the researcher is the:",
+      "options": [
+        "Control group",
+        "Dependent variable",
+        "Independent variable",
+        "Random error"
+      ],
+      "source_locator": "Biology team assessment question 2"
+    },
+    {
+      "id": "team-openstax-biology-003",
+      "subject": "Biology",
+      "topic": "Scientific method",
+      "question": "A scientific hypothesis should be:",
+      "options": [
+        "Based only on opinion",
+        "Untestable",
+        "Testable and falsifiable",
+        "Guaranteed to be correct"
+      ],
+      "source_locator": "Biology team assessment question 3"
+    },
+    {
+      "id": "team-openstax-biology-004",
+      "subject": "Biology",
+      "topic": "Water",
+      "question": "Water's strong cohesion is largely due to:",
+      "options": [
+        "Peptide bonds",
+        "Phosphodiester bonds",
+        "Ionic bonds between water molecules",
+        "Hydrogen bonds between water molecules"
+      ],
+      "source_locator": "Biology team assessment question 4"
+    },
+    {
+      "id": "team-openstax-biology-005",
+      "subject": "Biology",
+      "topic": "Carbon",
+      "question": "Carbon can form diverse biological molecules largely because it:",
+      "options": [
+        "Can form four covalent bonds",
+        "Always forms ionic bonds",
+        "Has no electrons",
+        "Exists only as CO₂"
+      ],
+      "source_locator": "Biology team assessment question 5"
+    },
+    {
+      "id": "team-openstax-biology-006",
+      "subject": "Biology",
+      "topic": "Macromolecules",
+      "question": "Which macromolecule is built from amino acid monomers?",
+      "options": [
+        "Protein",
+        "Lipid",
+        "Carbohydrate",
+        "Nucleic acid"
+      ],
+      "source_locator": "Biology team assessment question 6"
+    },
+    {
+      "id": "team-openstax-biology-007",
+      "subject": "Biology",
+      "topic": "Enzymes",
+      "question": "The primary role of enzymes in cells is to:",
+      "options": [
+        "Supply genetic information",
+        "Increase activation energy",
+        "Lower activation energy and speed reactions",
+        "Change the final equilibrium permanently"
+      ],
+      "source_locator": "Biology team assessment question 7"
+    },
+    {
+      "id": "team-openstax-biology-008",
+      "subject": "Biology",
+      "topic": "Cell organelles",
+      "question": "Which organelle contains most of a eukaryotic cell's DNA?",
+      "options": [
+        "Lysosome",
+        "Golgi apparatus",
+        "Ribosome",
+        "Nucleus"
+      ],
+      "source_locator": "Biology team assessment question 8"
+    },
+    {
+      "id": "team-openstax-biology-009",
+      "subject": "Biology",
+      "topic": "Cellular respiration",
+      "question": "Which organelle is the main site of ATP production during aerobic cellular respiration?",
+      "options": [
+        "Nucleus",
+        "Vacuole",
+        "Mitochondrion",
+        "Golgi apparatus"
+      ],
+      "source_locator": "Biology team assessment question 9"
+    },
+    {
+      "id": "team-openstax-biology-010",
+      "subject": "Biology",
+      "topic": "Protein synthesis",
+      "question": "Ribosomes are directly responsible for:",
+      "options": [
+        "Cell movement only",
+        "DNA replication",
+        "Lipid storage",
+        "Protein synthesis"
+      ],
+      "source_locator": "Biology team assessment question 10"
+    },
+    {
+      "id": "team-openstax-biology-011",
+      "subject": "Biology",
+      "topic": "Endomembrane system",
+      "question": "The Golgi apparatus mainly functions in:",
+      "options": [
+        "Copying DNA",
+        "Producing ATP",
+        "Breaking down glucose in glycolysis",
+        "Modifying and sorting proteins and lipids"
+      ],
+      "source_locator": "Biology team assessment question 11"
+    },
+    {
+      "id": "team-openstax-biology-012",
+      "subject": "Biology",
+      "topic": "Membranes",
+      "question": "The plasma membrane is described as selectively permeable because it:",
+      "options": [
+        "Controls which substances cross",
+        "Is made only of carbohydrates",
+        "Has no proteins",
+        "Allows every substance through equally"
+      ],
+      "source_locator": "Biology team assessment question 12"
+    },
+    {
+      "id": "team-openstax-biology-013",
+      "subject": "Biology",
+      "topic": "Transport",
+      "question": "Movement of molecules from high concentration to low concentration without energy input is:",
+      "options": [
+        "Endocytosis",
+        "Exocytosis",
+        "Active transport",
+        "Diffusion"
+      ],
+      "source_locator": "Biology team assessment question 13"
+    },
+    {
+      "id": "team-openstax-biology-014",
+      "subject": "Biology",
+      "topic": "Osmosis",
+      "question": "Osmosis is the diffusion of:",
+      "options": [
+        "Proteins",
+        "Water across a selectively permeable membrane",
+        "DNA",
+        "ATP"
+      ],
+      "source_locator": "Biology team assessment question 14"
+    },
+    {
+      "id": "team-openstax-biology-015",
+      "subject": "Biology",
+      "topic": "Osmosis",
+      "question": "A cell placed in a strongly hypertonic solution will generally:",
+      "options": [
+        "Lose water",
+        "Gain water",
+        "Divide immediately",
+        "Produce chlorophyll"
+      ],
+      "source_locator": "Biology team assessment question 15"
+    },
+    {
+      "id": "team-openstax-biology-016",
+      "subject": "Biology",
+      "topic": "Active transport",
+      "question": "Active transport differs from simple diffusion because active transport:",
+      "options": [
+        "Always moves water",
+        "Occurs only in plants",
+        "Never uses proteins",
+        "Can move substances against a concentration gradient using energy"
+      ],
+      "source_locator": "Biology team assessment question 16"
+    },
+    {
+      "id": "team-openstax-biology-017",
+      "subject": "Biology",
+      "topic": "Cellular respiration",
+      "question": "Glycolysis occurs primarily in the:",
+      "options": [
+        "Golgi apparatus",
+        "Cytoplasm",
+        "Lysosome",
+        "Nucleus"
+      ],
+      "source_locator": "Biology team assessment question 17"
+    },
+    {
+      "id": "team-openstax-biology-018",
+      "subject": "Biology",
+      "topic": "Cellular respiration",
+      "question": "In aerobic respiration, most ATP is generated through:",
+      "options": [
+        "Photosystem II",
+        "Fermentation only",
+        "DNA replication",
+        "Oxidative phosphorylation"
+      ],
+      "source_locator": "Biology team assessment question 18"
+    },
+    {
+      "id": "team-openstax-biology-019",
+      "subject": "Biology",
+      "topic": "Photosynthesis",
+      "question": "Photosynthesis captures light energy mainly to build:",
+      "options": [
+        "Only ATP for export",
+        "Proteins directly from nitrogen gas",
+        "Minerals",
+        "Organic molecules such as sugars"
+      ],
+      "source_locator": "Biology team assessment question 19"
+    },
+    {
+      "id": "team-openstax-biology-020",
+      "subject": "Biology",
+      "topic": "Photosynthesis",
+      "question": "The light-dependent reactions of photosynthesis occur in the:",
+      "options": [
+        "Cell wall",
+        "Thylakoid membranes",
+        "Mitochondrial matrix",
+        "Nucleus"
+      ],
+      "source_locator": "Biology team assessment question 20"
+    },
+    {
+      "id": "team-openstax-biology-021",
+      "subject": "Biology",
+      "topic": "Photosynthesis",
+      "question": "The Calvin cycle uses CO₂ to produce:",
+      "options": [
+        "Organic carbon compounds",
+        "Oxygen gas directly from CO₂",
+        "DNA only",
+        "Mineral ions"
+      ],
+      "source_locator": "Biology team assessment question 21"
+    },
+    {
+      "id": "team-openstax-biology-022",
+      "subject": "Biology",
+      "topic": "Mitosis",
+      "question": "During mitosis, duplicated chromosomes are separated so that:",
+      "options": [
+        "Homologous chromosomes pair for crossing over",
+        "Four haploid cells form",
+        "DNA is destroyed",
+        "Two genetically similar nuclei can form"
+      ],
+      "source_locator": "Biology team assessment question 22"
+    },
+    {
+      "id": "team-openstax-biology-023",
+      "subject": "Biology",
+      "topic": "Meiosis",
+      "question": "Meiosis typically produces:",
+      "options": [
+        "One tetraploid cell",
+        "Four haploid cells",
+        "Only somatic cells",
+        "Two diploid cells"
+      ],
+      "source_locator": "Biology team assessment question 23"
+    },
+    {
+      "id": "team-openstax-biology-024",
+      "subject": "Biology",
+      "topic": "Meiosis",
+      "question": "Crossing over during meiosis contributes to:",
+      "options": [
+        "Genetic variation",
+        "Loss of all chromosomes",
+        "DNA elimination",
+        "Identical offspring only"
+      ],
+      "source_locator": "Biology team assessment question 24"
+    },
+    {
+      "id": "team-openstax-biology-025",
+      "subject": "Biology",
+      "topic": "Genetics",
+      "question": "A gene is best defined as:",
+      "options": [
+        "A segment of DNA with information for a functional product",
+        "An entire chromosome only",
+        "A lipid in the membrane",
+        "A type of ribosome"
+      ],
+      "source_locator": "Biology team assessment question 25"
+    },
+    {
+      "id": "team-openstax-biology-026",
+      "subject": "Biology",
+      "topic": "Mendelian genetics",
+      "question": "Mendel's law of segregation concerns the separation of:",
+      "options": [
+        "Alleles during gamete formation",
+        "Proteins during translation",
+        "Species during evolution",
+        "Organelles during cytokinesis"
+      ],
+      "source_locator": "Biology team assessment question 26"
+    },
+    {
+      "id": "team-openstax-biology-027",
+      "subject": "Biology",
+      "topic": "Dominance",
+      "question": "If A is dominant to a and an individual is Aa, its phenotype will usually show:",
+      "options": [
+        "The dominant trait",
+        "The recessive trait only",
+        "Both traits in every dominant-recessive case",
+        "Neither trait"
+      ],
+      "source_locator": "Biology team assessment question 27"
+    },
+    {
+      "id": "team-openstax-biology-028",
+      "subject": "Biology",
+      "topic": "Punnett squares",
+      "question": "For a cross Aa × Aa, what is the expected probability of genotype aa?",
+      "options": [
+        "0%",
+        "50%",
+        "75%",
+        "25%"
+      ],
+      "source_locator": "Biology team assessment question 28"
+    },
+    {
+      "id": "team-openstax-biology-029",
+      "subject": "Biology",
+      "topic": "DNA replication",
+      "question": "DNA replication is described as semiconservative because each new DNA molecule contains:",
+      "options": [
+        "Two completely new strands",
+        "Only RNA",
+        "No nucleotides from the original",
+        "One old strand and one new strand"
+      ],
+      "source_locator": "Biology team assessment question 29"
+    },
+    {
+      "id": "team-openstax-biology-030",
+      "subject": "Biology",
+      "topic": "DNA structure",
+      "question": "In DNA, adenine pairs with:",
+      "options": [
+        "Guanine",
+        "Thymine",
+        "Cytosine",
+        "Uracil"
+      ],
+      "source_locator": "Biology team assessment question 30"
+    },
+    {
+      "id": "team-openstax-biology-031",
+      "subject": "Biology",
+      "topic": "Gene expression",
+      "question": "Transcription produces:",
+      "options": [
+        "RNA from a DNA template",
+        "DNA from protein",
+        "ATP from glucose",
+        "Protein directly from lipid"
+      ],
+      "source_locator": "Biology team assessment question 31"
+    },
+    {
+      "id": "team-openstax-biology-032",
+      "subject": "Biology",
+      "topic": "Gene expression",
+      "question": "Translation occurs at:",
+      "options": [
+        "Centrioles only",
+        "Cell walls",
+        "Ribosomes",
+        "Lysosomes"
+      ],
+      "source_locator": "Biology team assessment question 32"
+    },
+    {
+      "id": "team-openstax-biology-033",
+      "subject": "Biology",
+      "topic": "Genetic code",
+      "question": "A codon is a sequence of three nucleotides found on:",
+      "options": [
+        "mRNA",
+        "A phospholipid tail",
+        "A lipid",
+        "A carbohydrate"
+      ],
+      "source_locator": "Biology team assessment question 33"
+    },
+    {
+      "id": "team-openstax-biology-034",
+      "subject": "Biology",
+      "topic": "Evolution",
+      "question": "Natural selection requires heritable variation and differences in:",
+      "options": [
+        "Atomic number",
+        "Cell size only",
+        "Reproductive success",
+        "Mutation rate to be exactly zero"
+      ],
+      "source_locator": "Biology team assessment question 34"
+    },
+    {
+      "id": "team-openstax-biology-035",
+      "subject": "Biology",
+      "topic": "Evolution",
+      "question": "An adaptation is a heritable trait that:",
+      "options": [
+        "Prevents all mutations",
+        "Appears because an organism needs it",
+        "Always makes an organism larger",
+        "Tends to increase reproductive success in a particular environment"
+      ],
+      "source_locator": "Biology team assessment question 35"
+    },
+    {
+      "id": "team-openstax-biology-036",
+      "subject": "Biology",
+      "topic": "Population genetics",
+      "question": "Genetic drift has its strongest effects in:",
+      "options": [
+        "Populations with no alleles",
+        "Small populations",
+        "All populations equally",
+        "Very large populations only"
+      ],
+      "source_locator": "Biology team assessment question 36"
+    },
+    {
+      "id": "team-openstax-biology-037",
+      "subject": "Biology",
+      "topic": "Evolution",
+      "question": "Homologous structures in different species can provide evidence of:",
+      "options": [
+        "Identical environments only",
+        "Spontaneous generation",
+        "Common ancestry",
+        "No evolution"
+      ],
+      "source_locator": "Biology team assessment question 37"
+    },
+    {
+      "id": "team-openstax-biology-038",
+      "subject": "Biology",
+      "topic": "Phylogeny",
+      "question": "A phylogenetic tree represents hypotheses about:",
+      "options": [
+        "Chemical pH",
+        "Evolutionary relationships",
+        "Daily metabolic rates only",
+        "Weather patterns"
+      ],
+      "source_locator": "Biology team assessment question 38"
+    },
+    {
+      "id": "team-openstax-biology-039",
+      "subject": "Biology",
+      "topic": "Viruses",
+      "question": "Viruses are generally considered acellular because they:",
+      "options": [
+        "Lack cellular structure and depend on hosts for replication",
+        "Are made only of proteins",
+        "Perform photosynthesis independently",
+        "Have no genetic material"
+      ],
+      "source_locator": "Biology team assessment question 39"
+    },
+    {
+      "id": "team-openstax-biology-040",
+      "subject": "Biology",
+      "topic": "Prokaryotes",
+      "question": "Bacteria reproduce most commonly by:",
+      "options": [
+        "Mitosis with a nucleus",
+        "Binary fission",
+        "Meiosis",
+        "Budding of multicellular embryos"
+      ],
+      "source_locator": "Biology team assessment question 40"
+    },
+    {
+      "id": "team-openstax-biology-041",
+      "subject": "Biology",
+      "topic": "Plant transport",
+      "question": "In plants, xylem primarily transports:",
+      "options": [
+        "Oxygen only",
+        "Sugars from leaves",
+        "Water and dissolved minerals",
+        "DNA"
+      ],
+      "source_locator": "Biology team assessment question 41"
+    },
+    {
+      "id": "team-openstax-biology-042",
+      "subject": "Biology",
+      "topic": "Plant transport",
+      "question": "In plants, phloem primarily transports:",
+      "options": [
+        "Minerals only downward",
+        "Sugars and other organic products",
+        "Water only upward",
+        "Nerve impulses"
+      ],
+      "source_locator": "Biology team assessment question 42"
+    },
+    {
+      "id": "team-openstax-biology-043",
+      "subject": "Biology",
+      "topic": "Plant physiology",
+      "question": "Stomata are structures that mainly regulate:",
+      "options": [
+        "DNA replication",
+        "Gas exchange and water loss",
+        "Root growth only",
+        "Seed color"
+      ],
+      "source_locator": "Biology team assessment question 43"
+    },
+    {
+      "id": "team-openstax-biology-044",
+      "subject": "Biology",
+      "topic": "Circulation",
+      "question": "The human circulatory system transports oxygen mainly using:",
+      "options": [
+        "Red blood cells",
+        "Bone cells",
+        "Neurons",
+        "Platelets"
+      ],
+      "source_locator": "Biology team assessment question 44"
+    },
+    {
+      "id": "team-openstax-biology-045",
+      "subject": "Biology",
+      "topic": "Respiration",
+      "question": "Gas exchange in human lungs occurs primarily in the:",
+      "options": [
+        "Diaphragm",
+        "Aorta",
+        "Trachea",
+        "Alveoli"
+      ],
+      "source_locator": "Biology team assessment question 45"
+    },
+    {
+      "id": "team-openstax-biology-046",
+      "subject": "Biology",
+      "topic": "Endocrine regulation",
+      "question": "Insulin generally helps lower blood glucose by:",
+      "options": [
+        "Increasing glucagon release only",
+        "Promoting cellular uptake and storage of glucose",
+        "Stopping all cellular respiration",
+        "Breaking down all proteins"
+      ],
+      "source_locator": "Biology team assessment question 46"
+    },
+    {
+      "id": "team-openstax-biology-047",
+      "subject": "Biology",
+      "topic": "Nervous system",
+      "question": "Neurons transmit electrical signals along their:",
+      "options": [
+        "Chloroplasts",
+        "Vacuoles",
+        "Axons",
+        "Cell walls"
+      ],
+      "source_locator": "Biology team assessment question 47"
+    },
+    {
+      "id": "team-openstax-biology-048",
+      "subject": "Biology",
+      "topic": "Ecology",
+      "question": "An ecosystem includes:",
+      "options": [
+        "Only one species",
+        "Living organisms and the nonliving environment",
+        "Only plants and animals",
+        "Only living organisms"
+      ],
+      "source_locator": "Biology team assessment question 48"
+    },
+    {
+      "id": "team-openstax-biology-049",
+      "subject": "Biology",
+      "topic": "Ecology",
+      "question": "Energy generally enters most ecosystems through:",
+      "options": [
+        "Mineral cycles alone",
+        "Sunlight captured by producers",
+        "Decomposers only",
+        "Consumers producing sunlight"
+      ],
+      "source_locator": "Biology team assessment question 49"
+    },
+    {
+      "id": "team-openstax-biology-050",
+      "subject": "Biology",
+      "topic": "Population ecology",
+      "question": "A population consists of:",
+      "options": [
+        "Only predators in a food web",
+        "All organisms on Earth",
+        "Individuals of the same species living in the same area",
+        "All species in one ecosystem"
+      ],
+      "source_locator": "Biology team assessment question 50"
+    },
+    {
+      "id": "team-openstax-mathematics-001",
+      "subject": "Mathematics",
+      "topic": "Algebraic expressions",
+      "question": "Simplify: 3(2x - 5) + 4.",
+      "options": [
+        "6x - 11",
+        "5x - 11",
+        "6x + 19",
+        "6x - 1"
+      ],
+      "source_locator": "Mathematics team assessment question 1"
+    },
+    {
+      "id": "team-openstax-mathematics-002",
+      "subject": "Mathematics",
+      "topic": "Linear equations",
+      "question": "Solve: 3x - 7 = 11.",
+      "options": [
+        "4",
+        "7",
+        "5",
+        "6"
+      ],
+      "source_locator": "Mathematics team assessment question 2"
+    },
+    {
+      "id": "team-openstax-mathematics-003",
+      "subject": "Mathematics",
+      "topic": "Linear equations",
+      "question": "Solve: 5(x - 2) = 20.",
+      "options": [
+        "4",
+        "2",
+        "6",
+        "8"
+      ],
+      "source_locator": "Mathematics team assessment question 3"
+    },
+    {
+      "id": "team-openstax-mathematics-004",
+      "subject": "Mathematics",
+      "topic": "Inequalities",
+      "question": "Solve: 2x + 3 < 11.",
+      "options": [
+        "x > 7",
+        "x < 7",
+        "x < 4",
+        "x > 4"
+      ],
+      "source_locator": "Mathematics team assessment question 4"
+    },
+    {
+      "id": "team-openstax-mathematics-005",
+      "subject": "Mathematics",
+      "topic": "Absolute value",
+      "question": "What is |−8|?",
+      "options": [
+        "0",
+        "16",
+        "8",
+        "−8"
+      ],
+      "source_locator": "Mathematics team assessment question 5"
+    },
+    {
+      "id": "team-openstax-mathematics-006",
+      "subject": "Mathematics",
+      "topic": "Exponents",
+      "question": "Simplify: x³ · x⁴.",
+      "options": [
+        "x⁷",
+        "x",
+        "2x⁷",
+        "x¹²"
+      ],
+      "source_locator": "Mathematics team assessment question 6"
+    },
+    {
+      "id": "team-openstax-mathematics-007",
+      "subject": "Mathematics",
+      "topic": "Exponents",
+      "question": "Simplify: (x⁶)/(x²), x ≠ 0.",
+      "options": [
+        "x⁸",
+        "x³",
+        "1/x⁴",
+        "x⁴"
+      ],
+      "source_locator": "Mathematics team assessment question 7"
+    },
+    {
+      "id": "team-openstax-mathematics-008",
+      "subject": "Mathematics",
+      "topic": "Order of operations",
+      "question": "Evaluate 2³ + 4.",
+      "options": [
+        "12",
+        "8",
+        "10",
+        "16"
+      ],
+      "source_locator": "Mathematics team assessment question 8"
+    },
+    {
+      "id": "team-openstax-mathematics-009",
+      "subject": "Mathematics",
+      "topic": "Factoring",
+      "question": "Factor: x² - 9.",
+      "options": [
+        "x(x - 9)",
+        "(x - 3)²",
+        "(x - 9)(x + 1)",
+        "(x - 3)(x + 3)"
+      ],
+      "source_locator": "Mathematics team assessment question 9"
+    },
+    {
+      "id": "team-openstax-mathematics-010",
+      "subject": "Mathematics",
+      "topic": "Quadratic equations",
+      "question": "Solve: x² - 5x + 6 = 0.",
+      "options": [
+        "x = 2 or 3",
+        "x = 5 only",
+        "x = -2 or -3",
+        "x = 1 or 6"
+      ],
+      "source_locator": "Mathematics team assessment question 10"
+    },
+    {
+      "id": "team-openstax-mathematics-011",
+      "subject": "Mathematics",
+      "topic": "Quadratic equations",
+      "question": "The discriminant of ax² + bx + c = 0 is:",
+      "options": [
+        "b² + 4ac",
+        "b² - 4ac",
+        "2a + b",
+        "a² - 4bc"
+      ],
+      "source_locator": "Mathematics team assessment question 11"
+    },
+    {
+      "id": "team-openstax-mathematics-012",
+      "subject": "Mathematics",
+      "topic": "Functions",
+      "question": "If f(x) = 2x + 1, what is f(4)?",
+      "options": [
+        "9",
+        "10",
+        "7",
+        "8"
+      ],
+      "source_locator": "Mathematics team assessment question 12"
+    },
+    {
+      "id": "team-openstax-mathematics-013",
+      "subject": "Mathematics",
+      "topic": "Functions",
+      "question": "Which relation defines y as a function of x?",
+      "options": [
+        "Each y-value has exactly one x-value",
+        "No ordered pairs are allowed",
+        "Each x-value has exactly one y-value",
+        "Every x has two y-values"
+      ],
+      "source_locator": "Mathematics team assessment question 13"
+    },
+    {
+      "id": "team-openstax-mathematics-014",
+      "subject": "Mathematics",
+      "topic": "Linear functions",
+      "question": "What is the slope through (1, 2) and (5, 10)?",
+      "options": [
+        "1",
+        "4",
+        "2",
+        "8"
+      ],
+      "source_locator": "Mathematics team assessment question 14"
+    },
+    {
+      "id": "team-openstax-mathematics-015",
+      "subject": "Mathematics",
+      "topic": "Linear functions",
+      "question": "Which is the slope-intercept form of a line?",
+      "options": [
+        "y = mx + b",
+        "Ax + By = C",
+        "x² + y² = r²",
+        "y = a(x-h)²+k"
+      ],
+      "source_locator": "Mathematics team assessment question 15"
+    },
+    {
+      "id": "team-openstax-mathematics-016",
+      "subject": "Mathematics",
+      "topic": "Linear functions",
+      "question": "A line has slope 3 and y-intercept −2. Its equation is:",
+      "options": [
+        "3y = x - 2",
+        "y = -2x + 3",
+        "y = 3x - 2",
+        "y = 2x - 3"
+      ],
+      "source_locator": "Mathematics team assessment question 16"
+    },
+    {
+      "id": "team-openstax-mathematics-017",
+      "subject": "Mathematics",
+      "topic": "Linear functions",
+      "question": "Two nonvertical lines with equal slopes and different y-intercepts are:",
+      "options": [
+        "Nonlinear",
+        "Perpendicular",
+        "The same line",
+        "Parallel"
+      ],
+      "source_locator": "Mathematics team assessment question 17"
+    },
+    {
+      "id": "team-openstax-mathematics-018",
+      "subject": "Mathematics",
+      "topic": "Polynomials",
+      "question": "Which polynomial has degree 4?",
+      "options": [
+        "x³ + x²",
+        "5x - 1",
+        "3x⁴ - x + 2",
+        "7"
+      ],
+      "source_locator": "Mathematics team assessment question 18"
+    },
+    {
+      "id": "team-openstax-mathematics-019",
+      "subject": "Mathematics",
+      "topic": "Polynomials",
+      "question": "If p(x) = x² - 4, what is p(3)?",
+      "options": [
+        "5",
+        "9",
+        "13",
+        "1"
+      ],
+      "source_locator": "Mathematics team assessment question 19"
+    },
+    {
+      "id": "team-openstax-mathematics-020",
+      "subject": "Mathematics",
+      "topic": "Remainder theorem",
+      "question": "What is the remainder when x² + 3x + 2 is divided by x + 1?",
+      "options": [
+        "0",
+        "1",
+        "2",
+        "−1"
+      ],
+      "source_locator": "Mathematics team assessment question 20"
+    },
+    {
+      "id": "team-openstax-mathematics-021",
+      "subject": "Mathematics",
+      "topic": "Polynomial zeros",
+      "question": "The zeros of x² - 4 are:",
+      "options": [
+        "−4 and 4",
+        "−2 and 2",
+        "2 only",
+        "0 and 4"
+      ],
+      "source_locator": "Mathematics team assessment question 21"
+    },
+    {
+      "id": "team-openstax-mathematics-022",
+      "subject": "Mathematics",
+      "topic": "Rational expressions",
+      "question": "Simplify: (x² - 1)/(x - 1), x ≠ 1.",
+      "options": [
+        "x + 1",
+        "x - 1",
+        "x² + 1",
+        "1"
+      ],
+      "source_locator": "Mathematics team assessment question 22"
+    },
+    {
+      "id": "team-openstax-mathematics-023",
+      "subject": "Mathematics",
+      "topic": "Rational functions",
+      "question": "The expression 1/(x - 5) is undefined at:",
+      "options": [
+        "x = -5",
+        "x = 5",
+        "x = 0",
+        "x = 1"
+      ],
+      "source_locator": "Mathematics team assessment question 23"
+    },
+    {
+      "id": "team-openstax-mathematics-024",
+      "subject": "Mathematics",
+      "topic": "Rational equations",
+      "question": "Solve: 1/x = 1/4.",
+      "options": [
+        "x = -4",
+        "x = 2",
+        "x = 1/4",
+        "x = 4"
+      ],
+      "source_locator": "Mathematics team assessment question 24"
+    },
+    {
+      "id": "team-openstax-mathematics-025",
+      "subject": "Mathematics",
+      "topic": "Exponential functions",
+      "question": "If 2^x = 16, then x =",
+      "options": [
+        "3",
+        "4",
+        "2",
+        "8"
+      ],
+      "source_locator": "Mathematics team assessment question 25"
+    },
+    {
+      "id": "team-openstax-mathematics-026",
+      "subject": "Mathematics",
+      "topic": "Logarithms",
+      "question": "Which equation is equivalent to log₁₀(1000) = 3?",
+      "options": [
+        "1000³ = 10",
+        "10/3 = 1000",
+        "3¹⁰ = 1000",
+        "10³ = 1000"
+      ],
+      "source_locator": "Mathematics team assessment question 26"
+    },
+    {
+      "id": "team-openstax-mathematics-027",
+      "subject": "Mathematics",
+      "topic": "Logarithms",
+      "question": "Evaluate log₁₀(1).",
+      "options": [
+        "0",
+        "−1",
+        "10",
+        "1"
+      ],
+      "source_locator": "Mathematics team assessment question 27"
+    },
+    {
+      "id": "team-openstax-mathematics-028",
+      "subject": "Mathematics",
+      "topic": "Logarithms",
+      "question": "Using log rules, log(ab) equals:",
+      "options": [
+        "log a - log b",
+        "log a + log b",
+        "log a / log b",
+        "(log a)(log b)"
+      ],
+      "source_locator": "Mathematics team assessment question 28"
+    },
+    {
+      "id": "team-openstax-mathematics-029",
+      "subject": "Mathematics",
+      "topic": "Exponential models",
+      "question": "An exponential growth model typically has the form:",
+      "options": [
+        "A(t)=A₀/t",
+        "A(t)=A₀e^{kt} with k>0",
+        "A(t)=A₀e^{kt} with k<0 only",
+        "A(t)=mt+b only"
+      ],
+      "source_locator": "Mathematics team assessment question 29"
+    },
+    {
+      "id": "team-openstax-mathematics-030",
+      "subject": "Mathematics",
+      "topic": "Unit circle",
+      "question": "On the unit circle, cos θ is the:",
+      "options": [
+        "arc length only",
+        "x-coordinate",
+        "radius only",
+        "y-coordinate"
+      ],
+      "source_locator": "Mathematics team assessment question 30"
+    },
+    {
+      "id": "team-openstax-mathematics-031",
+      "subject": "Mathematics",
+      "topic": "Trigonometry",
+      "question": "sin 30° equals:",
+      "options": [
+        "√2/2",
+        "1",
+        "0",
+        "1/2"
+      ],
+      "source_locator": "Mathematics team assessment question 31"
+    },
+    {
+      "id": "team-openstax-mathematics-032",
+      "subject": "Mathematics",
+      "topic": "Trigonometry",
+      "question": "cos 60° equals:",
+      "options": [
+        "1",
+        "1/2",
+        "√3/2",
+        "√2/2"
+      ],
+      "source_locator": "Mathematics team assessment question 32"
+    },
+    {
+      "id": "team-openstax-mathematics-033",
+      "subject": "Mathematics",
+      "topic": "Trigonometric identities",
+      "question": "tan θ is equal to:",
+      "options": [
+        "1/sin θ",
+        "sin θ + cos θ",
+        "sin θ / cos θ",
+        "cos θ / sin θ"
+      ],
+      "source_locator": "Mathematics team assessment question 33"
+    },
+    {
+      "id": "team-openstax-mathematics-034",
+      "subject": "Mathematics",
+      "topic": "Trigonometric identities",
+      "question": "Which identity is fundamental?",
+      "options": [
+        "sin θ cos θ = 1",
+        "sin θ + cos θ = 1",
+        "tan²θ = 1 always",
+        "sin²θ + cos²θ = 1"
+      ],
+      "source_locator": "Mathematics team assessment question 34"
+    },
+    {
+      "id": "team-openstax-mathematics-035",
+      "subject": "Mathematics",
+      "topic": "Trigonometric equations",
+      "question": "If sin θ = 0 and 0° ≤ θ < 360°, then θ can be:",
+      "options": [
+        "45° or 225°",
+        "0° or 180°",
+        "60° or 300°",
+        "90° or 270°"
+      ],
+      "source_locator": "Mathematics team assessment question 35"
+    },
+    {
+      "id": "team-openstax-mathematics-036",
+      "subject": "Mathematics",
+      "topic": "Right triangles",
+      "question": "A right triangle has legs 3 and 4. Its hypotenuse is:",
+      "options": [
+        "5",
+        "6",
+        "7",
+        "√7"
+      ],
+      "source_locator": "Mathematics team assessment question 36"
+    },
+    {
+      "id": "team-openstax-mathematics-037",
+      "subject": "Mathematics",
+      "topic": "Trigonometry",
+      "question": "For a right triangle, sin θ equals:",
+      "options": [
+        "Adjacent/hypotenuse",
+        "Hypotenuse/opposite",
+        "Opposite/adjacent",
+        "Opposite/hypotenuse"
+      ],
+      "source_locator": "Mathematics team assessment question 37"
+    },
+    {
+      "id": "team-openstax-mathematics-038",
+      "subject": "Mathematics",
+      "topic": "Systems",
+      "question": "Solve the system x + y = 7 and x - y = 1.",
+      "options": [
+        "x=3, y=4",
+        "x=1, y=7",
+        "x=7, y=1",
+        "x=4, y=3"
+      ],
+      "source_locator": "Mathematics team assessment question 38"
+    },
+    {
+      "id": "team-openstax-mathematics-039",
+      "subject": "Mathematics",
+      "topic": "Systems",
+      "question": "The solution to two linear equations graphically is the:",
+      "options": [
+        "Slope of both lines",
+        "x-intercept of the first line only",
+        "y-intercept of the second line only",
+        "Point where the lines intersect"
+      ],
+      "source_locator": "Mathematics team assessment question 39"
+    },
+    {
+      "id": "team-openstax-mathematics-040",
+      "subject": "Mathematics",
+      "topic": "Systems",
+      "question": "A system of two distinct parallel lines has:",
+      "options": [
+        "Infinitely many solutions",
+        "One solution",
+        "No solution",
+        "Two solutions"
+      ],
+      "source_locator": "Mathematics team assessment question 40"
+    },
+    {
+      "id": "team-openstax-mathematics-041",
+      "subject": "Mathematics",
+      "topic": "Analytic geometry",
+      "question": "The standard equation of a circle centered at (h,k) with radius r is:",
+      "options": [
+        "(x+h)²-(y+k)²=r",
+        "(x-h)²+(y-k)²=r²",
+        "x²=4py",
+        "y=mx+b"
+      ],
+      "source_locator": "Mathematics team assessment question 41"
+    },
+    {
+      "id": "team-openstax-mathematics-042",
+      "subject": "Mathematics",
+      "topic": "Conic sections",
+      "question": "The graph of y = x² is a:",
+      "options": [
+        "Circle",
+        "Hyperbola",
+        "Parabola",
+        "Line"
+      ],
+      "source_locator": "Mathematics team assessment question 42"
+    },
+    {
+      "id": "team-openstax-mathematics-043",
+      "subject": "Mathematics",
+      "topic": "Sequences",
+      "question": "The sequence 3, 7, 11, 15, ... is:",
+      "options": [
+        "Geometric with ratio 4",
+        "Neither",
+        "Arithmetic with common difference 4",
+        "Arithmetic with common difference 3"
+      ],
+      "source_locator": "Mathematics team assessment question 43"
+    },
+    {
+      "id": "team-openstax-mathematics-044",
+      "subject": "Mathematics",
+      "topic": "Geometric sequences",
+      "question": "What is the next term in 2, 6, 18, 54, ...?",
+      "options": [
+        "72",
+        "216",
+        "162",
+        "108"
+      ],
+      "source_locator": "Mathematics team assessment question 44"
+    },
+    {
+      "id": "team-openstax-mathematics-045",
+      "subject": "Mathematics",
+      "topic": "Sequences",
+      "question": "The sum of the first n positive integers is:",
+      "options": [
+        "2n+1",
+        "n!/2",
+        "n²",
+        "n(n+1)/2"
+      ],
+      "source_locator": "Mathematics team assessment question 45"
+    },
+    {
+      "id": "team-openstax-mathematics-046",
+      "subject": "Mathematics",
+      "topic": "Probability",
+      "question": "A fair coin is tossed once. Probability of heads is:",
+      "options": [
+        "0",
+        "1/2",
+        "1",
+        "1/4"
+      ],
+      "source_locator": "Mathematics team assessment question 46"
+    },
+    {
+      "id": "team-openstax-mathematics-047",
+      "subject": "Mathematics",
+      "topic": "Probability",
+      "question": "A fair six-sided die is rolled. Probability of rolling a number greater than 4 is:",
+      "options": [
+        "1/6",
+        "1/2",
+        "1/3",
+        "2/3"
+      ],
+      "source_locator": "Mathematics team assessment question 47"
+    },
+    {
+      "id": "team-openstax-mathematics-048",
+      "subject": "Mathematics",
+      "topic": "Counting",
+      "question": "How many ways can 3 distinct books be arranged on a shelf?",
+      "options": [
+        "3",
+        "9",
+        "27",
+        "6"
+      ],
+      "source_locator": "Mathematics team assessment question 48"
+    },
+    {
+      "id": "team-openstax-mathematics-049",
+      "subject": "Mathematics",
+      "topic": "Factorials",
+      "question": "What is 5! ?",
+      "options": [
+        "625",
+        "60",
+        "25",
+        "120"
+      ],
+      "source_locator": "Mathematics team assessment question 49"
+    },
+    {
+      "id": "team-openstax-mathematics-050",
+      "subject": "Mathematics",
+      "topic": "Probability",
+      "question": "If an event has probability 0.2, its complement has probability:",
+      "options": [
+        "0.4",
+        "0.2",
+        "1.2",
+        "0.8"
+      ],
+      "source_locator": "Mathematics team assessment question 50"
+    },
+    {
+      "id": "team-openstax-english-001",
+      "subject": "English",
+      "topic": "Sentence structure",
+      "question": "Which sentence is complete?",
+      "options": [
+        "While the students in the laboratory.",
+        "Because the experiment failed.",
+        "Although studying for several hours.",
+        "The researchers repeated the experiment."
+      ],
+      "source_locator": "English team assessment question 1"
+    },
+    {
+      "id": "team-openstax-english-002",
+      "subject": "English",
+      "topic": "Sentence errors",
+      "question": "Which sentence contains a comma splice?",
+      "options": [
+        "We left because the rain stopped.",
+        "The rain stopped, we left.",
+        "The rain stopped, and we left.",
+        "After the rain stopped, we left."
+      ],
+      "source_locator": "English team assessment question 2"
+    },
+    {
+      "id": "team-openstax-english-003",
+      "subject": "English",
+      "topic": "Sentence errors",
+      "question": "Which revision correctly fixes the fragment 'Because the deadline was close.'?",
+      "options": [
+        "Because the deadline was close.",
+        "Because. The deadline was close.",
+        "The deadline because was close.",
+        "The team worked late because the deadline was close."
+      ],
+      "source_locator": "English team assessment question 3"
+    },
+    {
+      "id": "team-openstax-english-004",
+      "subject": "English",
+      "topic": "Subject-verb agreement",
+      "question": "Choose the sentence with correct subject-verb agreement.",
+      "options": [
+        "The list of items is on the desk.",
+        "The lists of item is on the desk.",
+        "The item list are on the desk.",
+        "The list of items are on the desk."
+      ],
+      "source_locator": "English team assessment question 4"
+    },
+    {
+      "id": "team-openstax-english-005",
+      "subject": "English",
+      "topic": "Pronouns",
+      "question": "Choose the sentence with correct pronoun agreement.",
+      "options": [
+        "All students must submit their papers.",
+        "The students must submits their paper.",
+        "Every students must submit his papers.",
+        "Each student must submit their paper, if singular they is required by the style guide."
+      ],
+      "source_locator": "English team assessment question 5"
+    },
+    {
+      "id": "team-openstax-english-006",
+      "subject": "English",
+      "topic": "Apostrophes",
+      "question": "Which sentence uses the apostrophe correctly?",
+      "options": [
+        "The student's books were missing, meaning books belonging to one student.",
+        "The students's books were missing.",
+        "The student book's were missing.",
+        "The students books were missing."
+      ],
+      "source_locator": "English team assessment question 6"
+    },
+    {
+      "id": "team-openstax-english-007",
+      "subject": "English",
+      "topic": "Punctuation",
+      "question": "Which sentence uses a semicolon correctly?",
+      "options": [
+        "Because the data were incomplete;.",
+        "The data were incomplete; therefore, the team repeated the test.",
+        "The data were; incomplete.",
+        "The data; were incomplete therefore the team repeated the test."
+      ],
+      "source_locator": "English team assessment question 7"
+    },
+    {
+      "id": "team-openstax-english-008",
+      "subject": "English",
+      "topic": "Punctuation",
+      "question": "Which sentence uses a colon appropriately?",
+      "options": [
+        "She brought three items: a notebook, a pen, and a calculator.",
+        "She: brought three items.",
+        "Because: she was ready.",
+        "The result was: surprising because."
+      ],
+      "source_locator": "English team assessment question 8"
+    },
+    {
+      "id": "team-openstax-english-009",
+      "subject": "English",
+      "topic": "Commas",
+      "question": "Which sentence has correct comma use after an introductory phrase?",
+      "options": [
+        "After the meeting we wrote the report.",
+        "After the meeting we, wrote the report.",
+        "After, the meeting we wrote the report.",
+        "After the meeting, we wrote the report."
+      ],
+      "source_locator": "English team assessment question 9"
+    },
+    {
+      "id": "team-openstax-english-010",
+      "subject": "English",
+      "topic": "Word choice",
+      "question": "Which word best completes the sentence: 'The new evidence may ___ the conclusion.'",
+      "options": [
+        "effect",
+        "affectedly",
+        "effects",
+        "affect"
+      ],
+      "source_locator": "English team assessment question 10"
+    },
+    {
+      "id": "team-openstax-english-011",
+      "subject": "English",
+      "topic": "Conciseness",
+      "question": "Which sentence is most concise?",
+      "options": [
+        "The test failed in nature, so therefore we repeated it again.",
+        "Due to the fact that the test failed, we repeated it again.",
+        "Because the test failed, we repeated it.",
+        "It was the test that failed and for that reason was repeated again."
+      ],
+      "source_locator": "English team assessment question 11"
+    },
+    {
+      "id": "team-openstax-english-012",
+      "subject": "English",
+      "topic": "Transitions",
+      "question": "Which transition best signals contrast?",
+      "options": [
+        "However",
+        "Similarly",
+        "Furthermore",
+        "Therefore"
+      ],
+      "source_locator": "English team assessment question 12"
+    },
+    {
+      "id": "team-openstax-english-013",
+      "subject": "English",
+      "topic": "Transitions",
+      "question": "Which transition best signals cause and effect?",
+      "options": [
+        "Meanwhile",
+        "Likewise",
+        "For example",
+        "Therefore"
+      ],
+      "source_locator": "English team assessment question 13"
+    },
+    {
+      "id": "team-openstax-english-014",
+      "subject": "English",
+      "topic": "Paragraphs",
+      "question": "A strong paragraph usually contains:",
+      "options": [
+        "Only quotations",
+        "Several unrelated main ideas",
+        "No transitions",
+        "A clear main point supported by relevant evidence"
+      ],
+      "source_locator": "English team assessment question 14"
+    },
+    {
+      "id": "team-openstax-english-015",
+      "subject": "English",
+      "topic": "Paragraphs",
+      "question": "The topic sentence of a paragraph usually:",
+      "options": [
+        "Repeats every detail",
+        "Must always be the final sentence",
+        "Provides a bibliography",
+        "Introduces or states the paragraph's main point"
+      ],
+      "source_locator": "English team assessment question 15"
+    },
+    {
+      "id": "team-openstax-english-016",
+      "subject": "English",
+      "topic": "Thesis statements",
+      "question": "Which thesis is most specific and arguable?",
+      "options": [
+        "There are many opinions about technology.",
+        "Technology exists.",
+        "Universities should teach basic digital privacy because students routinely manage sensitive personal data online.",
+        "Social media is interesting."
+      ],
+      "source_locator": "English team assessment question 16"
+    },
+    {
+      "id": "team-openstax-english-017",
+      "subject": "English",
+      "topic": "Evidence",
+      "question": "In academic writing, evidence is most useful when it is:",
+      "options": [
+        "Relevant to the claim and explained",
+        "Included without context",
+        "Used only to make the paper longer",
+        "Long, regardless of relevance"
+      ],
+      "source_locator": "English team assessment question 17"
+    },
+    {
+      "id": "team-openstax-english-018",
+      "subject": "English",
+      "topic": "Rhetoric",
+      "question": "A rhetorical situation includes factors such as:",
+      "options": [
+        "Only paragraph length",
+        "Only the writer's age",
+        "Audience, purpose, and context",
+        "Only spelling rules"
+      ],
+      "source_locator": "English team assessment question 18"
+    },
+    {
+      "id": "team-openstax-english-019",
+      "subject": "English",
+      "topic": "Rhetoric",
+      "question": "An appeal based primarily on logic and evidence is called:",
+      "options": [
+        "Logos",
+        "Pathos",
+        "Kairos",
+        "Ethos"
+      ],
+      "source_locator": "English team assessment question 19"
+    },
+    {
+      "id": "team-openstax-english-020",
+      "subject": "English",
+      "topic": "Rhetoric",
+      "question": "An appeal based on a speaker's credibility is called:",
+      "options": [
+        "Ethos",
+        "Logos",
+        "Pathos",
+        "Syntax"
+      ],
+      "source_locator": "English team assessment question 20"
+    },
+    {
+      "id": "team-openstax-english-021",
+      "subject": "English",
+      "topic": "Rhetoric",
+      "question": "An appeal designed mainly to engage emotion is called:",
+      "options": [
+        "Kairos",
+        "Pathos",
+        "Grammar",
+        "Ethos"
+      ],
+      "source_locator": "English team assessment question 21"
+    },
+    {
+      "id": "team-openstax-english-022",
+      "subject": "English",
+      "topic": "Rhetorical analysis",
+      "question": "In rhetorical analysis, identifying the intended audience helps explain:",
+      "options": [
+        "Why particular choices may persuade or inform that group",
+        "The writer's handwriting",
+        "Whether every sentence has the same length",
+        "Only how many words the text contains"
+      ],
+      "source_locator": "English team assessment question 22"
+    },
+    {
+      "id": "team-openstax-english-023",
+      "subject": "English",
+      "topic": "Source evaluation",
+      "question": "Which source is generally most appropriate for a research paper about a scientific question?",
+      "options": [
+        "An unsourced advertisement",
+        "A peer-reviewed scientific article",
+        "A random meme",
+        "An anonymous social-media comment"
+      ],
+      "source_locator": "English team assessment question 23"
+    },
+    {
+      "id": "team-openstax-english-024",
+      "subject": "English",
+      "topic": "Source evaluation",
+      "question": "When evaluating a source, checking the author's expertise mainly helps assess:",
+      "options": [
+        "Authority",
+        "Paragraph count",
+        "Page color",
+        "Font size"
+      ],
+      "source_locator": "English team assessment question 24"
+    },
+    {
+      "id": "team-openstax-english-025",
+      "subject": "English",
+      "topic": "Academic integrity",
+      "question": "Which practice is plagiarism?",
+      "options": [
+        "Presenting someone else's ideas as your own without credit",
+        "Quoting a source with citation",
+        "Paraphrasing accurately and citing the source",
+        "Summarizing your own observations"
+      ],
+      "source_locator": "English team assessment question 25"
+    },
+    {
+      "id": "team-openstax-english-026",
+      "subject": "English",
+      "topic": "Paraphrasing",
+      "question": "A proper paraphrase should:",
+      "options": [
+        "Remove the author's meaning",
+        "Copy the source sentence and change one word",
+        "Express the idea in genuinely new wording and cite the source",
+        "Avoid citation because the wording changed"
+      ],
+      "source_locator": "English team assessment question 26"
+    },
+    {
+      "id": "team-openstax-english-027",
+      "subject": "English",
+      "topic": "Quotations",
+      "question": "A direct quotation should normally be:",
+      "options": [
+        "Integrated into your sentence and cited",
+        "Inserted without explanation or citation",
+        "Used for every sentence",
+        "Changed substantially but still placed in quotation marks"
+      ],
+      "source_locator": "English team assessment question 27"
+    },
+    {
+      "id": "team-openstax-english-028",
+      "subject": "English",
+      "topic": "Citation",
+      "question": "The main purpose of citation is to:",
+      "options": [
+        "Avoid writing transitions",
+        "Replace analysis",
+        "Credit sources and help readers locate them",
+        "Increase word count"
+      ],
+      "source_locator": "English team assessment question 28"
+    },
+    {
+      "id": "team-openstax-english-029",
+      "subject": "English",
+      "topic": "Style",
+      "question": "Which sentence has the clearest active voice?",
+      "options": [
+        "The experiment was completed by the students.",
+        "Completion of the experiment was by students.",
+        "The students completed the experiment.",
+        "The experiment had been being completed."
+      ],
+      "source_locator": "English team assessment question 29"
+    },
+    {
+      "id": "team-openstax-english-030",
+      "subject": "English",
+      "topic": "Verb tense",
+      "question": "Which sentence maintains consistent verb tense?",
+      "options": [
+        "She entering the room and sat down.",
+        "She entered the room and sat down.",
+        "She enters the room and sat down.",
+        "She had entered the room and sits down."
+      ],
+      "source_locator": "English team assessment question 30"
+    },
+    {
+      "id": "team-openstax-english-031",
+      "subject": "English",
+      "topic": "Usage",
+      "question": "Choose the correctly punctuated sentence.",
+      "options": [
+        "Its important to check you're sources.",
+        "It's important to check you're sources.",
+        "It's important to check your sources.",
+        "Its' important to check your source's."
+      ],
+      "source_locator": "English team assessment question 31"
+    },
+    {
+      "id": "team-openstax-english-032",
+      "subject": "English",
+      "topic": "Usage",
+      "question": "Which sentence correctly uses 'their'?",
+      "options": [
+        "Put the book over their.",
+        "Their going to present tomorrow.",
+        "The researchers revised their methods.",
+        "They're results were published."
+      ],
+      "source_locator": "English team assessment question 32"
+    },
+    {
+      "id": "team-openstax-english-033",
+      "subject": "English",
+      "topic": "Usage",
+      "question": "Which sentence correctly uses 'its'?",
+      "options": [
+        "The company changed it's policy.",
+        "The company changed its' policy.",
+        "The company changed its policy.",
+        "Its' policy was changed."
+      ],
+      "source_locator": "English team assessment question 33"
+    },
+    {
+      "id": "team-openstax-english-034",
+      "subject": "English",
+      "topic": "Modifiers",
+      "question": "Which sentence avoids a dangling modifier?",
+      "options": [
+        "After reading the article, the argument was clearer.",
+        "Walking to class, the rain soaked Maya.",
+        "Walking to class, Maya was soaked by the rain.",
+        "To finish quickly, the deadline was ignored by Sam."
+      ],
+      "source_locator": "English team assessment question 34"
+    },
+    {
+      "id": "team-openstax-english-035",
+      "subject": "English",
+      "topic": "Parallelism",
+      "question": "Which sentence uses parallel structure?",
+      "options": [
+        "The course requires reading, writing, and presenting.",
+        "The course requires to read, writing, and presentation.",
+        "The course requires reading, writing, and to present.",
+        "The course requires reading, to write, and presenting."
+      ],
+      "source_locator": "English team assessment question 35"
+    },
+    {
+      "id": "team-openstax-english-036",
+      "subject": "English",
+      "topic": "Academic style",
+      "question": "Which sentence is most appropriate for a formal academic tone?",
+      "options": [
+        "The results were super crazy.",
+        "You won't believe these results.",
+        "The results were unexpected and require further analysis.",
+        "The results were kinda weird."
+      ],
+      "source_locator": "English team assessment question 36"
+    },
+    {
+      "id": "team-openstax-english-037",
+      "subject": "English",
+      "topic": "Reading comprehension",
+      "question": "Read: 'The city added protected bicycle lanes on three major streets. Six months later, bicycle counts increased, but the report notes that seasonal weather may also have influenced the change.' Which conclusion is best supported?",
+      "options": [
+        "The lanes definitely caused all of the increase.",
+        "Weather had no effect.",
+        "Bicycle use increased, but causation is not fully established.",
+        "The project failed."
+      ],
+      "source_locator": "English team assessment question 37"
+    },
+    {
+      "id": "team-openstax-english-038",
+      "subject": "English",
+      "topic": "Reading comprehension",
+      "question": "From the same passage, which detail most directly limits a causal claim?",
+      "options": [
+        "Bicycle counts were measured.",
+        "The city added lanes.",
+        "Seasonal weather may have influenced the change.",
+        "Three streets were involved."
+      ],
+      "source_locator": "English team assessment question 38"
+    },
+    {
+      "id": "team-openstax-english-039",
+      "subject": "English",
+      "topic": "Reading comprehension",
+      "question": "Read: 'A study found that students who slept at least seven hours before an exam scored higher on average than students who slept less. The researchers did not randomly assign sleep duration.' What is the strongest cautious interpretation?",
+      "options": [
+        "More sleep was associated with higher scores, but the design does not prove causation.",
+        "The study proves exams cause sleep loss.",
+        "Seven hours of sleep guarantees a high score.",
+        "Sleep has no relationship to scores."
+      ],
+      "source_locator": "English team assessment question 39"
+    },
+    {
+      "id": "team-openstax-english-040",
+      "subject": "English",
+      "topic": "Reading comprehension",
+      "question": "Which fact from that study most directly weakens a claim of proven causation?",
+      "options": [
+        "Students took an exam.",
+        "Scores were averaged.",
+        "Sleep duration was not randomly assigned.",
+        "Some students slept seven hours."
+      ],
+      "source_locator": "English team assessment question 40"
+    },
+    {
+      "id": "team-openstax-english-041",
+      "subject": "English",
+      "topic": "Critical reading",
+      "question": "Read: 'The library extended its weekend hours during final exams. Attendance rose by 30 percent compared with the previous month.' Which question would best help evaluate the comparison?",
+      "options": [
+        "Was the previous month also an exam period?",
+        "What color are the library walls?",
+        "Who designed the library logo?",
+        "How many books have blue covers?"
+      ],
+      "source_locator": "English team assessment question 41"
+    },
+    {
+      "id": "team-openstax-english-042",
+      "subject": "English",
+      "topic": "Reasoning",
+      "question": "A writer presents one survey of 20 volunteers as proof that all university students prefer online classes. What is the main reasoning problem?",
+      "options": [
+        "The claim may overgeneralize from a small, nonrepresentative sample.",
+        "The topic concerns education.",
+        "The writer used a complete sentence.",
+        "The survey used numbers."
+      ],
+      "source_locator": "English team assessment question 42"
+    },
+    {
+      "id": "team-openstax-english-043",
+      "subject": "English",
+      "topic": "Claims and evidence",
+      "question": "Which statement is a claim rather than direct evidence?",
+      "options": [
+        "The new policy will improve student learning.",
+        "The experiment was repeated three times.",
+        "The survey included 500 respondents.",
+        "Average response time was 8 minutes."
+      ],
+      "source_locator": "English team assessment question 43"
+    },
+    {
+      "id": "team-openstax-english-044",
+      "subject": "English",
+      "topic": "Evidence",
+      "question": "Which evidence would best support the claim that a tutoring program improved algebra performance?",
+      "options": [
+        "A tutor's favorite textbook",
+        "A poster advertising tutoring",
+        "Before-and-after algebra scores for comparable students",
+        "The color of the tutoring room"
+      ],
+      "source_locator": "English team assessment question 44"
+    },
+    {
+      "id": "team-openstax-english-045",
+      "subject": "English",
+      "topic": "Synthesis",
+      "question": "When two credible sources disagree, a strong academic response is to:",
+      "options": [
+        "Assume both are equally correct on every point",
+        "Ignore one source automatically",
+        "Compare their methods, evidence, scope, and assumptions",
+        "Choose the shorter source"
+      ],
+      "source_locator": "English team assessment question 45"
+    },
+    {
+      "id": "team-openstax-english-046",
+      "subject": "English",
+      "topic": "Synthesis",
+      "question": "A synthesis paragraph should:",
+      "options": [
+        "Bring multiple sources into relation around a point or question",
+        "Avoid the writer's own analysis",
+        "List sources without connecting them",
+        "Use only one source"
+      ],
+      "source_locator": "English team assessment question 46"
+    },
+    {
+      "id": "team-openstax-english-047",
+      "subject": "English",
+      "topic": "Clarity",
+      "question": "Which revision improves clarity? Original: 'The committee discussed the proposal that was controversial in the meeting.'",
+      "options": [
+        "In the meeting, the committee discussed the controversial proposal.",
+        "Controversial, the meeting was proposal discussion.",
+        "The committee that was controversial discussed the meeting proposal.",
+        "The proposal discussed the committee in the meeting."
+      ],
+      "source_locator": "English team assessment question 47"
+    },
+    {
+      "id": "team-openstax-english-048",
+      "subject": "English",
+      "topic": "Coordination",
+      "question": "Which sentence correctly uses a coordinating conjunction to join two independent clauses?",
+      "options": [
+        "The experiment ended, and the team saved the data.",
+        "The experiment ended and, the team saved the data.",
+        "The experiment, and the team saved the data.",
+        "Because the experiment ended, and the team saved the data."
+      ],
+      "source_locator": "English team assessment question 48"
+    },
+    {
+      "id": "team-openstax-english-049",
+      "subject": "English",
+      "topic": "Cohesion",
+      "question": "Which revision best improves cohesion between these ideas? 'The method is inexpensive. It is slower than the alternative.'",
+      "options": [
+        "The method is inexpensive; however, it is slower than the alternative.",
+        "The method is inexpensive because slower.",
+        "Slower the alternative, inexpensive method.",
+        "The method is inexpensive. Bananas are yellow."
+      ],
+      "source_locator": "English team assessment question 49"
+    },
+    {
+      "id": "team-openstax-english-050",
+      "subject": "English",
+      "topic": "Revision and editing",
+      "question": "Before submitting an academic paper, the most effective final step is to:",
+      "options": [
+        "Check organization, evidence, citations, grammar, and formatting against the assignment requirements",
+        "Remove all transitions",
+        "Change every short sentence into a long one",
+        "Add unrelated quotations"
+      ],
+      "source_locator": "English team assessment question 50"
     }
   ]
 }

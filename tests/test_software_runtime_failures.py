@@ -61,6 +61,10 @@ def _evaluation():
         "dataset_id": "fixture",
         "source_url": "custom-user-provided",
         "license": "project evaluation data",
+        "source_description": "fixture",
+        "method": "required_concept_coverage",
+        "questions_sha256": "a" * 64,
+        "references_sha256": "b" * 64,
         "items": [
             {
                 "question": {

@@ -1,0 +1,274 @@
+{
+  "backend": "local",
+  "campaign_id": "final-burst-250q-gemini-10-20260922T100532Z",
+  "elapsed_seconds": 9173.489092994001,
+  "ended_at": "2026-09-22T15:23:16.331141+00:00",
+  "gemini_usage_total": {
+    "accepted_proposals": 10,
+    "candidate_tokens": 1356,
+    "duplicates": 0,
+    "estimated_cost_usd": 0.00971025,
+    "fallback_count": 0,
+    "input_tokens": 30705,
+    "malformed_responses": 0,
+    "output_tokens": 1356,
+    "rejected_proposals": 0,
+    "request_count": 10,
+    "retry_count": 0,
+    "thought_tokens": 0,
+    "total_tokens": 32061,
+    "unmetered_request_failures": 0
+  },
+  "mode": "chia",
+  "optimizer_budget_remaining_usd": 9.99028975,
+  "optimizer_budget_usd": 10.0,
+  "optimizer_calls": 10,
+  "optimizer_events": [
+    {
+      "call": 1,
+      "candidate_id": "1a9cad86cb5a415523095a667251877f4ecfef348b14a52606a8bde110179bb4",
+      "estimated_cost_usd": 0.00033675,
+      "model": "gemini-3.1-flash-lite",
+      "prompt_sha256": "b0732eca65fb2dc9781658b03f1c652f6878f39e335b446e8e3c2f6ce61c8c87",
+      "prompt_version": "candidate-json-v3-four-objective-pareto",
+      "raw_proposal": "{\n  \"hardware\": {\n    \"cpu_model\": \"RiscvTimingSimpleCPU\",\n    \"frequency_ghz\": 1,\n    \"issue_width\": 1,\n    \"l1d_cache_kib\": 16,\n    \"l1d_associativity\": 2,\n    \"l2_cache_kib\": 256,\n    \"l2_associativity\": 4\n  },\n  \"software\": {\n    \"temperature\": 0,\n    \"max_output_tokens\": 128\n  }\n}",
+      "sdk": "google-genai",
+      "status": "accepted",
+      "usage": {
+        "candidate_tokens": 134,
+        "input_tokens": 543,
+        "output_tokens": 134,
+        "thought_tokens": 0,
+        "total_tokens": 677
+      }
+    },
+    {
+      "call": 2,
+      "candidate_id": "69f8f3fc7533fdd7f438c7fa00f69d4dc4385de79fb881d61d4d192867457a8b",
+      "estimated_cost_usd": 0.00048275,
+      "model": "gemini-3.1-flash-lite",
+      "prompt_sha256": "641ac3b52b89c89de1fa6c8d675106756bcc8c02c7e086c4746a6bc8be411d8c",
+      "prompt_version": "candidate-json-v3-four-objective-pareto",
+      "raw_proposal": "{\n  \"hardware\": {\n    \"cpu_model\": \"RiscvO3CPU\",\n    \"frequency_ghz\": 4,\n    \"issue_width\": 4,\n    \"l1d_cache_kib\": 64,\n    \"l1d_associativity\": 8,\n    \"l2_cache_kib\": 1024,\n    \"l2_associativity\": 16\n  },\n  \"software\": {\n    \"temperature\": 0.5,\n    \"max_output_tokens\": 384\n  }\n}",
+      "sdk": "google-genai",
+      "status": "accepted",
+      "usage": {
+        "candidate_tokens": 138,
+        "input_tokens": 1103,
+        "output_tokens": 138,
+        "thought_tokens": 0,
+        "total_tokens": 1241
+      }
+    },
+    {
+      "call": 3,
+      "candidate_id": "15fe705f0118644184a420f589660f1dc556371ff22859bca1e0224c5cdb18e0",
+      "estimated_cost_usd": 0.0006205,
+      "model": "gemini-3.1-flash-lite",
+      "prompt_sha256": "e1d21d6369ddbf9384193f529e62d51cf6d1195cfcac806e99e2e20f7ab2585a",
+      "prompt_version": "candidate-json-v3-four-objective-pareto",
+      "raw_proposal": "{\n  \"hardware\": {\n    \"cpu_model\": \"RiscvO3CPU\",\n    \"frequency_ghz\": 2,\n    \"issue_width\": 2,\n    \"l1d_cache_kib\": 32,\n    \"l1d_associativity\": 4,\n    \"l2_cache_kib\": 512,\n    \"l2_associativity\": 8\n  },\n  \"software\": {\n    \"temperature\": 0.2,\n    \"max_output_tokens\": 256\n  }\n}",
+      "sdk": "google-genai",
+      "status": "accepted",
+      "usage": {
+        "candidate_tokens": 136,
+        "input_tokens": 1666,
+        "output_tokens": 136,
+        "thought_tokens": 0,
+        "total_tokens": 1802
+      }
+    },
+    {
+      "call": 4,
+      "candidate_id": "31bc861e29fd6edba91291985564f08f53f044247eb2f573a942d5f451c7af76",
+      "estimated_cost_usd": 0.00076175,
+      "model": "gemini-3.1-flash-lite",
+      "prompt_sha256": "4209f21391bed82c2fbba10f82480264489639a6e2799d5cf7eec78dd52b635b",
+      "prompt_version": "candidate-json-v3-four-objective-pareto",
+      "raw_proposal": "{\n  \"hardware\": {\n    \"cpu_model\": \"RiscvO3CPU\",\n    \"frequency_ghz\": 3,\n    \"issue_width\": 2,\n    \"l1d_cache_kib\": 32,\n    \"l1d_associativity\": 4,\n    \"l2_cache_kib\": 512,\n    \"l2_associativity\": 8\n  },\n  \"software\": {\n    \"temperature\": 0.2,\n    \"max_output_tokens\": 256\n  }\n}",
+      "sdk": "google-genai",
+      "status": "accepted",
+      "usage": {
+        "candidate_tokens": 136,
+        "input_tokens": 2231,
+        "output_tokens": 136,
+        "thought_tokens": 0,
+        "total_tokens": 2367
+      }
+    },
+    {
+      "call": 5,
+      "candidate_id": "9db06aec74d2d57cd13dbfeb52c091bc56614484a79073b28264fa1a2d7c22e3",
+      "estimated_cost_usd": 0.0009025,
+      "model": "gemini-3.1-flash-lite",
+      "prompt_sha256": "3364ac86e076b41ce6513845f251b02e850ab8196564decd1cea01ec51e31c57",
+      "prompt_version": "candidate-json-v3-four-objective-pareto",
+      "raw_proposal": "{\n  \"hardware\": {\n    \"cpu_model\": \"RiscvO3CPU\",\n    \"frequency_ghz\": 1,\n    \"issue_width\": 2,\n    \"l1d_cache_kib\": 32,\n    \"l1d_associativity\": 4,\n    \"l2_cache_kib\": 512,\n    \"l2_associativity\": 8\n  },\n  \"software\": {\n    \"temperature\": 0.2,\n    \"max_output_tokens\": 256\n  }\n}",
+      "sdk": "google-genai",
+      "status": "accepted",
+      "usage": {
+        "candidate_tokens": 136,
+        "input_tokens": 2794,
+        "output_tokens": 136,
+        "thought_tokens": 0,
+        "total_tokens": 2930
+      }
+    },
+    {
+      "call": 6,
+      "candidate_id": "09334636d32826683868d327f06c9a8f36d98df42ccf7df1de38f4d39d5b2887",
+      "estimated_cost_usd": 0.00104225,
+      "model": "gemini-3.1-flash-lite",
+      "prompt_sha256": "606fc45f2d9bb742c9e00d7c2fcce490f5604275dcc2817ce36f5c666541e238",
+      "prompt_version": "candidate-json-v3-four-objective-pareto",
+      "raw_proposal": "{\n  \"hardware\": {\n    \"cpu_model\": \"RiscvO3CPU\",\n    \"frequency_ghz\": 2,\n    \"issue_width\": 4,\n    \"l1d_cache_kib\": 64,\n    \"l1d_associativity\": 8,\n    \"l2_cache_kib\": 1024,\n    \"l2_associativity\": 16\n  },\n  \"software\": {\n    \"temperature\": 0,\n    \"max_output_tokens\": 256\n  }\n}",
+      "sdk": "google-genai",
+      "status": "accepted",
+      "usage": {
+        "candidate_tokens": 136,
+        "input_tokens": 3353,
+        "output_tokens": 136,
+        "thought_tokens": 0,
+        "total_tokens": 3489
+      }
+    },
+    {
+      "call": 7,
+      "candidate_id": "05d1bbca5e49755801aae96f81874b595fc200a9f3c1f25c5fcdcbd9c259de3b",
+      "estimated_cost_usd": 0.001183,
+      "model": "gemini-3.1-flash-lite",
+      "prompt_sha256": "aa6b9a935f77b5c4cc9f39a2e4e7f029ed3f8b0c9e6aa9ad1f1fc907d26e7067",
+      "prompt_version": "candidate-json-v3-four-objective-pareto",
+      "raw_proposal": "{\n  \"hardware\": {\n    \"cpu_model\": \"RiscvO3CPU\",\n    \"frequency_ghz\": 1,\n    \"issue_width\": 4,\n    \"l1d_cache_kib\": 64,\n    \"l1d_associativity\": 8,\n    \"l2_cache_kib\": 1024,\n    \"l2_associativity\": 16\n  },\n  \"software\": {\n    \"temperature\": 0,\n    \"max_output_tokens\": 256\n  }\n}",
+      "sdk": "google-genai",
+      "status": "accepted",
+      "usage": {
+        "candidate_tokens": 136,
+        "input_tokens": 3916,
+        "output_tokens": 136,
+        "thought_tokens": 0,
+        "total_tokens": 4052
+      }
+    },
+    {
+      "call": 8,
+      "candidate_id": "5d19d3348aa25c3a99d3c117d0fd1aef8fc182e689664f3bb3cd697a3d08cf69",
+      "estimated_cost_usd": 0.00131975,
+      "model": "gemini-3.1-flash-lite",
+      "prompt_sha256": "02fc4334b41e4de0748904ae52790103e3a4a9c5bdb0c5314612540ccbdb6cbf",
+      "prompt_version": "candidate-json-v3-four-objective-pareto",
+      "raw_proposal": "{\n  \"hardware\": {\n    \"cpu_model\": \"RiscvO3CPU\",\n    \"frequency_ghz\": 2,\n    \"issue_width\": 2,\n    \"l1d_cache_kib\": 32,\n    \"l1d_associativity\": 4,\n    \"l2_cache_kib\": 512,\n    \"l2_associativity\": 8\n  },\n  \"software\": {\n    \"temperature\": 0,\n    \"max_output_tokens\": 256\n  }\n}",
+      "sdk": "google-genai",
+      "status": "accepted",
+      "usage": {
+        "candidate_tokens": 134,
+        "input_tokens": 4475,
+        "output_tokens": 134,
+        "thought_tokens": 0,
+        "total_tokens": 4609
+      }
+    },
+    {
+      "call": 9,
+      "candidate_id": "0f94ff2379d8002c422f2de4b25b1c3c1ef2cfdc27c671777dd7a63d99d07f80",
+      "estimated_cost_usd": 0.00145925,
+      "model": "gemini-3.1-flash-lite",
+      "prompt_sha256": "e38f9380c721fd5a191e0d64c54f0453b053591f294b0477f937ec123deb5906",
+      "prompt_version": "candidate-json-v3-four-objective-pareto",
+      "raw_proposal": "{\n  \"hardware\": {\n    \"cpu_model\": \"RiscvO3CPU\",\n    \"frequency_ghz\": 1,\n    \"issue_width\": 2,\n    \"l1d_cache_kib\": 32,\n    \"l1d_associativity\": 4,\n    \"l2_cache_kib\": 512,\n    \"l2_associativity\": 8\n  },\n  \"software\": {\n    \"temperature\": 0,\n    \"max_output_tokens\": 256\n  }\n}",
+      "sdk": "google-genai",
+      "status": "accepted",
+      "usage": {
+        "candidate_tokens": 134,
+        "input_tokens": 5033,
+        "output_tokens": 134,
+        "thought_tokens": 0,
+        "total_tokens": 5167
+      }
+    },
+    {
+      "call": 10,
+      "candidate_id": "0ac06dfc44313cf5438f10cd4a0bbce9f0498529476806b7c3b8ecc783d98cd4",
+      "estimated_cost_usd": 0.00160175,
+      "model": "gemini-3.1-flash-lite",
+      "prompt_sha256": "8ce725ba707a338171e47a2d0e6a7d9e634ffa98a12b908669e2f09c96739fc3",
+      "prompt_version": "candidate-json-v3-four-objective-pareto",
+      "raw_proposal": "{\n  \"hardware\": {\n    \"cpu_model\": \"RiscvO3CPU\",\n    \"frequency_ghz\": 4,\n    \"issue_width\": 2,\n    \"l1d_cache_kib\": 32,\n    \"l1d_associativity\": 4,\n    \"l2_cache_kib\": 512,\n    \"l2_associativity\": 8\n  },\n  \"software\": {\n    \"temperature\": 0.2,\n    \"max_output_tokens\": 384\n  }\n}",
+      "sdk": "google-genai",
+      "status": "accepted",
+      "usage": {
+        "candidate_tokens": 136,
+        "input_tokens": 5591,
+        "output_tokens": 136,
+        "thought_tokens": 0,
+        "total_tokens": 5727
+      }
+    }
+  ],
+  "optimizer_failures": 0,
+  "pareto_candidate_ids": [
+    "69f8f3fc7533fdd7f438c7fa00f69d4dc4385de79fb881d61d4d192867457a8b",
+    "15fe705f0118644184a420f589660f1dc556371ff22859bca1e0224c5cdb18e0",
+    "31bc861e29fd6edba91291985564f08f53f044247eb2f573a942d5f451c7af76",
+    "9db06aec74d2d57cd13dbfeb52c091bc56614484a79073b28264fa1a2d7c22e3",
+    "0f94ff2379d8002c422f2de4b25b1c3c1ef2cfdc27c671777dd7a63d99d07f80",
+    "0ac06dfc44313cf5438f10cd4a0bbce9f0498529476806b7c3b8ecc783d98cd4"
+  ],
+  "records": [
+    {
+      "candidate_id": "1a9cad86cb5a415523095a667251877f4ecfef348b14a52606a8bde110179bb4",
+      "run_id": "run-80488fdc6b6d459e9090ddb42d27768f",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "69f8f3fc7533fdd7f438c7fa00f69d4dc4385de79fb881d61d4d192867457a8b",
+      "run_id": "run-ce6ec655d4c84a2b8214c92043f05e60",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "15fe705f0118644184a420f589660f1dc556371ff22859bca1e0224c5cdb18e0",
+      "run_id": "run-7f12d3d60bd246ab9ae61a21720afc53",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "31bc861e29fd6edba91291985564f08f53f044247eb2f573a942d5f451c7af76",
+      "run_id": "run-ccbfeb7fa9d7490c9f8f5c1059552d09",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "9db06aec74d2d57cd13dbfeb52c091bc56614484a79073b28264fa1a2d7c22e3",
+      "run_id": "run-3900d6af6de94b55a461b89210f33867",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "09334636d32826683868d327f06c9a8f36d98df42ccf7df1de38f4d39d5b2887",
+      "run_id": "run-af0c21064e9347ec97c2c09006748e67",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "05d1bbca5e49755801aae96f81874b595fc200a9f3c1f25c5fcdcbd9c259de3b",
+      "run_id": "run-07219248cf634acc9760b9a1537430d0",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "5d19d3348aa25c3a99d3c117d0fd1aef8fc182e689664f3bb3cd697a3d08cf69",
+      "run_id": "run-a7b1aaf8c62e46b8aa31dd2599acab0c",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "0f94ff2379d8002c422f2de4b25b1c3c1ef2cfdc27c671777dd7a63d99d07f80",
+      "run_id": "run-917e9858545c47329935a6a47ca30289",
+      "status": "completed"
+    },
+    {
+      "candidate_id": "0ac06dfc44313cf5438f10cd4a0bbce9f0498529476806b7c3b8ecc783d98cd4",
+      "run_id": "run-90d1088226c4416ebdcf3bf9046fe7a1",
+      "status": "completed"
+    }
+  ],
+  "skipped": [],
+  "started_at": "2026-09-22T12:50:22.850097+00:00",
+  "state": "completed",
+  "stop_reason": "iteration_limit",
+  "tier": "integration"
+}

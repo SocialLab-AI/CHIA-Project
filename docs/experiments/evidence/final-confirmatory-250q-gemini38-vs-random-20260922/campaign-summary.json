@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "comparison_stamp": "20260922T182341Z",
+  "state": "completed",
+  "methods": {
+    "gemini": {
+      "campaign_id": "confirmatory-250q-gemini38-10-20260922T182341Z",
+      "candidate_budget": 10,
+      "completed_candidates": 10,
+      "campaign_pareto_candidates": 6,
+      "combined_frontier_contribution": 6,
+      "elapsed_seconds": 9894.05757331301,
+      "proposal_model": "gemini-3.8-flash",
+      "request_count": 10,
+      "accepted_proposals": 10,
+      "proposal_failures": 0,
+      "total_tokens": 45187,
+      "estimated_cost_usd": 0.07756725
+    },
+    "random": {
+      "campaign_id": "confirmatory-250q-random-seed20260922-10-20260922T182341Z",
+      "candidate_budget": 10,
+      "completed_candidates": 10,
+      "campaign_pareto_candidates": 7,
+      "combined_frontier_contribution": 1,
+      "elapsed_seconds": 10414.08013468099,
+      "random_seed": 20260922,
+      "proposal_failures": 0
+    }
+  },
+  "combined": {
+    "evaluated_candidates": 20,
+    "completed_candidates": 20,
+    "feasible_candidates": 20,
+    "unique_candidates": 20,
+    "combined_pareto_candidates": 7,
+    "stored_frontiers_match_recomputation": true,
+    "campaign_manifests_passed": true
+  },
+  "objective_winners": {
+    "native_latency": {
+      "candidate_id": "588ef56fbc16fa8f5a74c5075ba2357f8bce41b21083cfc93ae367d701bd48b5",
+      "method": "gemini",
+      "value": 1242.816940008197,
+      "unit": "ms"
+    },
+    "proxy_simulated_time": {
+      "candidate_id": "c12f1db945bd459690a2984198014bd4b9c6a4f83702dfefa884cad869ead419",
+      "method": "gemini",
+      "value": 0.019288,
+      "unit": "seconds"
+    },
+    "estimated_cache_dynamic_energy": {
+      "candidate_id": "6ab534d518fb46d61dd2d0d4be1300be05dfb33176681e922ddd2b4bb3f924ea",
+      "method": "gemini",
+      "value": 6553.915450293101,
+      "unit": "microjoules"
+    },
+    "answer_quality": {
+      "candidate_id": "3fbd6776d457fe8963536804358c0de401bca6bbb4f987a0d5a27579c40b88f6",
+      "method": "random",
+      "value": 0.444,
+      "unit": "fraction"
+    }
+  },
+  "selection": {
+    "preferred_best_observed_candidate_id": "588ef56fbc16fa8f5a74c5075ba2357f8bce41b21083cfc93ae367d701bd48b5",
+    "selection_basis": "Lowest observed native Qwen latency among feasible candidates while remaining on the combined four-objective Pareto frontier.",
+    "absolute_or_global_optimum_claimed": false,
+    "repeat_measurements_required": true
+  },
+  "integrity": {
+    "source_analysis_archive_sha256": "4cc8ce85892d94b2984fc6335115053895f16c798cf01aab2646ec3b72c3d078",
+    "source_internal_checksums_passed": true
+  }
+}

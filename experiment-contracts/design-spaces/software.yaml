@@ -54,7 +54,7 @@ pending_search_space:
 optimization_metrics:
   answer_quality:
     direction: "maximize"
-    intended_purpose: "Native OpenStax QA accuracy / reviewer score"
+    intended_purpose: "Native 250-question assessment accuracy"
 
   latency_ms:
     direction: "minimize"

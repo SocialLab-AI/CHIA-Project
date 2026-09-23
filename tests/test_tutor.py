@@ -103,8 +103,8 @@ def test_evaluation_reference_isolation_guardrail():
     """Hard guardrail: held-out evaluation references must NEVER be visible to the model."""
     tutor_data = load_yaml(BASELINES_DIR / "tutor.yaml")
     eval_cfg = tutor_data["evaluation"]
-    assert eval_cfg["reference_source"] == "OpenStax College Physics 2e, Chapter 4 conceptual questions"
-    assert eval_cfg["license"] == "CC BY-NC-SA 4.0"
+    assert eval_cfg["reference_source"] == "Team-authored 250-question assessment aligned to OpenStax topic scope"
+    assert eval_cfg["license"] == "Team-authored evaluation material; repository use authorized by contributor"
     assert eval_cfg["reference_visible_to_model"] is False
 
 

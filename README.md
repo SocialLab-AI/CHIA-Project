@@ -3,14 +3,14 @@
 This repository implements a bounded CHIA loop that compares Gemini-guided and
 seeded-random search over one shared hardware/software design space. A single
 candidate is evaluated by native Qwen inference, a gem5 attention proxy, an
-Accelergy + McPAT cache-energy estimator, and an OpenStax quality evaluator.
+Accelergy + McPAT cache-energy estimator, and a 250-question assessment evaluator.
 The four measurements remain separate Pareto objectives.
 
 This README explains the project and reproduces the complete loop on one
 Ubuntu server without administrator access. It covers installation, the native
 model service, Ray resources, Docker images, configuration, validation,
 preflight, one-candidate smoke testing, evidence verification, and the equal
-three-candidate pilots.
+pilot and confirmatory comparisons.
 
 > **Release gate:** do not run a pilot or burst until contract validation,
 > release preflight, and the deterministic one-candidate smoke all pass on the
@@ -24,12 +24,13 @@ three-candidate pilots.
 | Native model | Qwen2.5-0.5B-Instruct Q5_K_M |
 | Model file | `qwen2.5-0.5b-instruct-q5_k_m.gguf` |
 | Model SHA-256 | `041474553fcabfc2a2d67903f9d2c2e50bd92528e670da4f33b5d0ce6e59fd55` |
-| Dataset | Repository OpenStax questions only |
+| Dataset | 250 team-authored questions aligned to five OpenStax textbooks |
 | Proxy | packed-Q4 attention with 14 query heads, 2 KV heads, and head dimension 64 |
 | gem5 image | `ghcr.io/gem5/devcontainer:v25-1` |
 | Energy image | `chia-energy-tools:0.3` |
 | Objectives | native latency, proxy simulated time, estimated cache dynamic energy, quality loss |
 | Canonical contract | `experiment-contracts/campaigns/final-burst.yaml` |
+| Confirmatory comparison | `experiment-contracts/campaigns/confirmatory-gemini38-vs-random-10.yaml` |
 
 The 14/2/64 proxy represents Qwen attention geometry for comparative hardware
 design-space exploration. Proxy validation supports context-scaling trend
@@ -40,9 +41,11 @@ The energy objective covers dynamic access energy for two L1 instruction
 caches, two L1 data caches, and one shared L2 cache. It excludes processor-core
 logic, DRAM, interconnect, TLBs, static/leakage energy, and native Qwen energy.
 
-The quality metric is required-concept coverage over repository OpenStax
-questions. It uses token-aware matching and isolated references. It is not a
-claim of complete factual correctness.
+The quality metric is exact answer-text accuracy over 250 unlabeled,
+deterministically shuffled multiple-choice questions. The answer key is
+isolated from model prompts. Results also report per-subject accuracy and
+answer-position diagnostics. This measures assessment accuracy rather than
+complete educational or open-ended reasoning quality.
 
 ## Execution flow
 
@@ -371,6 +374,7 @@ source .venv/bin/activate
 export CHIA_CONFIG="$HOME/.local/state/chia/final-burst.single-server.local.yaml"
 
 uv run python scripts/validate_configs.py
+uv run python scripts/verify_evidence_checksums.py
 
 uv run python scripts/run_experiment.py \
   --config "$CHIA_CONFIG" \
@@ -390,15 +394,15 @@ do not execute the real native, gem5, or energy workloads.
 
 ## 10. Run the release preflight
 
-OpenStax permission is an operator attestation. Set the variable only after the
-required LLM-use permission is confirmed for the campaign.
+Dataset permission is an operator attestation. Set the variable only after the
+team-provided assessment is approved for the campaign.
 
 ```bash
 cd "$HOME/CHIA-Project"
 source "$HOME/.local/bin/env"
 source .venv/bin/activate
 export CHIA_CONFIG="$HOME/.local/state/chia/final-burst.single-server.local.yaml"
-export OPENSTAX_LLM_PERMISSION_CONFIRMED=1
+export TEAM_ASSESSMENT_LLM_PERMISSION_CONFIRMED=1
 
 uv run python scripts/preflight_release.py \
   --config "$CHIA_CONFIG"
@@ -416,7 +420,7 @@ cd "$HOME/CHIA-Project"
 source "$HOME/.local/bin/env"
 source .venv/bin/activate
 export CHIA_CONFIG="$HOME/.local/state/chia/final-burst.single-server.local.yaml"
-export OPENSTAX_LLM_PERMISSION_CONFIRMED=1
+export TEAM_ASSESSMENT_LLM_PERMISSION_CONFIRMED=1
 
 if [ -d results/final-burst-smoke ]; then
   mv results/final-burst-smoke \
@@ -430,7 +434,9 @@ uv run python scripts/run_experiment.py \
 
 `--smoke` evaluates exactly one candidate and disables both proposers. It does
 not perform multiple CHIA iterations or call Gemini. Software measurement may
-still contain multiple question samples inside that single candidate.
+still contain 250 question samples inside that single candidate. Reserve at
+least one hour for the first 250-question smoke and use its observed duration
+to size later campaign budgets.
 
 The smoke is complete only when the whole chain succeeds:
 
@@ -489,6 +495,21 @@ machine-specific work directories. The first verified smoke is documented in
 [`docs/RESULTS.md`](docs/RESULTS.md) and its
 [machine-readable summary](docs/experiments/evidence/final-burst-smoke-20260921/summary.json).
 
+The completed ten-candidate Gemini-guided pilot is also documented in
+[`docs/RESULTS.md`](docs/RESULTS.md) with its
+[reviewed evidence package](docs/experiments/evidence/final-burst-gemini-20260921/README.md).
+It contains nine accepted Gemini proposals and one deterministic fallback after
+a rejected duplicate. It is pilot evidence and does not claim that Gemini
+outperforms random search.
+
+The final confirmatory 10-versus-10 comparison is documented in
+[`docs/RESULTS.md`](docs/RESULTS.md) with its
+[reviewed confirmatory evidence](docs/experiments/evidence/final-confirmatory-250q-gemini38-vs-random-20260922/README.md).
+All 20 evaluations completed, and independent Pareto recomputation produced a
+seven-candidate combined frontier. Candidate `588ef56fbc16...` is the
+preferred best-observed candidate for native-latency-prioritized use, subject
+to the documented repeat-measurement limitation.
+
 The final validated deployment ran on GCP. The corresponding validated release
 is identified by the annotated tag `micro-2026-chia-validated`, which points to
 `bcbf685c47ea73ed29184991d795735a3d8c67cc`. Historical backend labels are preserved:
@@ -509,7 +530,7 @@ cd "$HOME/CHIA-Project"
 source "$HOME/.local/bin/env"
 source .venv/bin/activate
 export CHIA_CONFIG="$HOME/.local/state/chia/final-burst.single-server.local.yaml"
-export OPENSTAX_LLM_PERMISSION_CONFIRMED=1
+export TEAM_ASSESSMENT_LLM_PERMISSION_CONFIRMED=1
 
 uv run python scripts/run_experiment.py \
   --config "$CHIA_CONFIG" \
@@ -539,6 +560,19 @@ wins. Estimated API cost in the usage ledger is not verified live billing.
 
 Do not increase the candidate budget or launch a burst until pilot wall time,
 failure rate, disk use, artifact size, and Gemini usage are reviewed.
+
+### Matched 10-versus-10 confirmatory profile
+
+The reviewed confirmatory contract runs Gemini 3.8 Flash and seeded random
+search for ten evaluated candidates each. The random seed is `20260922`, which
+differs from the first comparison. Both arms share the native model,
+250-question dataset, design spaces, proxy, energy estimator, evaluator,
+candidate budget, stopping limits, resources, and four objective definitions.
+
+Pass a unique `--campaign-id` for each arm. The CLI derives the gem5 and energy
+artifact roots from that ID, preventing an earlier campaign from being
+overwritten. The rates in `compute-policy.yaml` estimate Gemini usage cost;
+the usage ledger is not a live billing statement.
 
 ## 14. Stop and restart the rootless services
 
@@ -583,7 +617,7 @@ configuration persist across restarts.
 experiment-contracts/  schemas, campaign, design spaces, policy
 src/                   validation, CHIA graph, runtimes, evaluation, records
 gem5/                  attention proxy and gem5 configuration
-data/                  OpenStax questions and isolated evaluator references
+data/                  250-question assessment and isolated evaluator answer key
 infra/energy/          pinned Accelergy + McPAT image and wrapper
 scripts/               validation, preflight, and campaign entry points
 docs/                  architecture, methodology, operations, results, limits

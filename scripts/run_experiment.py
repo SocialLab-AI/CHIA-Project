@@ -32,14 +32,29 @@ def main():
     parser.add_argument("--validate-only", action="store_true")
     parser.add_argument("--smoke", action="store_true")
     parser.add_argument("--method", choices=("gemini", "random"))
+    parser.add_argument("--campaign-id")
+    parser.add_argument("--native-endpoint")
+    parser.add_argument("--ray-address")
+    parser.add_argument("--results-root")
     args = parser.parse_args()
     config = yaml.safe_load(args.config.read_text()) if args.config else {}
+    if args.native_endpoint:
+        config.setdefault("runtime", {}).setdefault("software", {})[
+            "endpoint"
+        ] = args.native_endpoint
+    if args.ray_address:
+        config["ray_address"] = args.ray_address
+    if args.results_root:
+        config["results_root"] = args.results_root
     if args.smoke:
-        _set_campaign_id(config, "final-burst-smoke")
+        _set_campaign_id(config, args.campaign_id or "final-burst-smoke")
         _set_candidate_budget(config, 1)
         config["optimizer"] = {"enabled": False}
     elif args.method:
-        _set_campaign_id(config, "final-burst-" + args.method)
+        _set_campaign_id(
+            config,
+            args.campaign_id or "final-burst-" + args.method,
+        )
         _set_candidate_budget(config, config["study"]["candidate_budget_per_method"])
         if args.method == "random":
             config["optimizer"] = {
@@ -50,11 +65,19 @@ def main():
         else:
             config["optimizer"] = {
                 "enabled": True, "policy": "gemini_api",
-                "model": "gemini-3.1-flash-lite",
+                "model": config["study"].get(
+                    "gemini_model", "gemini-3.1-flash-lite"
+                ),
                 "max_calls": config["iterations"],
-                "budget_usd": 10.0,
-                "timeout_seconds": 60,
+                "budget_usd": config["study"].get(
+                    "gemini_budget_usd", 10.0
+                ),
+                "timeout_seconds": config["study"].get(
+                    "gemini_timeout_seconds", 60
+                ),
             }
+    elif args.campaign_id:
+        _set_campaign_id(config, args.campaign_id)
     if args.validate_only:
         checked = validate_campaign_config(config)
         candidates = checked.get("candidates", deterministic_candidates())

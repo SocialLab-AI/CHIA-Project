@@ -1,5 +1,14 @@
 # Results and evidence
 
+## Dataset transition
+
+The smoke and ten-candidate Gemini pilot documented below were produced at
+their recorded source commits with the earlier three-question concept-coverage
+dataset. The current release contract replaces that dataset with the
+250-question team-authored OpenStax-aligned assessment and exact option-text
+accuracy. Historical quality values remain valid for their recorded commits,
+but they must not be compared directly with results from the new evaluator.
+
 ## Verified one-candidate integration smoke
 
 The first complete final-profile smoke passed on 2026-09-21 at Git commit
@@ -50,6 +59,128 @@ Existing proxy-comparison evidence under
 `docs/experiments/evidence/qwen-proxy-comparison-20260918-01/` supports
 context-scaling trend comparison and selection of the Qwen-shaped proxy; it is
 not evidence of full-model latency equivalence.
+
+## Ten-candidate Gemini pilot
+
+The `final-burst-gemini` pilot completed on 2026-09-21 at Git commit
+`adc85e51d9684921830e6b6bb1cbcdaeeb2c3ebc`. All ten candidate evaluations
+completed. Nine candidates came from accepted Gemini proposals; a repeated
+proposal on the eighth Gemini request was rejected and replaced with one
+deterministic fallback candidate.
+
+| Field | Observed value |
+| --- | --- |
+| Campaign state | `completed` |
+| Stop reason | `iteration_limit` |
+| Campaign wall time | 9468.836 seconds |
+| Completed candidates | 10 |
+| Observed Pareto candidates | 6 |
+| Gemini requests | 10 |
+| Accepted proposals | 9 |
+| Rejected duplicates | 1 |
+| Malformed responses | 0 |
+| Gemini tokens | 32,937 |
+| Estimated Gemini cost | USD 0.00993925 |
+
+The lowest observed native latency was 3382.129 ms. The lowest proxy simulated
+time was 0.019288 seconds. The lowest estimated cache dynamic energy was
+9136.519 microjoules, produced by the deterministic fallback. The highest
+observed required-concept coverage score was 0.6667. No single candidate
+minimized every objective.
+
+All candidate records passed completed-record validation, candidate IDs were
+unique, comparison groups agreed, and the stored Pareto frontier matched an
+independent recomputation. The execution-server manifest also passed in full.
+The reviewed evidence and complete candidate table are under
+`docs/experiments/evidence/final-burst-gemini-20260921/`.
+
+This is a Gemini-guided pilot rather than the final optimizer comparison. It
+does not establish that Gemini outperforms random search. The matched
+250-question comparison documented below supersedes it for method comparison.
+
+## Matched Gemini-versus-random comparison
+
+The first matched comparison completed on 2026-09-22. Seeded random and
+Gemini-guided search each evaluated ten candidates with the 250-question exact
+option-text evaluator. All 20 records completed and passed the repository's
+completed-record validator. Both execution-server manifests passed, and each
+stored per-campaign Pareto frontier matched an independent recomputation.
+
+| Field | Seeded random | Gemini-guided |
+| --- | ---: | ---: |
+| Completed candidates | 10 | 10 |
+| Per-campaign Pareto candidates | 6 | 6 |
+| Combined-frontier contribution | 6 | 6 |
+| Best native latency | 1258.766 ms | **1251.860 ms** |
+| Best proxy simulated time | 0.019325 s | **0.019288 s** |
+| Best cache dynamic energy | **6429.489 uJ** | 8370.200 uJ |
+| Best exact option-text accuracy | **46.0%** | 45.2% |
+| Campaign wall time | 9835.876 s | 9173.489 s |
+| Proposal failures | 0 | 0 |
+
+There is no single overall winner under this ten-candidate budget. Each method
+contributed six candidates to the combined 12-candidate frontier. Gemini found
+the best observed native-latency and proxy-time candidates; random found the
+best observed quality and cache-energy candidates. Random dominated four
+Gemini candidates, while Gemini dominated two random candidates, but this
+secondary coverage result does not erase the equal frontier contribution or
+the split objective winners.
+
+The model, dataset hashes, design space, evaluator, proxy, energy estimator,
+runtime versions, budgets, stopping rules, and deterministic evaluation source
+hashes match. The campaign Git commits differ because the later Gemini run used
+the corrected four-objective proposer prompt in
+`src/orchestration/gemini_api.py`; that method-specific proposer is the only
+recorded runtime source-hash difference. The evidence is therefore useful for
+this observed comparison, with that provenance qualification stated.
+
+The reviewed evidence, all 20 candidate rows, individual and combined
+frontiers, proposal accounting, provenance comparison, and integrity hashes
+are under
+`docs/experiments/evidence/final-burst-250q-gemini-vs-random-20260922/`.
+This single 10-versus-10 study does not establish statistical superiority or a
+global optimum. Multiple matched repetitions are required for a stronger
+method-level claim.
+
+## Final confirmatory comparison
+
+A second matched comparison completed on 2026-09-22 using Gemini 3.8 Flash and
+random seed `20260922`. Both methods evaluated ten candidates. All 20 records
+completed, both campaign manifests passed, and the stored campaign frontiers
+matched independent recomputation.
+
+| Field | Seeded random | Gemini 3.8 Flash |
+| --- | ---: | ---: |
+| Completed candidates | 10 | 10 |
+| Per-campaign Pareto candidates | 7 | 6 |
+| Combined-frontier contribution | 1 | 6 |
+| Best native latency | 1265.363 ms | **1242.817 ms** |
+| Best proxy simulated time | 0.022403 s | **0.019288 s** |
+| Best cache dynamic energy | 6718.282 uJ | **6553.915 uJ** |
+| Best exact option-text accuracy | **44.4%** | 44.0% |
+| Campaign wall time | 10414.080 s | 9894.058 s |
+| Proposal failures | 0 | 0 |
+
+Gemini contributed six of the seven candidates on the combined frontier, while
+random search contributed the best observed quality candidate. This is stronger
+observed frontier coverage by Gemini in this campaign, but one run per method
+is insufficient for a statistical superiority claim.
+
+Candidate
+`588ef56fbc16fa8f5a74c5075ba2357f8bce41b21083cfc93ae367d701bd48b5`
+is selected as the preferred best-observed candidate for a
+native-latency-prioritized use case. It achieved 1242.817 ms native latency,
+0.022916 seconds proxy time, 6977.289 uJ estimated cache dynamic energy, and
+44.0% exact option-text accuracy. It remains on the combined Pareto frontier.
+
+The selection is a documented application preference rather than an absolute
+optimum. The energy-winning candidate uses identical native software knobs, so
+their native-latency difference may reflect runtime variation. Repeated
+finalist measurements are required before claiming a stable latency advantage.
+
+The complete 20-candidate table, all knobs and metrics, seven-member combined
+frontier, objective winners, compact campaign summary, and checksums are under
+`docs/experiments/evidence/final-confirmatory-250q-gemini38-vs-random-20260922/`.
 
 ## Backend labels and deployment provenance
 

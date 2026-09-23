@@ -1180,14 +1180,14 @@ $defs:
         type: string
       reference_source:
         type: string
-        const: "OpenStax College Physics 2e, Chapter 4 conceptual questions"
+        const: "Team-authored 250-question assessment aligned to OpenStax topic scope"
         description: "Hard guardrail: held out for evaluation only."
       source_url:
         type: string
-        const: "https://openstax.org/books/college-physics-2e/pages/4-conceptual-questions"
+        const: "https://openstax.org/"
       license:
         type: string
-        const: "CC BY-NC-SA 4.0"
+        const: "Team-authored evaluation material; repository use authorized by contributor"
       reference_visible_to_model:
         type: boolean
         const: false
