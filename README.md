@@ -375,6 +375,7 @@ source .venv/bin/activate
 export CHIA_CONFIG="$HOME/.local/state/chia/final-burst.single-server.local.yaml"
 
 uv run python scripts/validate_configs.py
+uv run python scripts/verify_evidence_checksums.py
 
 uv run python scripts/run_experiment.py \
   --config "$CHIA_CONFIG" \

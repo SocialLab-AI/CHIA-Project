@@ -127,6 +127,15 @@ def test_real_team_assessment_metadata_is_accepted():
     )
 
 
+def test_committed_evidence_checksums_are_current():
+    from scripts.verify_evidence_checksums import audit_evidence
+
+    result = audit_evidence()
+    assert result["status"] == "passed", result["failures"]
+    assert result["verified_files"] == 28
+    assert result["external_files"] == 4
+
+
 def test_final_campaign_pins_the_runtime_verified_qwen_artifact():
     campaign = yaml.safe_load(
         (ROOT / "experiment-contracts/campaigns/final-burst.yaml").read_text(
