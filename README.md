@@ -498,6 +498,14 @@ It contains nine accepted Gemini proposals and one deterministic fallback after
 a rejected duplicate. It is pilot evidence and does not claim that Gemini
 outperforms random search.
 
+The final confirmatory 10-versus-10 comparison is documented in
+[`docs/RESULTS.md`](docs/RESULTS.md) with its
+[reviewed confirmatory evidence](docs/experiments/evidence/final-confirmatory-250q-gemini38-vs-random-20260922/README.md).
+All 20 evaluations completed, and independent Pareto recomputation produced a
+seven-candidate combined frontier. Candidate `588ef56fbc16...` is the
+preferred best-observed candidate for native-latency-prioritized use, subject
+to the documented repeat-measurement limitation.
+
 ## 13. Run equal three-candidate pilots
 
 Use the measured smoke runtime to reserve adequate time. Run random first

@@ -142,6 +142,46 @@ This single 10-versus-10 study does not establish statistical superiority or a
 global optimum. Multiple matched repetitions are required for a stronger
 method-level claim.
 
+## Final confirmatory comparison
+
+A second matched comparison completed on 2026-09-22 using Gemini 3.8 Flash and
+random seed `20260922`. Both methods evaluated ten candidates. All 20 records
+completed, both campaign manifests passed, and the stored campaign frontiers
+matched independent recomputation.
+
+| Field | Seeded random | Gemini 3.8 Flash |
+| --- | ---: | ---: |
+| Completed candidates | 10 | 10 |
+| Per-campaign Pareto candidates | 7 | 6 |
+| Combined-frontier contribution | 1 | 6 |
+| Best native latency | 1265.363 ms | **1242.817 ms** |
+| Best proxy simulated time | 0.022403 s | **0.019288 s** |
+| Best cache dynamic energy | 6718.282 uJ | **6553.915 uJ** |
+| Best exact option-text accuracy | **44.4%** | 44.0% |
+| Campaign wall time | 10414.080 s | 9894.058 s |
+| Proposal failures | 0 | 0 |
+
+Gemini contributed six of the seven candidates on the combined frontier, while
+random search contributed the best observed quality candidate. This is stronger
+observed frontier coverage by Gemini in this campaign, but one run per method
+is insufficient for a statistical superiority claim.
+
+Candidate
+`588ef56fbc16fa8f5a74c5075ba2357f8bce41b21083cfc93ae367d701bd48b5`
+is selected as the preferred best-observed candidate for a
+native-latency-prioritized use case. It achieved 1242.817 ms native latency,
+0.022916 seconds proxy time, 6977.289 uJ estimated cache dynamic energy, and
+44.0% exact option-text accuracy. It remains on the combined Pareto frontier.
+
+The selection is a documented application preference rather than an absolute
+optimum. The energy-winning candidate uses identical native software knobs, so
+their native-latency difference may reflect runtime variation. Repeated
+finalist measurements are required before claiming a stable latency advantage.
+
+The complete 20-candidate table, all knobs and metrics, seven-member combined
+frontier, objective winners, compact campaign summary, and checksums are under
+`docs/experiments/evidence/final-confirmatory-250q-gemini38-vs-random-20260922/`.
+
 ## Campaign evidence layout
 
 Each campaign creates:

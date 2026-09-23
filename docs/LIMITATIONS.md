@@ -8,9 +8,15 @@ The questions use original team-authored wording aligned to OpenStax topic scope
 
 Energy estimates dynamic access energy for two L1I caches, two L1D caches, and one shared L2 cache using aggregate gem5 hit/miss counters. Aggregate lookups are modeled as reads because current counters do not distinguish reads and writes. The estimate excludes processor-core logic, DRAM, interconnect, TLBs, static/leakage energy, and native Qwen energy.
 
-The completed ten-candidate Gemini campaign is still a pilot until it is paired
-with the equal-budget seeded-random campaign. One rejected Gemini duplicate was
-replaced by a deterministic fallback, so the ten evaluated candidates comprise
-nine Gemini proposals and one fallback. Gemini pricing is an estimate from the
-reviewed compute policy. Results support best-observed and budget-bounded Pareto
-claims only.
+The first completed ten-candidate Gemini campaign was a pilot. It was followed
+by matched and confirmatory Gemini-versus-random comparisons, but each contains
+only one campaign per method and ten candidates per arm. The results support
+best-observed and budget-bounded Pareto claims, not a global optimum or
+statistical method-level superiority. Gemini pricing is an estimate from the
+reviewed compute policy.
+
+The preferred candidate and the energy-winning candidate use identical native
+software knobs. gem5 hardware knobs do not reconfigure the physical server that
+runs native Qwen inference, so their native-latency difference may be ordinary
+runtime variation. Repeated measurements of finalists are required before the
+observed latency ordering can be treated as stable.

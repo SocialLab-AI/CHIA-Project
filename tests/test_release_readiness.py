@@ -132,7 +132,7 @@ def test_committed_evidence_checksums_are_current():
 
     result = audit_evidence()
     assert result["status"] == "passed", result["failures"]
-    assert result["verified_files"] == 28
+    assert result["verified_files"] == 36
     assert result["external_files"] == 4
 
 
