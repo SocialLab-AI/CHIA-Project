@@ -1,7 +1,7 @@
 campaign_id: final-burst
 mode: chia
 tier: pilot
-backend: contabo
+backend: gcp
 iterations: 3
 wall_budget_seconds: 14400
 results_root: results

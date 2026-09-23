@@ -116,7 +116,7 @@ df -h "$HOME"
 curl -LsSf https://astral.sh/uv/install.sh | sh
 source "$HOME/.local/bin/env"
 
-export CHIA_REF="${CHIA_REF:-release/final-burst}"
+export CHIA_REF="${CHIA_REF:-main}"
 export CHIA_REPO="$HOME/CHIA-Project"
 
 git clone --branch "$CHIA_REF" \
@@ -141,14 +141,13 @@ ray --version
 ninja --version
 ```
 
-After the release branch is merged, use `CHIA_REF=main`. For an existing
-checkout:
+For an existing checkout on `main`:
 
 ```bash
 cd "$HOME/CHIA-Project"
 git fetch --prune origin
-git switch release/final-burst
-git pull --ff-only origin release/final-burst
+git switch main
+git pull --ff-only origin main
 source "$HOME/.local/bin/env"
 uv sync --frozen --python 3.10 \
   --extra dev \
@@ -350,7 +349,7 @@ cp experiment-contracts/campaigns/final-burst.yaml "$CHIA_CONFIG"
 
 sed -i \
   -e 's/^tier: pilot$/tier: integration/' \
-  -e 's/^backend: contabo$/backend: local/' \
+  -e 's/^backend: gcp$/backend: local/' \
   -e "s|^results_root: results$|results_root: $HOME/CHIA-Project/results|" \
   -e 's|^ray_address: auto$|ray_address: ray://127.0.0.1:10011|' \
   -e 's|endpoint: http://127.0.0.1:8081|endpoint: http://127.0.0.1:8082|' \
@@ -381,12 +380,17 @@ uv run python scripts/run_experiment.py \
   --config "$CHIA_CONFIG" \
   --validate-only
 
+# Non-scheduling tests
 uv run pytest -q -m "not scheduling"
+
+# Opt-in scheduling tests using real local CHIA/Ray processes
+CHIA_RUN_SCHEDULING_TESTS=1 uv run pytest -q -m scheduling
 git diff --check
 ```
 
-These checks validate contracts and deterministic code. They do not execute
-the real native, gem5, or energy workloads.
+These checks validate contracts, deterministic code, and local CHIA/Ray
+scheduling. The scheduling tests use mocked workload runtimes; these checks
+do not execute the real native, gem5, or energy workloads.
 
 ## 10. Run the release preflight
 
@@ -505,6 +509,16 @@ All 20 evaluations completed, and independent Pareto recomputation produced a
 seven-candidate combined frontier. Candidate `588ef56fbc16...` is the
 preferred best-observed candidate for native-latency-prioritized use, subject
 to the documented repeat-measurement limitation.
+
+The final validated deployment ran on GCP. The corresponding validated release
+is identified by the annotated tag `micro-2026-chia-validated`, which points to
+`bcbf685c47ea73ed29184991d795735a3d8c67cc`. Historical backend labels are preserved:
+the linked summary records `local` for run
+`run-e9ba2424838246afad8f6183810e8cd1`, while the canonical campaign at that
+summary's source commit used `contabo`. The current canonical campaign uses
+`gcp`; the single-server overlay in step 8 explicitly selects `local`.
+See [backend provenance](docs/RESULTS.md#backend-labels-and-deployment-provenance)
+for the distinction between recorded labels and deployment provider.
 
 ## 13. Run equal three-candidate pilots
 

@@ -12,7 +12,7 @@ This is a full-stack **Domain-Specific Architecture co-design** entry: we don't 
 
 An offline, inference-only AI Tutor. The executable baseline is Qwen2.5 0.5B Instruct with Q5_K_M weights, served on native CPU through llama.cpp.
 
-The native software measurement and simulated attention-kernel proxy are separate executions. See [current implementation](docs/FULL_LOOP.md) and [status](docs/IMPLEMENTATION_STATUS.md) for evidence and remaining gates.
+The native software measurement and simulated attention-kernel proxy are separate executions. See the [architecture](docs/ARCHITECTURE.md), [experiment methodology](docs/EXPERIMENT_METHODOLOGY.md), and [validated results](docs/RESULTS.md).
 
 ## The loop
 
@@ -21,32 +21,38 @@ Using CHIA, we run one optimization loop that repeats: **propose a joint SW+HW c
 ### What we optimize
 
 **Software knobs**
+
 - Sampling temperature
 - Maximum generated tokens
 
 The model artifact, Q5_K_M quantization, CPU threads and sequential request topology are fixed for this campaign.
 
 **Hardware knobs (gem5)**
-- L1 and L2 cache sizes
+
+- CPU model and frequency
+- L1D and L2 cache sizes and associativities
 - Instruction issue width
-- CPU core count
+
+The simulated hardware uses a fixed two-core configuration and two kernel threads.
 
 ### How we evaluate each candidate
 
-Two separate measurement paths that the loop fuses into one objective:
+Each candidate produces four separate minimization objectives:
 
-- **Answer quality** — measured *natively* on three attributed OpenStax conceptual questions with deterministic required-concept rubrics. References remain evaluator-only.
-- **Hardware metrics** — measured in **gem5**: simulated time, instructions, IPC, cache miss rates and memory traffic.
+- **Native latency** — measured through Qwen inference on CPU.
+- **Proxy simulated time** — measured by gem5 for the attention kernel.
+- **Estimated cache dynamic energy** — estimated by Accelergy + McPAT from gem5 cache counters.
+- **Answer quality loss** — one minus required-concept coverage on three attributed OpenStax conceptual questions. References remain evaluator-only.
 
 Native Tutor measurements and the gem5 attention proxy remain separate objective domains. The current proxy is an abstraction and does not claim to predict complete Qwen latency.
 
 ## Why gem5 runs a proxy, not the model
 
-Full model inference inside gem5 would take far too long — cycle-level simulation is orders of magnitude slower than real execution. So we profile **representative GEMM (matrix-multiply) kernels and SimPoint regions** that stand in for the tutor's compute, instead of running whole inferences. We stay on **CPU edge hardware** throughout, to match the real classroom deployment target.
+Full model inference inside gem5 would take too long. We simulate a **Qwen-shaped packed-Q4 attention proxy** with 14 query heads, 2 KV heads, and head dimension 64 on CPU hardware. It supports comparative hardware exploration and context-scaling analysis, not absolute full-model latency prediction.
 
 ## What we're producing
 
-An **optimized Pareto frontier** mapping answer quality against latency, energy, and memory. Concretely, the deliverables are:
+A **budget-bounded Pareto frontier** over the four objectives above. The completed one-candidate smoke validates the integrated path; it does not establish optimizer superiority. The deliverables are:
 
 - the open-source optimization code (the CHIA loop),
 - the evaluation harnesses (native quality + gem5 metrics),
@@ -56,7 +62,7 @@ An **optimized Pareto frontier** mapping answer quality against latency, energy,
 
 - **admatieh** — the CHIA loop: nodes, edges, the agent that proposes configs.
 - **yahyafl** — gem5: the proxy model, the HW knobs, latency/memory/energy extraction (incl. Accelergy/McPAT).
-- **sara-alsayyah** — the tutor workload: inference runtime, OpenStax QA eval, the reviewer-model scorer.
-- **Lynn** — architecture, the config schema, how the two metric paths fuse, integration, submission.
+- **sara-alsayyah** — the tutor workload: inference runtime and OpenStax required-concept coverage evaluation.
+- **Lynn** — architecture, the config schema, integration of the measurement paths, submission.
 
 Nobody's boxed in — every issue has a reviewer from another stream, and the point is that all of us understand the whole loop.
